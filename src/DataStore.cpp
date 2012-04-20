@@ -623,7 +623,9 @@ void DataStore::syncAvailableMusic(){
     }
   }
   if(toAdd.size() > 0){
-    serverConnection->addSongsToAvailableSongs(toAdd);
+    for(int i =0; i<toAdd.size(); ++i){
+      serverConnection->addSongToAvailableSongs(toAdd[i]);
+    }
   }
   if(toDelete.size() > 0){
     serverConnection->removeSongsFromAvailableMusic(toDelete);
