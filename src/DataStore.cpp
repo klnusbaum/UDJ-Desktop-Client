@@ -30,6 +30,7 @@
 #include <QTimer>
 #include <QUuid>
 #include <QRegExp>
+#include <QDateTime>
 #include <tag.h>
 #include <tstring.h>
 #include <fileref.h>
@@ -50,7 +51,6 @@ DataStore::DataStore(
   serverConnection = new UDJServerConnection(this);
   serverConnection->setTicket(ticket);
   serverConnection->setUserId(userId);
-  serverConnection->setMachineUUID(getMachineUUID());
   errorHandler = new CommErrorHandler(this, serverConnection);
   activePlaylistRefreshTimer = new QTimer(this);
   eventGoerRefreshTimer = new QTimer(this);
@@ -82,27 +82,15 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(eventCreated(const event_id_t&)),
+    SIGNAL(playerCreated(const event_id_t&)),
     this,
-    SLOT(onEventCreate(const event_id_t&)));
+    SLOT(onPlayerCreate(const event_id_t&)));
 
   connect(
     errorHandler,
-    SIGNAL(eventCreationFailed(const QString)),
+    SIGNAL(playerCreationFailed(const QString)),
     this,
-    SLOT(onEventCreateFail(const QString)));
-
-  connect(
-    serverConnection,
-    SIGNAL(eventEnded()),
-    this,
-    SLOT(onEventEnd()));
-
-  connect(
-    errorHandler, 
-    SIGNAL(eventEndingFailed(const QString)), 
-    this, 
-    SLOT(onEventEndFail(const QString)));
+    SLOT(onPlayerCreateFail(const QString)));
 
   connect(
     serverConnection,
@@ -218,6 +206,16 @@ void DataStore::setupDB(){
     "Error creating song list table",
     setupQuery.exec(getCreateSongListEntryTableQuery()),
     setupQuery)
+}
+
+void DataStore::activatePlayer(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  if(settings.contains(getPlayerIdSettingName())){
+    serverConnection->setPlayerActive(getPlayerIdSettingName());
+  }
+  else{
+    emit needPlayerCreate();
+  }
 }
 
 void DataStore::addMusicToLibrary(
@@ -1035,41 +1033,20 @@ void DataStore::addSongListToAvailableMusic(song_list_id_t songListId){
   }
 }
 
-void DataStore::onEventCreate(const event_id_t& issuedId){
+void DataStore::onPlayerCreate(const event_id_t& issuedId){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getEventIdSettingName(), QVariant::fromValue(issuedId));
-  QString eventState = settings.value(getEventStateSettingName()).toString();
+  settings.setValue(getPlayerIdSettingName(), QVariant::fromValue(issuedId));
+  QString playerState = settings.value(getPlayerStateSettingName()).toString();
   activePlaylistRefreshTimer->start();
   eventGoerRefreshTimer->start();
-  if(!isCurrentlyHosting()){
-    eventCleanUp();
-    settings.setValue(getEventStateSettingName(), getHostingEventState());
-  }
-  serverConnection->setEventId(issuedId);
-  emit eventCreated();
+  serverConnection->setPlayerId(issuedId);
+  emit playerCreated();
 }
 
-void DataStore::onEventEnd(){
+void DataStore::onPlayerCreateFail(const QString message){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  eventCleanUp();
-  activePlaylistRefreshTimer->stop();
-  eventGoerRefreshTimer->stop();
-  settings.setValue(getEventStateSettingName(), getNotHostingEventState());
-  settings.setValue(getEventNameSettingName(), "");
-  settings.setValue(getEventIdSettingName(), -1);
-  emit eventEnded();
-}
-
-void DataStore::onEventCreateFail(const QString message){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getEventStateSettingName(), getNotHostingEventState());
-  emit eventCreationFailed(message);
-}
-
-void DataStore::onEventEndFail(const QString message){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getEventStateSettingName(), getHostingEventState());
-  emit eventEndingFailed(message);
+  settings.setValue(getPlayerStateSettingName(), getNoPlayerState());
+  emit playerCreationFailed(message);
 }
 
 

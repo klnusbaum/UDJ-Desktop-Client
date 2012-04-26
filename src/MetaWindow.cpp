@@ -23,7 +23,7 @@
 #include "DataStore.hpp"
 #include "LibraryWidget.hpp"
 #include "ActivityList.hpp"
-#include "EventWidget.hpp"
+#include "PlaylistWidget.hpp"
 #include <QSqlQuery>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -60,6 +60,7 @@ MetaWindow::MetaWindow(
     DataStore::getSettingsApp());
   restoreGeometry(settings.value("metaWindowGeometry").toByteArray());
   restoreState(settings.value("metaWindowState").toByteArray());
+  dataStore->activatePlayer();
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -108,17 +109,14 @@ void MetaWindow::setupUi(){
 
   libraryWidget = new LibraryWidget(dataStore, this);
 
-  eventWidget = new EventWidget(dataStore, this);
-
-  songListView = new SongListView(dataStore, this);
-
   activityList = new ActivityList(dataStore);
+
+  playlistWidget = new PlaylistWidget(dataStore, this);
 
   QWidget* contentStackContainer = new QWidget(this);
   contentStack = new QStackedWidget(this);
   contentStack->addWidget(libraryWidget);
-  contentStack->addWidget(eventWidget);
-  contentStack->addWidget(songListView);
+  contentStack->addWidget(playlistWidget);
   contentStack->setCurrentWidget(libraryWidget);
   QVBoxLayout *contentStackLayout = new QVBoxLayout;
   contentStackLayout->addWidget(contentStack, Qt::AlignCenter);
@@ -147,26 +145,15 @@ void MetaWindow::setupUi(){
 
   connect(
     activityList,
-    SIGNAL(eventClicked()),
+    SIGNAL(playlistClicked()),
     this,
-    SLOT(displayEventWidget()));
+    SLOT(displayPlaylist()));
 
   connect(
-    activityList,
-    SIGNAL(songListClicked(song_list_id_t)),
+    dataStore,
+    SIGNAL(needPlayerCreate()),
     this,
-    SLOT(displaySongList(song_list_id_t)));
-
-  connect(
-    songListView,
-    SIGNAL(canNoLongerDisplay()),
-    activityList,
-    SLOT(switchToLibrary()));
-
-  if(dataStore->isCurrentlyHosting()){
-    displayEventWidget();
-  }
-
+    SLOT(createNewPlayer()));
 }
 
 void MetaWindow::createActions(){
@@ -194,16 +181,14 @@ void MetaWindow::displayLibrary(){
   contentStack->setCurrentWidget(libraryWidget);
 }
 
-void MetaWindow::displayEventWidget(){
-  contentStack->setCurrentWidget(eventWidget);
+void MetaWindow::displayPlaylist(){
+  contentStack->setCurrentWidget(playlistWidget);
 }
 
+void MetaWindow::createNewPlayer(){
 
-void MetaWindow::displaySongList(song_list_id_t songListId){
-  songListView->setSongListId(songListId);
-  contentStack->setCurrentWidget(songListView);
+
 }
-
 
 
 } //end namespace

@@ -58,30 +58,11 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
 
   connect(
     dataStore,
-    SIGNAL(eventEnded()),
-    this,
-    SLOT(clearWidget()));
-
-  connect(
-    dataStore,
-    SIGNAL(eventCreated()),
-    this,
-    SLOT(enablePlayback()));
-
-  connect(
-    dataStore,
-    SIGNAL(eventEnded()),
-    this,
-    SLOT(disablePlayback()));
-
-  connect(
-    dataStore,
     SIGNAL(activePlaylistModified()),
     this,
     SLOT(handlePlaylistChange()));
 
   Phonon::createPath(mediaObject, audioOutput);
-  dataStore->isCurrentlyHosting() ? setEnabled(true) : setEnabled(false);
   playNextSong();
 }
 
@@ -201,14 +182,6 @@ void PlaybackWidget::clearWidget(){
   mediaObject->clear();
   songTitle->setText("");
   timeLabel->setText("--:--");
-}
-
-void PlaybackWidget::enablePlayback(){
-  setEnabled(true);
-}
-
-void PlaybackWidget::disablePlayback(){
-  setEnabled(false);
 }
 
 

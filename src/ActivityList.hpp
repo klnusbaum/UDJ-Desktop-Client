@@ -61,33 +61,25 @@ signals:
    */
   void libraryClicked();
 
-  /** 
+  /**
    * \brief emited when the event activity is clicked.
    */
-  void eventClicked();
-
-  /**
-   * \brief emitted whenever a song list is clicked.
-   *
-   * @param songListId The id of the songList that was clicked.
-   */
-  void songListClicked(song_list_id_t songListId);
-
+  void playlistClicked();
   //@}
 
 private:
-  
+
   /** @name Private Functions */
   //@{
 
-  /** 
+  /**
    * \brief Does UI initialization.
    */
   void setupUi();
 
   void createActions();
-  
-  /** 
+
+  /**
    * \brief Gets the name of the library activity.
    *
    * @return The name of the library activity.
@@ -102,22 +94,11 @@ private:
    *
    * @return The name of the event activity.
    */
-  static const QString& getEventTitle(){
-    static const QString eventTitle(tr("Event"));
-    return eventTitle;
+  static const QString& getPlaylistTitle(){
+    static const QString playlistTitle(tr("Playlist"));
+    return playlistTitle;
   }
 
-  static const QString& getSongListTitle(){
-    static const QString songListTitle(tr("Song Lists"));
-    return songListTitle;
-  }
-
-  static const QString& getNewSongListTitle(){
-    static const QString newSongListTitle(tr("Add New Song List"));
-    return newSongListTitle;
-  }
-
-  
 
   //@}
 
@@ -130,12 +111,8 @@ private:
   /** \brief Model used to list the activities. */
   QStandardItemModel *model;
 
-  QStandardItem *songListRoot;
   QStandardItem *libraryItem;
-  QStandardItem *eventItem;
-  QStandardItem *newSongListItem;
-  QAction *deleteSongListAction;
-  QAction *addSongListAction;
+  QStandardItem *playlistItem;
 
   //@}
 
@@ -151,16 +128,6 @@ private slots:
    * @param index The index of the activity that was clicked.
    */
   void itemClicked(const QModelIndex& index);
-
-  void addNewSongList();
-
-  void saveSongListToDb(QStandardItem *toSave);
-
-  void handleContextMenuRequest(const QPoint& point);
-
-  void deleteSelectedSongList();
-
-  void addSongListToAvailableMusic();
 
   //@}
 };

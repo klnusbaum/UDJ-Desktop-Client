@@ -52,7 +52,7 @@ public slots:
 
   /** \brief Perform actions necessary for loggin in */
   void doLogin();
-  
+
   //@}
 
 
@@ -63,7 +63,7 @@ signals:
 
 
 private:
-  
+
   /** @name Private Memeber */
   //@{
 
@@ -86,7 +86,7 @@ private:
   UDJServerConnection *serverConnection;
 
   QLabel *usernameLabel;
- 
+
   QLabel *passwordLabel;
 
 
@@ -128,5 +128,3 @@ private slots:
 
 
 #endif //LOGIN_WIDGET_HPP
-
-

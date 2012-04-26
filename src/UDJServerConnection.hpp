@@ -68,10 +68,6 @@ public:
     ticket_hash = ticket;
   }
 
-  inline void setMachineUUID(const QString& uuid){
-    machineUUID = uuid;
-  }
-
   inline void setUserId(const user_id_t& userId){
     user_id = userId;
   }

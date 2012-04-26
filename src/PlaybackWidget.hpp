@@ -100,10 +100,6 @@ private slots:
 
    void clearWidget();
 
-   void enablePlayback();
-
-   void disablePlayback();
-
    void handlePlaylistChange();
 
    void play();
@@ -113,7 +109,7 @@ private slots:
   //@}
 
 private:
-  
+
   /** @name Private Functions */
   //@{
 

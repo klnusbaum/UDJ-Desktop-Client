@@ -63,6 +63,8 @@ public:
     QList<Phonon::MediaSource> songs, 
     QProgressDialog& progress);
 
+  void activatePlayer();
+
   /**
    * \brief Adds a single song to the music library.
    *
@@ -129,10 +131,10 @@ public:
    *
    * @return The name of the current event.
    */
-  inline const QString getEventName() const{
+  inline const QString getPlayerName() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getEventNameSettingName()).toString();
+    return settings.value(getPlayerNameSettingName()).toString();
   }
 
   /**
@@ -140,10 +142,10 @@ public:
    *
    * @return The id of the current event.
    */
-  inline const event_id_t getEventId() const{
+  inline const event_id_t getPlayerId() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getEventIdSettingName()).value<event_id_t>();
+    return settings.value(getPlayerIdSettingName()).value<event_id_t>();
   }
 
   inline const QString& getUsername() const{
@@ -170,19 +172,19 @@ public:
    */
   Phonon::MediaSource takeNextSongToPlay();
 
-  const QString getEventState() const{
+  const QString getPlayerState() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getEventStateSettingName()).toString();
+    return settings.value(getPlayerStateSettingName()).toString();
   }
 
-  const bool isCurrentlyHosting() const{
+  const bool isCurrentlyActive() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return 
-      settings.value(getEventStateSettingName()).toString()
+      settings.value(getPlayerStateSettingName()).toString()
       ==
-      getHostingEventState();
+      getPlayerActiveState();
   }
 
   static void saveCredentials(const QString& username, const QString& password);
@@ -745,39 +747,34 @@ public:
     return isSynced;
   }
 
-  static const QString& getEventIdSettingName(){
-    static const QString eventIdSetting = "eventId";
+  static const QString& getPlayerIdSettingName(){
+    static const QString playerIdSetting = "playerId";
+    return playerIdSetting;
+  }
+
+  static const QString& getPlayerNameSettingName(){
+    static const QString playerIdSetting = "playerName";
     return eventIdSetting;
   }
 
-  static const QString& getEventNameSettingName(){
-    static const QString eventIdSetting = "eventName";
-    return eventIdSetting;
+  static const QString& getPlayerStateSettingName(){
+    static const QString playerStateSettingName = "playerState";
+    return playerStateSettingName;
   }
 
-  static const QString& getEventStateSettingName(){
-    static const QString eventStateSettingName = "eventState";
-    return eventStateSettingName;
+  static const QString& getNoPlayerState(){
+    static const QString noPlayerState = "noPlayer";
+    return noPlayerState;
   }
 
-  static const QString& getNotHostingEventState(){
-    static const QString notHostingEventState = "notHostingEvent";
-    return notHostingEventState;
+  static const QString& getPlayerActiveState(){
+    static const QString playerActiveState = "playerActive";
+    return playerActive;
   }
 
-  static const QString& getCreatingEventState(){
-    static const QString creatingEventState = "creatingEventState";
-    return creatingEventState;
-  }
-
-  static const QString& getHostingEventState(){
-    static const QString eventHostingState = "hostingEvent";
-    return eventHostingState;
-  }
-
-  static const QString& getEndingEventState(){
-    static const QString endingEventState = "endingEventState";
-    return endingEventState;
+  static const QString& getPlayerInactiveState(){
+    static const QString playerInactiveState = "playerInactive";
+    return playerInactive;
   }
 
   static const QString& getSettingsOrg(){
@@ -859,27 +856,22 @@ public slots:
     const std::vector<playlist_song_id_t>& pl_ids);
 
   /** 
-   * \brief Creates a new event with the given name and password.
+   * \brief Creates a new player with the given name and password.
    *
-   * @param name The name of the event.
+   * @param name The name of the player.
    * @param password The password for the event (maybe empty).
    */
-  void createNewEvent(
+  void createNewPlayer(
     const QString& name, 
     const QString& password);
 
-  void createNewEvent(
+  void createNewPlayer(
     const QString& name, 
     const QString& password,
     const QString& streetAddress,
     const QString& city,
     const QString& state,
     const QString& zipcode);
-
-  /** 
-   * \brief Ends the current event.
-   */
-  void endEvent();
 
   /** 
    * \brief Sets the current song to the speicified song.
@@ -912,6 +904,11 @@ signals:
 //@{
 
   /**
+   * \brief Emitted when no player exists and needs to be created
+   */
+  void needPlayerCreate();
+
+  /**
    * \brief Emitted when the library table is modified.
    */
   void libSongsModified();
@@ -922,26 +919,16 @@ signals:
   void availableSongsModified();
 
   /**
-   * \brief Emitted when an event is created.
+   * \brief Emitted when a player is created.
    */
-  void eventCreated();
+  void playerCreated();
 
   /**
-   * \brief Emitted when the creation of an event fails.
+   * \brief Emitted when the creation of a player fails.
    *
    * @param errMessage Error message describing what happened.
    */
-  void eventCreationFailed(const QString errMessage);
-
-  /**
-   * \brief Emitted when the event ends.
-   */
-  void eventEnded();
-
-  /**
-   * \brief Emitted when ending an event fails.
-   */
-  void eventEndingFailed(const QString errMessage);
+  void playerCreationFailed(const QString errMessage);
 
   /**
    * \brief Emitted when the active playlist is modified.
@@ -1441,12 +1428,7 @@ private slots:
   void setAvailableSongsSyncStatus(
     const std::vector<library_song_id_t> songs,
     const avail_music_sync_status_t syncStatus);
-  
-  /**
-   * \brief Preforms certain cleanup operations once an event has ended.
-   */
-  void eventCleanUp();
-  
+
   /**
    * \brief Sets the active playlist to the given songs.
    *
@@ -1481,17 +1463,9 @@ private slots:
 
   void insertEventGoer(const QVariantMap &eventGoer);
 
-  void onEventCreate(const event_id_t& issuedId);
+  void onPlayerCreate(const event_id_t& issuedId);
 
-  void onEventCreateFail(const QString message);
-
-  void onEventEnd();
-
-  void onEventEndFail(const QString message);
-
-
-
-
+  void onPlayerCreateFail(const QString message);
 
 //@}
 

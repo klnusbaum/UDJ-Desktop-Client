@@ -26,11 +26,9 @@
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QCheckBox>
-#include <QKeyEvent>
 #include <QCheckBox>
 #include "DataStore.hpp"
 
-class QKeyEvent;
 
 
 namespace UDJ{
@@ -42,14 +40,14 @@ LoginWidget::LoginWidget(QWidget *parent)
   serverConnection = new UDJServerConnection(this);
   setupUi();
   connect(
-    serverConnection, 
+    serverConnection,
     SIGNAL(authenticated(const QByteArray&, const user_id_t&)),
-    this, 
+    this,
     SLOT(startMainGUI(const QByteArray&, const user_id_t&)));
   connect(
-    serverConnection, 
+    serverConnection,
     SIGNAL(authFailed(const QString)),
-    this, 
+    this,
     SLOT(displayLoginFailedMessage(const QString)));
 }
 
@@ -83,12 +81,12 @@ void LoginWidget::setupUi(){
   layout->addWidget(passwordLabel,2,0);
   layout->addWidget(passwordBox,2,1);
   layout->addWidget(saveCreds, 3, 1);
-   
-  
+
+
   loginDisplay->setLayout(layout);
 
   setMainWidget(loginDisplay);
-  showMainWidget(); 
+  showMainWidget();
 
   if(DataStore::hasValidSavedCredentials()){
     QString username;
