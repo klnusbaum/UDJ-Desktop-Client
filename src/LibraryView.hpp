@@ -127,11 +127,6 @@ private slots:
   //@{
 
   /** 
-   * \brief Adds the currently selected songs to the list of available music.
-   */
-  void addSongToAvailableMusic();
-
-  /** 
    * \brief Deletes the currently selected songs from the library.
    */
   void deleteSongs();

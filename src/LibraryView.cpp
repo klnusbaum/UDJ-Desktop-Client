@@ -68,27 +68,17 @@ void LibraryView::configureColumns(){
 
 void LibraryView::createActions(){
   deleteSongAction = new QAction(getDeleteContextMenuItemName(), this);
-  addToAvailableMusicAction = new QAction(
-    getAddToAvailableContextMenuItemName(), this);
   connect(
     deleteSongAction, 
     SIGNAL(triggered()), 
     this, 
     SLOT(deleteSongs()));
-  connect(
-    addToAvailableMusicAction, 
-    SIGNAL(triggered()), 
-    this, 
-    SLOT(addSongToAvailableMusic()));
 }
-  
+
 
 void LibraryView::handleContextMenuRequest(const QPoint &pos){
   QMenu contextMenu(this);
-  
-  if(dataStore->isCurrentlyHosting()){
-    contextMenu.addAction(addToAvailableMusicAction);
-  }
+
   QSqlQuery songLists = dataStore->getSongLists();
   if(songLists.next()){
     QMenu *songListsMenu = new QMenu(tr("Add To Song Lists"), this);
@@ -112,14 +102,6 @@ void LibraryView::handleContextMenuRequest(const QPoint &pos){
   }
 }
 
-void LibraryView::addSongToAvailableMusic(){
-  dataStore->addSongsToAvailableSongs(
-    Utils::getSelectedIds<library_song_id_t>(
-      this,
-      libraryModel,
-      DataStore::getLibIdColName(),
-      proxyModel));
-}
 
 void LibraryView::deleteSongs(){
   dataStore->removeSongsFromLibrary(

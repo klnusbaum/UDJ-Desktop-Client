@@ -37,7 +37,7 @@ class QCloseEvent;
 namespace UDJ{
 
 class SettingsWidget;
-class PlaylistView;
+class ActivePlaylistView;
 class LibraryWidget;
 class ActivityList;
 class EventWidget;
@@ -99,12 +99,10 @@ private slots:
   void displayLibrary();
 
   /**
-   * \brief Displays the event widget in the main content panel.
+   * \brief Displays the playlist view in the main content panel.
    */
-  void displayEventWidget();
+  void displayPlaylist();
 
-  void displaySongList(song_list_id_t songListId);
-  
   //@}
 
 private:
@@ -140,10 +138,9 @@ private:
   /** \brief Widget used for controlling music playback. */
   PlaybackWidget *playbackWidget;
 
-  /** \brief Widget used for displaying event related UI components. */
-  EventWidget *eventWidget;
+  ActivePlaylistView *playlistView;
 
-  SongListView *songListView;
+
 
   /** \brief Stack used to display various UI components. */
   QStackedWidget *contentStack;

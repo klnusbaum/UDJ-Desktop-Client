@@ -31,14 +31,11 @@ CommErrorHandler::CommErrorHandler(
   serverConnection(serverConnection),
   hasPendingReauthRequest(false),
   syncLibOnReauth(false),
-  createEventOnReauth(false),
-  endEventOnReauth(false),
-  syncAvailableMusicOnReauth(false),
+  createPlayerOnReauth(false),
   refreshActivePlaylistOnReauth(false),
   syncPlaylistAddRequestsOnReauth(false),
   setCurrentSongOnReauth(false),
-  syncPlaylistRemoveRequestsOnReauth(false),
-  refreshEventGoersOnReauth(false)
+  syncPlaylistRemoveRequestsOnReauth(false)
 {
   connect(
     serverConnection,
@@ -77,19 +74,13 @@ void CommErrorHandler::handleCommError(
     if(opType == LIB_SONG_ADD || opType == LIB_SONG_DELETE){
       syncLibOnReauth = true;
     }
-    else if(opType == CREATE_EVENT){
+    else if(opType == CREATE_PLAYER){
       DEBUG_MESSAGE("Flagging createEvent on reauth")
-      createEventPayload = payload;
-      createEventOnReauth = true;
+      createPlayerPayload = payload;
+      createPlayerOnReauth = true;
     }
-    else if(opType == END_EVENT){
-      endEventOnReauth = true;
-    }
-    else if(dataStore->isCurrentlyHosting()){
-      if(opType == AVAILABLE_SONG_ADD || opType == AVAILABLE_SONG_DEL){
-        syncAvailableMusicOnReauth = true;
-      }
-      else if(opType == PLAYLIST_UPDATE){
+    else if(dataStore->isCurrentlyActive()){
+      if(opType == PLAYLIST_UPDATE){
         refreshActivePlaylistOnReauth = true;
       }
       else if(opType == PLAYLIST_ADD){
@@ -106,10 +97,6 @@ void CommErrorHandler::handleCommError(
     requestReauth();
   }
   else if(errorType == CONFLICT){
-    if(opType == CREATE_EVENT){
-      emit eventCreationFailed(tr("Looks like you're currently hosting"
-        " another event. Please end that one before creating a new one."));
-    }
   }
   else if(errorType == NOT_FOUND_ERROR){
     if(opType == LIB_SONG_DELETE){
@@ -117,8 +104,8 @@ void CommErrorHandler::handleCommError(
     }
   }
   else if(errorType == UNKNOWN_ERROR || errorType == SERVER_ERROR){
-    if(opType == CREATE_EVENT){
-      emit eventCreationFailed(tr("We're currently experiencing technical "
+    if(opType == CREATE_PLAYER){
+      emit playerCreationFailed(tr("We're currently experiencing technical "
         "difficulties. Please try again in a minute."));
     }
   }
@@ -148,18 +135,10 @@ void CommErrorHandler::clearOnReauthFlags(){
     dataStore->syncLibrary();
     syncLibOnReauth=false;
   }
-  if(createEventOnReauth){
+  if(createPlayerOnReauth){
     DEBUG_MESSAGE("Creating event on Reauth")
-    serverConnection->createEvent(createEventPayload);
-    createEventOnReauth=false;
-  }
-  if(endEventOnReauth){
-    dataStore->endEvent();
-    endEventOnReauth=false;
-  }
-  if(syncAvailableMusicOnReauth){
-    dataStore->syncAvailableMusic();
-    syncAvailableMusicOnReauth=false;
+    serverConnection->createPlayer(createPlayerPayload);
+    createPlayerOnReauth=false;
   }
   if(refreshActivePlaylistOnReauth){
     serverConnection->getActivePlaylist();
@@ -177,10 +156,6 @@ void CommErrorHandler::clearOnReauthFlags(){
     dataStore->syncPlaylistRemoveRequests();
     syncPlaylistRemoveRequestsOnReauth=false;
   }
-  if(refreshActivePlaylistOnReauth){
-    serverConnection->getEventGoers();
-    refreshActivePlaylistOnReauth=false;
-  }
 }
 
 void CommErrorHandler::onHardAuthFailure(const QString errMessage){
@@ -189,14 +164,8 @@ void CommErrorHandler::onHardAuthFailure(const QString errMessage){
   if(syncLibOnReauth){
     emit libSyncError(errMessage);
   }
-  if(createEventOnReauth){
-    emit eventCreationFailed(errMessage);
-  }
-  if(endEventOnReauth){
-    emit eventEndingFailed(errMessage);
-  }
-  if(syncAvailableMusicOnReauth){
-    emit availableMusicSyncError(errMessage);
+  if(createPlayerOnReauth){
+    emit playerCreationFailed(errMessage);
   }
   if(refreshActivePlaylistOnReauth){
     emit refreshActivePlaylistError(errMessage);

@@ -53,9 +53,7 @@ DataStore::DataStore(
   serverConnection->setUserId(userId);
   errorHandler = new CommErrorHandler(this, serverConnection);
   activePlaylistRefreshTimer = new QTimer(this);
-  eventGoerRefreshTimer = new QTimer(this);
   activePlaylistRefreshTimer->setInterval(5000);
-  eventGoerRefreshTimer->setInterval(5000);
   setupDB();
 
   connect(
@@ -94,18 +92,6 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(songsAddedToAvailableMusic(const std::vector<library_song_id_t>)),
-    this,
-    SLOT(setAvailableSongsSynced(const std::vector<library_song_id_t>)));
-
-  connect(
-    serverConnection,
-    SIGNAL(songRemovedFromAvailableMusicOnServer(const library_song_id_t)),
-    this,
-    SLOT(setAvailableSongSynced(const library_song_id_t)));
-
-  connect(
-    serverConnection,
     SIGNAL(newActivePlaylist(const QVariantList)),
     this,
     SLOT(setActivePlaylist(const QVariantList)));
@@ -120,11 +106,6 @@ DataStore::DataStore(
     SIGNAL(timeout()),
     this,
     SLOT(refreshActivePlaylist()));
-
-  connect(eventGoerRefreshTimer,
-    SIGNAL(timeout()),
-    this,
-    SLOT(refreshEventGoers()));
 
   connect(
     serverConnection,
@@ -144,9 +125,6 @@ DataStore::DataStore(
     this,
     SLOT(processNewEventGoers(QVariantList)));
 
-  if(isCurrentlyHosting()){
-    onEventCreate(getEventId());
-  }
   
   syncLibrary();
 }
@@ -181,10 +159,6 @@ void DataStore::setupDB(){
 
 
 	EXEC_SQL(
-		"Error creating available music table",
-  	setupQuery.exec(getCreateAvailableMusicQuery()),
-		setupQuery)
-	EXEC_SQL(
 		"Error creating add reqeusts table",
   	setupQuery.exec(getCreatePlaylistAddRequestsTableQuery()),
 		setupQuery)
@@ -211,7 +185,7 @@ void DataStore::setupDB(){
 void DataStore::activatePlayer(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   if(settings.contains(getPlayerIdSettingName())){
-    serverConnection->setPlayerActive(getPlayerIdSettingName());
+    serverConnection->setPlayerId(getPlayerId());
   }
   else{
     emit needPlayerCreate();
@@ -310,72 +284,6 @@ void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
     emit libSongsModified();
     syncLibrary();
   }
-  if(isCurrentlyHosting()){
-    removeSongsFromAvailableMusic(toRemove);
-  }
-}
-
-void DataStore::addSongToAvailableSongs(library_song_id_t toAdd){
-  std::vector<library_song_id_t> toAddVector(1, toAdd);
-  addSongsToAvailableSongs(toAddVector);
-}
-
-void DataStore::addSongsToAvailableSongs(
-  const std::vector<library_song_id_t>& song_ids)
-{
-  for(
-    std::vector<library_song_id_t>::const_iterator it = song_ids.begin();
-    it != song_ids.end();
-    ++it
-  )
-  {
-    QSqlQuery addQuery(
-      "INSERT INTO "+ getAvailableMusicTableName()+ " ("+
-      getAvailableEntryLibIdColName() +") " +
-      "VALUES ( :libid );", 
-      database);
-    
-    library_song_id_t added_lib_id = -1;
-    addQuery.bindValue(
-      ":libid", 
-      QVariant::fromValue<const library_song_id_t>(*it));
-	  EXEC_INSERT(
-		  "Failed to add song to available music" << *it, 
-		  addQuery,
-      added_lib_id, 
-      library_song_id_t)
-  }
-  syncAvailableMusic();
-}
-
-void DataStore::removeSongsFromAvailableMusic(
-  const std::vector<library_song_id_t>& song_ids)
-{
-  if(song_ids.size() < 1){
-    return;
-  }
-  QVariantList toDelete;
-  for(
-    std::vector<library_song_id_t>::const_iterator it = song_ids.begin();
-    it!=song_ids.end();
-    ++it)
-  {
-    toDelete << QVariant::fromValue<library_song_id_t>(*it);
-  }
-  QSqlQuery bulkUpdate(database);
-  bulkUpdate.prepare(
-    "UPDATE " + getAvailableMusicTableName() + " " 
-    "SET " + getAvailableEntrySyncStatusColName() + " = " + 
-      QString::number(getAvailableEntryNeedsDeleteSyncStatus()) + ", " +
-    getAvailableEntryIsDeletedColName() + "=1 "+
-    " WHERE "  + getAvailableEntryLibIdColName() + " = ? ;");
-  bulkUpdate.addBindValue(toDelete);
-
-  EXEC_BULK_QUERY("Error Removing songs from available music", 
-    bulkUpdate)
-  if(bulkUpdate.lastError().type() == QSqlError::NoError){
-    syncAvailableMusic();
-  }
 }
 
 void DataStore::addSongToActivePlaylist(library_song_id_t libraryId){
@@ -468,30 +376,27 @@ void DataStore::setCurrentSong(playlist_song_id_t songToPlay){
   }
 }
 
-void DataStore::createNewEvent(
-  const QString& name, 
+void DataStore::createNewPlayer(
+  const QString& name,
   const QString& password)
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getEventStateSettingName(), getCreatingEventState()); 
-  settings.setValue(getEventNameSettingName(), name); 
-  serverConnection->createEvent(name, password);
+  settings.setValue(getPlayerNameSettingName(), name);
+  serverConnection->createPlayer(name, password);
 }
 
-void DataStore::createNewEvent(
-  const QString& name, 
+void DataStore::createNewPlayer(
+  const QString& name,
   const QString& password,
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  const QString& zipcode)
+  const int& zipcode)
 {
-  eventName = name;
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getEventStateSettingName(), getCreatingEventState()); 
-  settings.setValue(getEventNameSettingName(), name); 
-  serverConnection->createEvent(
-    name, 
+  settings.setValue(getPlayerNameSettingName(), name);
+  serverConnection->createPlayer(
+    name,
     password,
     streetAddress,
     city,
@@ -555,108 +460,6 @@ void DataStore::setLibSongsSyncStatus(
       setSyncedQuery)
   }
   emit libSongsModified();
-}
-
-void DataStore::endEvent(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getEventStateSettingName(), getEndingEventState()); 
-  serverConnection->endEvent();
-}
-
-void DataStore::setAvailableSongSynced(const library_song_id_t songs){
-  std::vector<library_song_id_t> songVector(1,songs);
-  setAvailableSongsSynced(songVector);
-}
-
-void DataStore::setAvailableSongsSynced(
-  const std::vector<library_song_id_t> songs)
-{
-  setAvailableSongsSyncStatus(songs, getAvailableEntryIsSyncedStatus());
-}
-
-void DataStore::setAvailableSongsSyncStatus(
-  const std::vector<library_song_id_t> songs,
-  const avail_music_sync_status_t syncStatus)
-{
-  QSqlQuery setSyncedQuery(database);
-  for(int i=0; i< songs.size(); ++i){
-    EXEC_SQL(
-      "Error setting song to synced",
-      setSyncedQuery.exec(
-        "UPDATE " + getAvailableMusicTableName() + " " +
-        "SET " + getAvailableEntrySyncStatusColName() + "=" + 
-        QString::number(syncStatus) +
-        " WHERE "  +
-        getAvailableEntryLibIdColName() + "=" + QString::number(songs[i]) + ";"),
-      setSyncedQuery)
-  }
-  emit availableSongsModified();
-}
-
-void DataStore::syncAvailableMusic(){
-  QSqlQuery getUnsyncedSongs(database);
-  EXEC_SQL(
-    "Error querying for unsynced songs",
-    getUnsyncedSongs.exec(
-      "SELECT * FROM " + getAvailableMusicTableName() + " WHERE " + 
-      getAvailableEntrySyncStatusColName() + "!=" + 
-      QString::number(getAvailableEntryIsSyncedStatus()) + ";"),
-    getUnsyncedSongs)
-
-  std::vector<library_song_id_t> toAdd;
-  std::vector<library_song_id_t> toDelete;
-  while(getUnsyncedSongs.next()){  
-    QSqlRecord currentRecord = getUnsyncedSongs.record();
-    if(currentRecord.value(getAvailableEntrySyncStatusColName()) == 
-      getAvailableEntryNeedsAddSyncStatus())
-    {
-      toAdd.push_back(currentRecord.value(
-        getAvailableEntryLibIdColName()).value<library_song_id_t>());
-    }
-    else if(currentRecord.value(getLibSyncStatusColName()) ==
-      getLibNeedsDeleteSyncStatus())
-    {
-      toDelete.push_back(currentRecord.value(
-        getAvailableEntryLibIdColName()).value<library_song_id_t>());
-    }
-  }
-  if(toAdd.size() > 0){
-    serverConnection->addSongsToAvailableSongs(toAdd);
-  }
-  if(toDelete.size() > 0){
-    serverConnection->removeSongsFromAvailableMusic(toDelete);
-  }
-}
-
-void DataStore::eventCleanUp(){
-  QSqlQuery tearDownQuery(database);
-  EXEC_SQL(
-    "Error deleteing contents of AvailableMusic",
-    tearDownQuery.exec(getDeleteAvailableMusicQuery()),
-    tearDownQuery
-  )
-  emit availableSongsModified();
-  EXEC_SQL(
-    "Error deleteing contents of active playlist",
-    tearDownQuery.exec(getClearActivePlaylistQuery()),
-    tearDownQuery
-  )
-  emit activePlaylistModified();
-  EXEC_SQL(
-    "Error deleteing contents of add requests",
-    tearDownQuery.exec(getDeleteAddRequestsQuery()),
-    tearDownQuery
-  )
-  EXEC_SQL(
-    "Error deleteing contents of remove requests",
-    tearDownQuery.exec(getDeleteRemoveRequestsQuery()),
-    tearDownQuery
-  )
-  EXEC_SQL(
-    "Error deleteing contents of remove requests",
-    tearDownQuery.exec(getDeleteEventGoersQuery()),
-    tearDownQuery
-  )
 }
 
 void DataStore::clearActivePlaylist(){
@@ -826,11 +629,6 @@ void DataStore::setPlaylistRemoveRequestSynced(
   if(needsSyncQuery.lastError().type() == QSqlError::NoError){
     refreshActivePlaylist();  
   }
-}
-
-
-void DataStore::refreshEventGoers(){
-  serverConnection->getEventGoers();
 }
 
 void DataStore::processNewEventGoers(QVariantList newEventGoers){
@@ -1014,38 +812,16 @@ void DataStore::removeSongsFromSongList(
   }
 }
 
-void DataStore::addSongListToAvailableMusic(song_list_id_t songListId){
-  QSqlQuery songList("SELECT " + getSongListEntrySongIdColName() + " FROM " +
-    getSongListEntryTableName() + " WHERE " + 
-    getSongListEntrySongListIdColName() + "=" + QString::number(songListId) +
-    ";",
-    database);
-  EXEC_SQL(
-    "Error retrieving song list songs for addition to available music",
-    songList.exec(),
-    songList)
-  if(songList.next()){
-    std::vector<library_song_id_t> toAddIds;
-    do{
-      toAddIds.push_back(songList.record().value(0).value<library_song_id_t>());
-    }while(songList.next());
-    addSongsToAvailableSongs(toAddIds);
-  }
-}
-
-void DataStore::onPlayerCreate(const event_id_t& issuedId){
+void DataStore::onPlayerCreate(const player_id_t& issuedId){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerIdSettingName(), QVariant::fromValue(issuedId));
-  QString playerState = settings.value(getPlayerStateSettingName()).toString();
+  settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
   activePlaylistRefreshTimer->start();
-  eventGoerRefreshTimer->start();
   serverConnection->setPlayerId(issuedId);
   emit playerCreated();
 }
 
 void DataStore::onPlayerCreateFail(const QString message){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerStateSettingName(), getNoPlayerState());
   emit playerCreationFailed(message);
 }
 
@@ -1088,18 +864,6 @@ void DataStore::clearSavedCredentials(){
   settings.setValue(getHasValidCredsSettingName(), false);
   settings.setValue(getUsernameSettingName(), "");
   settings.setValue(getPasswordSettingName(), "");
-}
-
-QString DataStore::getMachineUUID(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  if(settings.contains(getMachineUUIDSettingName())){
-    return settings.value(getMachineUUIDSettingName()).toString();
-  }
-  else{
-    QString machineUUID = QUuid::createUuid().toString().remove(QRegExp("(\\{|\\}|\\-)"));
-    settings.setValue(getMachineUUIDSettingName(), machineUUID);
-    return machineUUID;
-  }
 }
 
 void DataStore::pausePlaylistUpdates(){

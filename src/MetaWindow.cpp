@@ -23,8 +23,8 @@
 #include "DataStore.hpp"
 #include "LibraryWidget.hpp"
 #include "ActivityList.hpp"
-#include "PlaylistWidget.hpp"
-#include <QSqlQuery>
+#include "ActivePlaylistView.hpp"
+#include "PlayerCreateDialog.hpp"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QAction>
@@ -111,12 +111,12 @@ void MetaWindow::setupUi(){
 
   activityList = new ActivityList(dataStore);
 
-  playlistWidget = new PlaylistWidget(dataStore, this);
+  playlistView = new ActivePlaylistView(dataStore, this);
 
   QWidget* contentStackContainer = new QWidget(this);
   contentStack = new QStackedWidget(this);
   contentStack->addWidget(libraryWidget);
-  contentStack->addWidget(playlistWidget);
+  contentStack->addWidget(playlistView);
   contentStack->setCurrentWidget(libraryWidget);
   QVBoxLayout *contentStackLayout = new QVBoxLayout;
   contentStackLayout->addWidget(contentStack, Qt::AlignCenter);
@@ -182,13 +182,14 @@ void MetaWindow::displayLibrary(){
 }
 
 void MetaWindow::displayPlaylist(){
-  contentStack->setCurrentWidget(playlistWidget);
+  contentStack->setCurrentWidget(playlistView);
 }
 
 void MetaWindow::createNewPlayer(){
-
-
+  PlayerCreateDialog *createDialog = new PlayerCreateDialog(dataStore, this);
+  createDialog->show();
 }
+
 
 
 } //end namespace

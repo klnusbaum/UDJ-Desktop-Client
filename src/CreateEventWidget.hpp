@@ -60,7 +60,7 @@ signals:
 private:
   /** @name Private Functions */
   //@{
- 
+
   /** \brief Initilizes the UI */
   void setupUi();
 
@@ -89,14 +89,11 @@ private:
   /** \brief Lable to display instructions */
   QLabel *createLabel;
 
-  /** \brief Button used to actually attempt to create the new event */
-  QPushButton *createEventButton;
-
   /** 
    * \brief Widget containing form elements which need to be filled out in
    * order to create the new event.
    */
-  QWidget *eventForm;
+  QWidget *playerForm;
 
   /**
    * \brief The data store containing music that could potentially be added
@@ -122,12 +119,12 @@ private slots:
   /** 
    * \brief Executes appropriate actions after event has actually been created.
    */
-  void eventCreateSuccess();
+  void playerCreateSuccess();
 
   /** 
    * \brief Executes appropriate actions after event was failed to be created.
    */
-  void eventCreateFail(const QString& errMessage);
+  void playerCreateFail(const QString& errMessage);
 
   void enableAddressInputs(bool enable);
   

@@ -51,6 +51,7 @@ public:
    * @return A bytearray contianing the JSON for the song add request.
    */
   static const QByteArray getJSONForLibAdd(const lib_song_t &song);
+
   
   /**
    * \brief Creates the JSON necessary for doing a request to add a song
@@ -65,6 +66,15 @@ public:
     const lib_song_t &song,
     bool &success);
 
+  static const QByteArray getAddToActiveJSON(
+    const std::vector<client_request_id_t>& requestIds,
+    const std::vector<library_song_id_t>& libIds);
+
+  static const QByteArray getAddToActiveJSON(
+    const std::vector<client_request_id_t>& requestIds,
+    const std::vector<library_song_id_t>& libIds,
+    bool &success);
+  
   /**
    * \brief Creates the JSON necessary for doing a request to add the given
    * songs to the library.
@@ -88,115 +98,30 @@ public:
     const std::vector<lib_song_t>& songs,
     bool &success);
 
-  /**
-   * \brief Gets the JSON necesary for creating an event.
-   *
-   * @param eventName The name of the event.
-   * @param password The password for the event.
-   * @param latitude The latitude of the event. 
-   * @param longitude The longitude of the event.
-   * @return A bytearray containing the generated JSON.
-   */
-  static const QByteArray getCreateEventJSON(
-    const QString& eventName,
-    const QString& password="", 
-    double latitude=getInvalidLat(),
-    double longitude=getInvalidLong());
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
+    const QString& password);
 
-  /**
-   * \brief Gets the JSON necesary for creating an event.
-   *
-   * @param eventName The name of the event.
-   * @param password The password for the event.
-   * @param latitude The latitude of the event. 
-   * @param longitude The longitude of the event.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the generated JSON.
-   */
-  static const QByteArray getCreateEventJSON(
-    const QString& eventName,
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
     const QString& password, 
-    double latitude,
-    double longitude,
     bool &success);
 
-  /**
-   * \brief Gets the JSON needed for adding a song to the list of available 
-   * songs.
-   *
-   * @param toAdd The id of the song to be added to the list of available songs.
-   * @return A bytearray containing the JSON needed to add the given song
-   * to the list of available music.
-   */
-  static const QByteArray getAddToAvailableJSON(const library_song_id_t& toAdd);
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
+    const QString& password,
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    const int& zipcode);
 
-  /**
-   * \brief Gets the JSON needed for adding a song to the list of available 
-   * songs.
-   *
-   * @param toAdd The id of the song to be added to the list of available songs.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the JSON needed to add the given song
-   * to the list of available music.
-   */
-  static const QByteArray getAddToAvailableJSON(
-    const library_song_id_t& toAdd, 
-    bool &success);
-
-  /**
-   * \brief Gets the JSON needed for adding the given songs
-   *  to the list of available songs.
-   *
-   * @param toAdd The ids of the songs to be added to the list of available 
-   * songs.
-   * @return A bytearray containing the JSON needed to add the given songs
-   * to the list of available music.
-   */
-  static const QByteArray getAddToAvailableJSON(
-    const std::vector<library_song_id_t>& toAdd);
-
-  /**
-   * \brief Gets the JSON needed for adding the given songs
-   *  to the list of available songs.
-   *
-   * @param toAdd The ids of the songs to be added to the list of available 
-   * songs.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the JSON needed to add the given songs
-   * to the list of available music.
-   */
-  static const QByteArray getAddToAvailableJSON(
-    const std::vector<library_song_id_t>& toAdd, 
-    bool &success);
-
-  /**
-   * \brief Gets the json needed to add the given songs to the active playlist. 
-   *
-   * @param requestIds The request ids for each request in the libIds vector.
-   * @param libIds The ids of the songs to be added to the active playlist.
-   * @return A bytearray containing the JSON needed for adding the given songs
-   * to the active playlist.
-   */
-  static const QByteArray getAddToActiveJSON(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& libIds);
-
-  /**
-   * \brief Gets the json needed to add the given songs to the active playlist. 
-   *
-   * @param requestIds The request ids for each request in the libIds vector.
-   * @param libIds The ids of the songs to be added to the active playlist.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the JSON needed for adding the given songs
-   * to the active playlist.
-   */
-  static const QByteArray getAddToActiveJSON(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& libIds,
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
+    const QString& password,
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    const int& zipcode,
     bool &success);
 
   /**
@@ -207,27 +132,15 @@ public:
    * @return A vector containing all the library id's of the songs that were 
    * updated on the server.
    */
-  static const std::vector<library_song_id_t>
-    getUpdatedLibIds(QNetworkReply *reply);
+  static const std::vector<library_song_id_t> getUpdatedLibIds(QNetworkReply *reply);
 
   /**
-   * \brief Get's the id of an event from the given server reply.
+   * \brief Get's the id of a player from the given server reply.
    * 
    * @param reply The reply from the server.
-   * @return The event id in the servers response.
+   * @return The player id in the servers response.
    */
-  static event_id_t getEventId(QNetworkReply *reply);
-
-  /**
-   * \brief Gets the songs that were added to the list of available songs
-   * on the server.
-   *
-   * @param reply The servers response.
-   * @return A vector containing all the library ids that were added to the
-   * list of available songs.
-   */
-  static const std::vector<library_song_id_t> getAddedAvailableSongs(
-    QNetworkReply *reply);
+  static player_id_t getPlayerId(QNetworkReply *reply);
 
   /**
    * \brief Gets the active playlist from the servers reply.
@@ -238,37 +151,10 @@ public:
    */
   static const QVariantList getActivePlaylistFromJSON(QNetworkReply *reply);
 
-  static const QVariantList getEventGoersJSON(QNetworkReply *reply);
-
-  static const QVariantMap getSingleEventInfo(QNetworkReply *reply);
-
   static std::vector<client_request_id_t> extractAddRequestIds(
     const QByteArray& payload);
 
-  //@}
-
-  /** @name Constants */
-  //@{
-
-  /**
-   * \brief Gets the value indicating and invalid latitude value.
-   *
-   * @return The value indicating and invalid latitude value.
-   */
-  static const double& getInvalidLat(){
-    static const double invalidLat = 100;
-    return invalidLat;
-  }
-
-  /**
-   * \brief Gets the value indicating and invalid longitude value.
-   *
-   * @return The value indicating and invalid longitude value.
-   */
-  static const double& getInvalidLong(){
-    static const double invalidLong = 200;
-    return invalidLong;
-  }
+  static const QVariantMap getAuthReplyFromJSON(QNetworkReply *reply, bool &success);
 
   //@}
 

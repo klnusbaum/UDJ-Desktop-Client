@@ -48,6 +48,11 @@ public:
 
   //@}
 
+public slots:
+  /** \brief Attemps to create a new event */
+  void doCreation();
+
+
 signals:
   /** @name Signals */
   //@{
@@ -115,9 +120,6 @@ private:
 private slots:
   /** @name Private Slots */
   //@{
-
-  /** \brief Attemps to create a new event */
-  void doCreation();
 
   /**
    * \brief Executes appropriate actions after player has actually been created.

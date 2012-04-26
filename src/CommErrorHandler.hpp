@@ -43,15 +43,11 @@ public:
   enum OperationType{
     LIB_SONG_ADD,
     LIB_SONG_DELETE,
-    CREATE_EVENT,
-    END_EVENT,
-    AVAILABLE_SONG_ADD,
-    AVAILABLE_SONG_DEL,
+    CREATE_PLAYER,
     PLAYLIST_UPDATE,
     PLAYLIST_ADD,
     PLAYLIST_REMOVE,
     SET_CURRENT_SONG,
-    EVENT_GOERS_REFRESH
   };
 
   CommErrorHandler(DataStore *dataStore, UDJServerConnection *serverConnection);
@@ -60,13 +56,9 @@ signals:
 
   void hardAuthFailure(const QString errMessage);
 
-  void eventCreationFailed(const QString errMessage);
-
-  void eventEndingFailed(const QString errMessage);
+  void playerCreationFailed(const QString errMessage);
 
   void libSyncError(const QString errMessage);
-
-  void availableMusicSyncError(const QString errMessage);
 
   void refreshActivePlaylistError(const QString errMessage);
 
@@ -76,7 +68,6 @@ signals:
 
   void setCurrentSongError(const QString errMessage);
 
-  void eventGoerRefreshError(const QString errMessage);
 
 private slots:
 
@@ -95,7 +86,7 @@ private:
 
   UDJServerConnection *serverConnection;
 
-  QByteArray createEventPayload;
+  QByteArray createPlayerPayload;
 
   QByteArray setCurrentSongPayload;
 
@@ -103,11 +94,7 @@ private:
 
   bool syncLibOnReauth;
 
-  bool createEventOnReauth;
-
-  bool endEventOnReauth;
-
-  bool syncAvailableMusicOnReauth;
+  bool createPlayerOnReauth;
 
   bool refreshActivePlaylistOnReauth;
 
@@ -116,8 +103,6 @@ private:
   bool setCurrentSongOnReauth;
 
   bool syncPlaylistRemoveRequestsOnReauth;
-
-  bool refreshEventGoersOnReauth;
 
   void clearOnReauthFlags();
 

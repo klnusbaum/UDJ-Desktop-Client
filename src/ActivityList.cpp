@@ -32,7 +32,6 @@ ActivityList::ActivityList(DataStore *dataStore, QWidget *parent):
   QTreeView(parent), dataStore(dataStore)
 {
   setupUi();
-  createActions();
   connect(
     this,
     SIGNAL(clicked(const QModelIndex&)),
@@ -55,8 +54,8 @@ void ActivityList::setupUi(){
   libraryItem = new QStandardItem(getLibraryTitle());
   libraryItem->setEditable(false);
 
-  playlistItem = new QStandardItem(getPlaylistItem());
-  eventItem->setEditable(false);
+  playlistItem = new QStandardItem(getPlaylistTitle());
+  playlistItem->setEditable(false);
 
 
   model = new QStandardItemModel(this);

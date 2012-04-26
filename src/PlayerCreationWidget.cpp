@@ -31,18 +31,13 @@
 namespace UDJ{
 
 
-PlayerCreationWidget::CreateEventWidget(
+PlayerCreationWidget::PlayerCreationWidget(
   DataStore *dataStore, 
   QWidget *parent):
   WidgetWithLoader(tr("Creating Player..."), parent),
   dataStore(dataStore)
 {
   setupUi();
-  connect(
-    createPlayerButton,
-    SIGNAL(clicked(bool)),
-    this,
-    SLOT(doCreation()));
   connect(
     dataStore,
     SIGNAL(playerCreated()),
@@ -67,7 +62,6 @@ void PlayerCreationWidget::setupUi(){
   setupStateCombo();
   zipcode = new QLineEdit();
   useAddress = new QCheckBox(tr("Provide Address")); 
-  createEventButton = new QPushButton(tr("Create Event"));
 
   QFormLayout *formLayout = new QFormLayout;
   formLayout->addRow(tr("Name of event"), nameEdit);
@@ -80,7 +74,6 @@ void PlayerCreationWidget::setupUi(){
 
   QGridLayout *layout = new QGridLayout;
   layout->addLayout(formLayout,0,0, Qt::AlignHCenter);
-  layout->addWidget(createEventButton, 1,0, Qt::AlignRight | Qt::AlignTop);
 
   connect(
     useAddress,
@@ -121,7 +114,7 @@ void PlayerCreationWidget::doCreation(){
         streetAddress->text(),
         city->text(),
         state->currentText(),
-        zipcode->text());
+        zipcode->text().toInt());
     }
     else{
       playerCreateFail("The address you supplied is invalid. Please correct " 
@@ -148,12 +141,12 @@ QString PlayerCreationWidget::getAddressBadInputs() const{
 }
 
 
-void PlayerCreationWidget::eventCreateSuccess(){
+void PlayerCreationWidget::playerCreateSuccess(){
   showMainWidget();
   emit playerCreated();
 }
 
-void PlayerCreationWidget::eventCreateFail(const QString& errMessage){
+void PlayerCreationWidget::playerCreateFail(const QString& errMessage){
   showMainWidget();
   QMessageBox::critical(
     this,
@@ -162,7 +155,7 @@ void PlayerCreationWidget::eventCreateFail(const QString& errMessage){
 }
 
 
-void CreateEventWidget::setupStateCombo(){
+void PlayerCreationWidget::setupStateCombo(){
   state = new QComboBox();
   state->addItem("AL");
   state->addItem("AK");

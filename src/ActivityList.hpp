@@ -77,8 +77,6 @@ private:
    */
   void setupUi();
 
-  void createActions();
-
   /**
    * \brief Gets the name of the library activity.
    *

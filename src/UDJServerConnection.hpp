@@ -72,8 +72,8 @@ public:
     user_id = userId;
   }
 
-  inline void setEventId(const event_id_t& newEventId){
-    eventId = newEventId;
+  inline void setPlayerId(const player_id_t& newPlayerId){
+    playerId = newPlayerId;
   }
 
   //@}
@@ -109,64 +109,24 @@ public slots:
   void deleteLibSongOnServer(library_song_id_t toDeleteId);
 
   /**
-   * \brief Adds a given song to the list of available songs for an event on the
-   * server.
-   *
-   * @param songToAdd Song to add to the list of available songs for an event
-   * on the server.
-   */
-  void addSongToAvailableSongs(library_song_id_t songToAdd);
-
-  /**
-   * \brief Adds the given songs to the list of available songs for an event 
-   * on the server.
-   *
-   * @param songsToAdd The songs to add to the list of available songs for an 
-   * event on the server.
-   */
-  void addSongsToAvailableSongs(
-    const std::vector<library_song_id_t>& songsToAdd);
-
-  /**
-   * \brief Remove the given songs from the list of available songs for an event
-   * on the server.
-   *
-   * @param songsToRemove The songs to remove from the list of available 
-   * songs for an event on the server.
-   */
-  void removeSongsFromAvailableMusic(
-    const std::vector<library_song_id_t>& songsToRemove);
-
-  /**
    * \brief Creates an event on the server.
    *
    * @param eventName The name of the event.
    * @param password The password of the event.
    */
-  void createEvent(
-    const QString& eventName,
+  void createPlayer(
+    const QString& playerName,
     const QString& password);
 
-  void createEvent(
-    const QString& eventName,
+  void createPlayer(
+    const QString& playerName,
     const QString& password,
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const QString& zipcode);
+    const int& zipcode);
 
-  void createEvent(
-    const QString& eventName,
-    const QString& password,
-    const double &latitude,
-    const double &longitude);
-
-  void createEvent(const QByteArray& payload);
-
-  /**
-   * \brief Ends the current event.
-   */
-  void endEvent();
+  void createPlayer(const QByteArray& payload);
 
   /**
    * \brief Retrieves the latest version of the active playlist from the server.
@@ -209,8 +169,6 @@ public slots:
   void setCurrentSong(playlist_song_id_t currentSong);
 
   void setCurrentSong(const QByteArray& payload);
-
-  void getEventGoers();
 
   //@}
 
@@ -257,31 +215,7 @@ signals:
   /**
    * \brief Emitted when an event is succesfully created.
    */
-  void eventCreated(const event_id_t& issuedId);
-
-  /**
-   * \brief Emitted when an event is succesfully ended.
-   */
-  void eventEnded();
-
-  /**
-   * \brief Emitted when songs are succesfully added to the list of available
-   * music for the event on the server.
-   *
-   * @param songsAdded The id's of the songs that were succesfully added to the
-   * list of available music for the even on the server.
-   */
-  void songsAddedToAvailableMusic(
-    const std::vector<library_song_id_t> songsAdded);
-
-  /**
-   * \brief Emitted when a song is removed from the list of available songs
-   * for an event on the server.
-   *
-   * @param deletedId Id of the song that was deleted from the available music
-   * for an event on the server.
-   */
-  void songRemovedFromAvailableMusicOnServer(const library_song_id_t deletedId);
+  void playerCreated(const player_id_t& issuedId);
 
   /**
    * \brief Emitted when a new version of the active playlist is retrieved from
@@ -343,17 +277,14 @@ private:
   /** @name Private Members */
   //@{
 
-  /** \brief Id of the event associated with this conneciton */
-  event_id_t eventId;
+  /** \brief Id of the player associated with this conneciton */
+  player_id_t playerId;
 
   /** \brief Ticket hash that should be used for all requests. */
   QByteArray ticket_hash;
 
   /** \brief Id of the user that is currently logged in. */
   user_id_t  user_id;
-
-  /** \brief Machine UUID used for library interaction. */
-  QString machineUUID;
 
   /** \brief Manager for access to the network. */
   QNetworkAccessManager *netAccessManager;
@@ -398,26 +329,6 @@ private:
   QUrl getLibDeleteSongUrl(library_song_id_t toDelete) const;
 
   /**
-   * \brief Get the url to be used for adding songs to the list of available
-   * music for an event on the server.
-   *
-   * @return The url to be used for adding songs to the list of available
-   * music for an event on the server.
-   */
-  QUrl getAddSongToAvailableUrl() const;
-
-  /**
-   * \brief Get the url to be used for removing a song from the list of
-   * available music for an event on the server.
-   *
-   * @param toDelete The id of the song to be deleted from the list of
-   * availabe music for an event on the server.
-   * @return The url to be used for removing a song from the list of
-   * available music for an event on the server.
-   */
-  QUrl getAvailableMusicRemoveUrl(library_song_id_t toDelete) const;
-
-  /**
    * \brief Get the url to be used for ending an event.
    *
    * @return The url to be used for ending an event.
@@ -456,6 +367,8 @@ private:
 
   QUrl getUsersUrl() const;
 
+  QUrl getCreatePlayerUrl() const;
+
   QUrl getLocationUrl(
     const QString& streetAddress,
     const QString& city,
@@ -471,16 +384,6 @@ private:
    * from the libray on the server. False otherwise.
    */
   bool isLibDeleteUrl(const QString& path) const;
- 
-  /**
-   * \brief Determines whether or not a url path is a path which can be used
-   * for deleting a song from the list of available music on the server.
-   *
-   * @param path The path whose identity is in question.
-   * @return True if the url path is one which can be used for deleting a song
-   * from the list of available music on the server. False otherwise.
-   */
-  bool isAvailableMusicDeleteUrl(const QString& path) const;
 
   /**
    * \brief Determines whether or not a url path is a path which can be used
@@ -492,9 +395,9 @@ private:
    */
   bool isActivePlaylistRemoveUrl(const QString& path) const;
 
-  inline bool isLocationUrl(const QUrl& url) const{
-    return url.authority() == "webgis.usc.edu";
-  }
+  bool isPlayerCreateUrl(const QString& path) const;
+
+
 
   /**
    * \brief Get the port number to be used when communicating with the server.
@@ -550,41 +453,6 @@ private:
   }
 
   /**
-   * \brief Gets the url for creating an event on the server.
-   *
-   * @return The url for creating an event on the server.
-   */
-  static const QUrl& getCreateEventUrl(){
-    static const QUrl CREAT_EVENT_URL(getServerUrlPath() + "events/event");
-    return CREAT_EVENT_URL;
-  }
-
-  /**
-   * \brief Get the header used for identifying the api version number.
-   *
-   * @return The header used for identifying the api version number.
-   */
-  static const QByteArray& getAPIVersionHeaderName(){
-    static const QByteArray API_VERSION_HEAER_NAME = "X-Udj-Api-Version";
-    return API_VERSION_HEAER_NAME;
-  }
-
-  static const QByteArray& getMachineUUIDHeaderName(){
-    static const QByteArray MACHINE_UUID_HEADER_NAME = "X-Udj-Machine-UUID";
-    return MACHINE_UUID_HEADER_NAME;
-  }
-
-  /**
-   * \brief Get the api version number to which this client is conforming.
-   *
-   * @return The api version number to which this client is conforming.
-   */
-  static const QByteArray& getAPIVersion(){
-    static const QByteArray API_VERSION = "0.2";
-    return API_VERSION;
-  }
-
-  /**
    * \brief Get the header used for identifying the ticket hash header.
    *
    * @return The header used for identifying the ticket hash header.
@@ -594,29 +462,9 @@ private:
     return ticketHeaderName;
   }
 
-  /**
-   * \brief Get the header used for identifying the user id.
-   *
-   * @return The header used for identifying the user id.
-   */
-  static const QByteArray& getUserIdHeaderName(){
-    static const QByteArray userIdHeaderName = "X-Udj-User-Id";
-    return userIdHeaderName;
-  }
-
   static const QByteArray& getGoneResourceHeaderName(){
     static const QByteArray goneResourceHeaderName = "X-Udj-Gone-Resource";
     return goneResourceHeaderName;
-  }
-
-  static const char* getEventNameProperty(){
-    static const char* eventNameProperty = "event_name";
-    return eventNameProperty;
-  }
-
-  static const char* getEventPasswordProperty(){
-    static const char* eventPasswordProperty = "event_password";
-    return eventPasswordProperty;
   }
 
   static const char* getPayloadPropertyName(){
@@ -649,34 +497,11 @@ private:
   void handleDeleteLibSongsReply(QNetworkReply *reply);
 
   /**
-   * \brief Handle a response from the server regarding event creation.
+   * \brief Handle a response from the server regarding player creation.
    *
    * @param reply Response from the server.
    */
-  void handleCreateEventReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding ending an event.
-   *
-   * @param reply Response from the server.
-   */
-  void handleEndEventReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding adding songs to the
-   * list of avaialble songs for an event.
-   *
-   * @param reply Response from the server.
-   */
-  void handleAddAvailableSongReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding removing songs from the
-   * the list of available songs for an event.
-   *
-   * @param reply Response from the server.
-   */
-  void handleDeleteAvailableMusicReply(QNetworkReply *reply);
+  void handleCreatePlayerReply(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding a new active playlist.
@@ -708,8 +533,6 @@ private:
    * @param reply Response from the server.
    */
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
-
-  void handleRecievedNewEventGoers(QNetworkReply *reply);
 
   void handleLocaitonResponse(QNetworkReply *reply);
 

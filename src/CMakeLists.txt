@@ -35,15 +35,11 @@ SET(UDJ_SRCS
   qt-json/json.cpp
   LoginWidget.cpp
   ActivityList.cpp
-  EventWidget.cpp
-  CreateEventWidget.cpp
-  EventDashboard.cpp
+  PlayerCreationWidget.cpp
   WidgetWithLoader.cpp
-  AvailableMusicView.cpp
-  EventGoersView.cpp
-  SongListView.cpp
   MusicModel.cpp
   LoginDialog.cpp
+  PlayerCreateDialog.cpp
   simpleCrypt/simplecrypt.cpp
   CommErrorHandler.cpp
   LibraryWidget.cpp
@@ -65,18 +61,13 @@ SET(UDJ_MOC_HDRS
   DataStore.hpp
   ActivePlaylistView.hpp
   LibraryView.hpp
-	DifferenceSpinner.hpp
-	UDJServerConnection.hpp
+  UDJServerConnection.hpp
   LoginWidget.hpp
   ActivityList.hpp
   PlaybackWidget.hpp
-  EventWidget.hpp
-  CreateEventWidget.hpp
-  EventDashboard.hpp
+  PlayerCreationWidget.hpp
+  PlayerCreateDialog.hpp
   WidgetWithLoader.hpp
-  AvailableMusicView.hpp
-  EventGoersView.hpp
-  SongListView.hpp
   MusicModel.hpp
   LoginDialog.hpp
   CommErrorHandler.hpp

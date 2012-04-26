@@ -20,7 +20,6 @@
 #ifndef CONFIG_DEFS_HPP
 #define CONFIG_DEFS_HPP
 
-#define UDJ_GEOCODER_API_KEY "@GEOCODER_API_KEY@"
 #define UDJ_GET_CRYPTO_OBJECT SimpleCrypt(Q_UINT64_C(@SETTINGS_CRYPTO_KEY@))
 
 
@@ -31,7 +30,7 @@ namespace UDJ{
 typedef long playlist_song_id_t;
 typedef long library_song_id_t;
 typedef long playlist_id_t;
-typedef long event_id_t;
+typedef long player_id_t;
 typedef long user_id_t;
 typedef int lib_sync_status_t;
 typedef int avail_music_sync_status_t;

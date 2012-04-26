@@ -82,76 +82,64 @@ const std::vector<library_song_id_t> JSONHelper::getUpdatedLibIds(
   }
   return toReturn;
 }
-const QByteArray JSONHelper::getCreateEventJSON(
-  const QString& eventName,
-  const QString& password, 
-  double latitude,
-  double longitude)
+
+const QByteArray JSONHelper::getCreatePlayerJSON(
+  const QString& playerName,
+  const QString& password)
 {
   bool success;
-  return getCreateEventJSON(eventName, password, latitude, longitude, success);
+  return getCreatePlayerJSON(playerName, password, success);
 }
 
-const QByteArray JSONHelper::getCreateEventJSON(
-  const QString& eventName,
-  const QString& password, 
-  double latitude,
-  double longitude,
+const QByteArray JSONHelper::getCreatePlayerJSON(
+  const QString& playerName,
+  const QString& password,
   bool &success)
 {
-  QVariantMap eventToCreate;
-  eventToCreate["name"] = eventName;
+  QVariantMap playerToCreate;
+  playerToCreate["name"] = playerName;
   if(password != ""){
-    eventToCreate["password"] = password;
+    playerToCreate["password"] = password;
   }
-  if(latitude != getInvalidLat() && longitude != getInvalidLong()){
-    QVariantMap coords;
-    coords["latitude"] = latitude;
-    coords["longitude"] = longitude;
-    eventToCreate["coords"] = coords;
-  }
-  return QtJson::Json::serialize(QVariant(eventToCreate),success);
+  return QtJson::Json::serialize(QVariant(playerToCreate),success);
 }
 
-const QByteArray JSONHelper::getAddToAvailableJSON(
-  const library_song_id_t& toAdd)
+const QByteArray JSONHelper::getCreatePlayerJSON(
+  const QString& playerName,
+  const QString& password,
+  const QString& streetAddress,
+  const QString& city,
+  const QString& state,
+  const int& zipcode)
 {
   bool success;
-  return getAddToAvailableJSON(toAdd, success);
-
+  return getCreatePlayerJSON(playerName, password, streetAddress, city, state, success);
 }
 
-const QByteArray JSONHelper::getAddToAvailableJSON(
-  const library_song_id_t& toAdd, 
+const QByteArray JSONHelper::getCreatePlayerJSON(
+  const QString& playerName,
+  const QString& password,
+  const QString& streetAddress,
+  const QString& city,
+  const QString& state,
+  const int& zipcode,
   bool &success)
 {
-  std::vector<library_song_id_t> toAddVector(1, toAdd);
-  return getAddToAvailableJSON(toAddVector, success);
-}
-
-const QByteArray JSONHelper::getAddToAvailableJSON(
-  const std::vector<library_song_id_t>& toAdd)
-{
-  bool success;
-  return getAddToAvailableJSON(toAdd, success);
-}
-
-const QByteArray JSONHelper::getAddToAvailableJSON(
-  const std::vector<library_song_id_t>& toAdd, 
-  bool &success)
-{
-  QVariantList toSerialize;
-  for(
-    std::vector<library_song_id_t>::const_iterator it = toAdd.begin();
-    it != toAdd.end();
-    ++it
-  )
-  {
-    toSerialize.append(QVariant::fromValue<library_song_id_t>(*it));
+  QVariantMap playerToCreate;
+  playerToCreate["name"] = playerName;
+  if(password != ""){
+    playerToCreate["password"] = password;
   }
-  
-  return QtJson::Json::serialize(toSerialize, success);
+
+  playerToCreate["address"] = streetAddress;
+  playerToCreate["city"] = city;
+  playerToCreate["state"] = state;
+  playerToCreate["zipcode"] = zipcode;
+
+  return QtJson::Json::serialize(QVariant(playerToCreate),success);
 }
+
+
 
 const QByteArray JSONHelper::getAddToActiveJSON(
   const std::vector<client_request_id_t>& requestIds,
@@ -184,42 +172,19 @@ const QByteArray JSONHelper::getAddToActiveJSON(
 }
 
 
-const std::vector<library_song_id_t> JSONHelper::getAddedAvailableSongs(
-  QNetworkReply *reply)
-{
+player_id_t JSONHelper::getPlayerId(QNetworkReply *reply){
   QByteArray responseData = reply->readAll();
   QString responseString = QString::fromUtf8(responseData);
   bool success;
-  QVariantList addedSongs = QtJson::Json::parse(responseData, success).toList();
-  if(!success){
-    std::cerr << "Error processing result from add to available music" << 
-      std::endl;
-  }
-  std::vector<library_song_id_t> toReturn;
-  for(
-    QVariantList::const_iterator it = addedSongs.begin();
-    it != addedSongs.end();
-    ++it
-  )
-  {
-    toReturn.push_back(it->value<library_song_id_t>());
-  }
-  return toReturn;
-}
-
-event_id_t JSONHelper::getEventId(QNetworkReply *reply){
-  QByteArray responseData = reply->readAll();
-  QString responseString = QString::fromUtf8(responseData);
-  bool success;
-  QVariantMap eventCreated = 
+  QVariantMap playerCreated = 
     QtJson::Json::parse(responseString, success).toMap();
   if(!success){
-    std::cerr << "Error parsing json from a response to an event creation" <<
+    std::cerr << "Error parsing json from a response to an player creation" <<
      "request" << std::endl <<
       responseString.toStdString() << std::endl;
   }
-  
-  return eventCreated["event_id"].value<event_id_t>();
+
+  return playerCreated["player_id"].value<player_id_t>();
 }
 
 const QVariantList JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
@@ -236,15 +201,16 @@ const QVariantList JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
   return activePlaylist["active_playlist"].toList();
 }
 
-const QVariantList JSONHelper::getEventGoersJSON(QNetworkReply *reply){
+/*const QVariantList JSONHelper::getEventGoersJSON(QNetworkReply *reply){
   QByteArray responseData = reply->readAll();
   QString responseString = QString::fromUtf8(responseData);
   bool success;
   QVariantList eventGoers = 
     QtJson::Json::parse(responseString, success).toList();
   return eventGoers;
-}
+}*/
 
+/*
 const QVariantMap JSONHelper::getSingleEventInfo(QNetworkReply *reply){
   QByteArray responseData = reply->readAll();
   QString responseString = QString::fromUtf8(responseData);
@@ -252,7 +218,7 @@ const QVariantMap JSONHelper::getSingleEventInfo(QNetworkReply *reply){
   QVariantMap event = 
     QtJson::Json::parse(responseString, success).toMap();
   return event;
-}
+}*/
 
 std::vector<client_request_id_t> JSONHelper::extractAddRequestIds(
   const QByteArray& payload)
@@ -267,6 +233,14 @@ std::vector<client_request_id_t> JSONHelper::extractAddRequestIds(
       addRequests[i].toMap()["client_request_id"].value<client_request_id_t>();
   }
   return requestIds;
+}
+
+const QVariantMap JSONHelper::getAuthReplyFromJSON(QNetworkReply *reply, bool &success){
+  QByteArray responseData = reply->readAll();
+  QString responseString = QString::fromUtf8(responseData);
+  QVariantMap authReply =
+    QtJson::Json::parse(responseString, success).toMap();
+  return authReply;
 }
 
 } //end namespace UDJ
