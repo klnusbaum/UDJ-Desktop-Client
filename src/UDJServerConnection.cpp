@@ -54,6 +54,7 @@ void UDJServerConnection::authenticate(
   dataBuffer->setData(data.toUtf8());
   QNetworkReply *reply = netAccessManager->post(authRequest, dataBuffer);
   dataBuffer->setParent(reply);
+  DEBUG_MESSAGE("Doing auth request")
 }
 
 void UDJServerConnection::addLibSongOnServer(
@@ -180,9 +181,34 @@ void UDJServerConnection::setCurrentSong(const QByteArray& payload){
   reply->setProperty(getPayloadPropertyName(), payload);
 }
 
+void UDJServerConnection::setPlayerActive(){
+  DEBUG_MESSAGE("Setting player active")
+  QString params("state=playing");
+  QByteArray payload = params.toUtf8();
+  QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
+  setPlayerActiveRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QNetworkReply *reply = netAccessManager->post(setPlayerActiveRequest, payload);
+  reply->setProperty(getPayloadPropertyName(), payload);
+}
+
+void UDJServerConnection::setPlayerInactive(){
+  QString params("state=inactive");
+  QByteArray payload = params.toUtf8();
+  QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
+  setPlayerActiveRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QNetworkReply *reply = netAccessManager->post(setPlayerActiveRequest, payload);
+  reply->setProperty(getPayloadPropertyName(), payload);
+}
+
 void UDJServerConnection::recievedReply(QNetworkReply *reply){
   if(reply->request().url().path() == getAuthUrl().path()){
     handleAuthReply(reply);
+  }
+  else if(isSetActiveReply(reply)){
+    handleSetActiveReply(reply);
+  }
+  else if(isSetInactiveReply(reply)){
+    handleSetInactiveReply(reply);
   }
   else if(reply->request().url().path() == getLibAddSongUrl().path()){
     handleAddLibSongsReply(reply);
@@ -216,6 +242,7 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   bool success = true;
   QVariantMap authReplyJSON = JSONHelper::getAuthReplyFromJSON(reply, success);
   if(reply->error() == QNetworkReply::NoError && success){
+    DEBUG_MESSAGE("Got good auth reply")
     emit authenticated(authReplyJSON["ticket_hash"].toByteArray(), authReplyJSON["user_id"].value<user_id_t>());
   }
   else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 401){
@@ -251,7 +278,7 @@ bool UDJServerConnection::checkReplyAndFireErrors(
     emit commError(opType, CommErrorHandler::NOT_FOUND_ERROR, payload);
     return true;
   }
-  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 403){
+  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 401){
     emit commError(opType, CommErrorHandler::AUTH, payload);
     return true;
   }
@@ -267,10 +294,23 @@ bool UDJServerConnection::checkReplyAndFireErrors(
     return true;
   }
   else if(reply->error() != QNetworkReply::NoError){
+    DEBUG_MESSAGE("Unknown error: " << QString(reply->readAll()).toStdString())
     emit commError(opType, CommErrorHandler::UNKNOWN_ERROR, payload);
     return true;
   }
   return false;
+}
+
+void UDJServerConnection::handleSetActiveReply(QNetworkReply *reply){
+  if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_ACTIVE)){
+    emit playerSetActive();
+  }
+}
+
+void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
+  if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_INACTIVE)){
+    emit playerSetInactive();
+  }
 }
 
 
@@ -340,7 +380,7 @@ QUrl UDJServerConnection::getLibDeleteSongUrl(library_song_id_t toDelete) const{
 }
 
 QUrl UDJServerConnection::getActivePlaylistUrl() const{
-  return QUrl(getServerUrlPath() + "events/" + QString::number(playerId) +
+  return QUrl(getServerUrlPath() + "players/" + QString::number(playerId) +
     "/active_playlist");
 }
 
@@ -382,8 +422,28 @@ QUrl UDJServerConnection::getCreatePlayerUrl() const{
   return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/player");
 }
 
+QUrl UDJServerConnection::getPlayerStateUrl() const{
+  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+      QString::number(playerId) + "/state");
+}
+
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{
   return (path == "/udj/users/" + QString::number(user_id) + "/players/player");
 }
+
+bool UDJServerConnection::isSetActiveReply(const QNetworkReply *reply) const{
+  return
+    (reply->request().url().path() == getPlayerStateUrl().path()) &&
+    (reply->property(getPayloadPropertyName()).toString() == "state=playing");
+}
+
+bool UDJServerConnection::isSetInactiveReply(const QNetworkReply *reply) const{
+  return
+    reply->request().url().path() == getPlayerStateUrl().path() &&
+    reply->property(getPayloadPropertyName()).toString() == "state=inactive";
+}
+
+
+
 
 }//end namespace

@@ -48,6 +48,8 @@ public:
     PLAYLIST_ADD,
     PLAYLIST_REMOVE,
     SET_CURRENT_SONG,
+    SET_PLAYER_ACTIVE,
+    SET_PLAYER_INACTIVE
   };
 
   CommErrorHandler(DataStore *dataStore, UDJServerConnection *serverConnection);
@@ -67,6 +69,8 @@ signals:
   void playlistRemoveRequestError(const QString errMessage);
 
   void setCurrentSongError(const QString errMessage);
+
+  void setPlayerActiveError(const QString errMessage);
 
 
 private slots:
@@ -103,6 +107,8 @@ private:
   bool setCurrentSongOnReauth;
 
   bool syncPlaylistRemoveRequestsOnReauth;
+
+  bool setPlayerActiveOnReauth;
 
   void clearOnReauthFlags();
 

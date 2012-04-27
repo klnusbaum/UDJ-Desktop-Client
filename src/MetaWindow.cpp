@@ -25,6 +25,7 @@
 #include "ActivityList.hpp"
 #include "ActivePlaylistView.hpp"
 #include "PlayerCreateDialog.hpp"
+#include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QAction>
@@ -48,7 +49,8 @@ MetaWindow::MetaWindow(
   const user_id_t& userId,
   QWidget *parent,
   Qt::WindowFlags flags)
-  :QMainWindow(parent,flags)
+  :QMainWindow(parent,flags),
+  isQuiting(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
   createActions();
@@ -64,16 +66,28 @@ MetaWindow::MetaWindow(
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
-  QSettings settings(
-    QSettings::UserScope,
-    DataStore::getSettingsOrg(),
-    DataStore::getSettingsApp());
-  settings.setValue("metaWindowGeometry", saveGeometry());
-  settings.setValue("metaWindowState", saveState());
-  QMainWindow::closeEvent(event);
+  if(!isQuiting){
+    isQuiting = true;
+    connect(
+      dataStore,
+      SIGNAL(playerDeactivated()),
+      this,
+      SLOT(close()));
+    quittingProgress = new QProgressDialog("Disconnecting...", "Cancel", 0, 0, this);
+    quittingProgress->setWindowModality(Qt::WindowModal);
+    dataStore->deactivatePlayer();
+    event->ignore();
+  }
+  else{
+    QSettings settings(
+      QSettings::UserScope,
+      DataStore::getSettingsOrg(),
+      DataStore::getSettingsApp());
+    settings.setValue("metaWindowGeometry", saveGeometry());
+    settings.setValue("metaWindowState", saveState());
+    QMainWindow::closeEvent(event);
+  }
 }
-
-
 
 void MetaWindow::addMusicToLibrary(){
   //TODO: Check to see if musicDir is different than then current music dir

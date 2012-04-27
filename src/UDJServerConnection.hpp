@@ -76,6 +76,10 @@ public:
     playerId = newPlayerId;
   }
 
+  void setPlayerActive();
+
+  void setPlayerInactive();
+
   //@}
 
 
@@ -194,6 +198,10 @@ signals:
     CommErrorHandler::OperationType opType,
     CommErrorHandler::CommErrorType error,
     const QByteArray &payload);
+
+  void playerSetActive();
+
+  void playerSetInactive();
 
   /**
    * \brief Emitted when songs are added to the library on the server.
@@ -369,11 +377,7 @@ private:
 
   QUrl getCreatePlayerUrl() const;
 
-  QUrl getLocationUrl(
-    const QString& streetAddress,
-    const QString& city,
-    const QString& state,
-    const QString& zipcode) const;
+  QUrl getPlayerStateUrl() const;
 
   /**
    * \brief Determines whether or not a url path is a path which can be used
@@ -396,6 +400,10 @@ private:
   bool isActivePlaylistRemoveUrl(const QString& path) const;
 
   bool isPlayerCreateUrl(const QString& path) const;
+
+  bool isSetActiveReply(const QNetworkReply *reply) const;
+
+  bool isSetInactiveReply(const QNetworkReply *reply) const;
 
 
 
@@ -479,6 +487,10 @@ private:
    * @param reply Response from the server.
    */
   void handleAuthReply(QNetworkReply* reply);
+
+  void handleSetActiveReply(QNetworkReply* reply);
+
+  void handleSetInactiveReply(QNetworkReply* reply);
 
   /**
    * \brief Handle a response from the server regarding adding songs to the

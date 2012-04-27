@@ -33,6 +33,7 @@ class QLabel;
 class QSplitter;
 class QStackedWidget;
 class QCloseEvent;
+class QProgressDialog;
 
 namespace UDJ{
 
@@ -139,6 +140,12 @@ private:
   PlaybackWidget *playbackWidget;
 
   ActivePlaylistView *playlistView;
+
+  QProgressDialog *quittingProgress;
+
+  bool isQuiting;
+
+
 
 
 

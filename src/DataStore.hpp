@@ -65,6 +65,8 @@ public:
 
   void activatePlayer();
 
+  void deactivatePlayer();
+
   /**
    * \brief Adds a single song to the music library.
    *
@@ -796,11 +798,6 @@ signals:
   void libSongsModified();
 
   /**
-   * \brief Emitted when the list of available songs is modified.
-   */
-  void availableSongsModified();
-
-  /**
    * \brief Emitted when a player is created.
    */
   void playerCreated();
@@ -829,6 +826,10 @@ signals:
   void songListModified(song_list_id_t songListId);
 
   void songListDeleted(song_list_id_t songListId);
+
+  void playerActive();
+
+  void playerDeactivated();
 
 //@}
 
@@ -1282,6 +1283,10 @@ private slots:
   void onPlayerCreate(const player_id_t& issuedId);
 
   void onPlayerCreateFail(const QString message);
+
+  void onPlayerSetActive();
+
+  void onPlayerDeactivated();
 
 //@}
 

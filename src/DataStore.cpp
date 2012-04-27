@@ -123,6 +123,17 @@ DataStore::DataStore(
     this,
     SLOT(processNewEventGoers(QVariantList)));
 
+  connect(
+    serverConnection,
+    SIGNAL(playerSetActive()),
+    this,
+    SLOT(onPlayerSetActive()));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerSetInactive()),
+    this,
+    SLOT(onPlayerDeactivated()));
 
   syncLibrary();
 }
@@ -170,10 +181,16 @@ void DataStore::activatePlayer(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   if(settings.contains(getPlayerIdSettingName())){
     serverConnection->setPlayerId(getPlayerId());
+    serverConnection->setPlayerActive();
+    activePlaylistRefreshTimer->start();
   }
   else{
     emit needPlayerCreate();
   }
+}
+
+void DataStore::deactivatePlayer(){
+  serverConnection->setPlayerInactive();
 }
 
 void DataStore::addMusicToLibrary(
@@ -860,6 +877,18 @@ void DataStore::resumePlaylistUpdates(){
   if(!activePlaylistRefreshTimer->isActive()){
     activePlaylistRefreshTimer->start();
   }
+}
+
+void DataStore::onPlayerSetActive(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
+  emit playerActive();
+}
+
+void DataStore::onPlayerDeactivated(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerStateSettingName(), getPlayerInactiveState());
+  emit playerDeactivated();
 }
 
 

@@ -35,7 +35,9 @@ CommErrorHandler::CommErrorHandler(
   refreshActivePlaylistOnReauth(false),
   syncPlaylistAddRequestsOnReauth(false),
   setCurrentSongOnReauth(false),
-  syncPlaylistRemoveRequestsOnReauth(false)
+  syncPlaylistRemoveRequestsOnReauth(false),
+  setPlayerActiveOnReauth(false)
+
 {
   connect(
     serverConnection,
@@ -93,6 +95,9 @@ void CommErrorHandler::handleCommError(
       else if(opType == PLAYLIST_REMOVE){
         syncPlaylistRemoveRequestsOnReauth = true;
       }
+    }
+    else if(opType == SET_PLAYER_ACTIVE){
+      setPlayerActiveOnReauth = true;
     }
     requestReauth();
   }
@@ -156,6 +161,10 @@ void CommErrorHandler::clearOnReauthFlags(){
     dataStore->syncPlaylistRemoveRequests();
     syncPlaylistRemoveRequestsOnReauth=false;
   }
+  if(setPlayerActiveOnReauth){
+    dataStore->activatePlayer();
+    setPlayerActiveOnReauth=false;
+  }
 }
 
 void CommErrorHandler::onHardAuthFailure(const QString errMessage){
@@ -178,6 +187,9 @@ void CommErrorHandler::onHardAuthFailure(const QString errMessage){
   }
   if(syncPlaylistRemoveRequestsOnReauth){
     emit playlistRemoveRequestError(errMessage);
+  }
+  if(setPlayerActiveOnReauth){
+    emit setPlayerActiveError(errMessage);
   }
 }
 
