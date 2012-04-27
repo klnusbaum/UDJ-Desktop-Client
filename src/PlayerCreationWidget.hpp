@@ -60,6 +60,8 @@ signals:
   /** \brief Emitted when a new player is created */
   void playerCreated();
 
+  void playerCreateFailed();
+
   //@}
 
 private:

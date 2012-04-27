@@ -113,7 +113,7 @@ const QByteArray JSONHelper::getCreatePlayerJSON(
   const int& zipcode)
 {
   bool success;
-  return getCreatePlayerJSON(playerName, password, streetAddress, city, state, success);
+  return getCreatePlayerJSON(playerName, password, streetAddress, city, state, zipcode, success);
 }
 
 const QByteArray JSONHelper::getCreatePlayerJSON(

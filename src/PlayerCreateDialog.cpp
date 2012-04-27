@@ -32,6 +32,7 @@ PlayerCreateDialog::PlayerCreateDialog(DataStore *dataStore, QWidget *parent, Qt
   :QDialog(parent, f),
   dataStore(dataStore)
 {
+  setModal(true);
   setupUi();
 }
 
@@ -57,13 +58,13 @@ void PlayerCreateDialog::setupUi(){
 
   connect(
     createWidget, 
-    SIGNAL(playerCreateSuccess()), 
+    SIGNAL(playerCreated()), 
     this, 
     SLOT(closeDialog()));
 
   connect(
     createWidget,
-    SIGNAL(playerCreateFail()),
+    SIGNAL(playerCreateFailed()),
     createButton,
     SLOT(show()));
 

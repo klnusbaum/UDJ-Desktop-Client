@@ -28,8 +28,6 @@
 #include <QSqlRecord>
 #include <QThread>
 #include <QTimer>
-#include <QUuid>
-#include <QRegExp>
 #include <QDateTime>
 #include <tag.h>
 #include <tstring.h>
@@ -80,9 +78,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerCreated(const event_id_t&)),
+    SIGNAL(playerCreated(const player_id_t&)),
     this,
-    SLOT(onPlayerCreate(const event_id_t&)));
+    SLOT(onPlayerCreate(const player_id_t&)));
 
   connect(
     errorHandler,
@@ -125,7 +123,7 @@ DataStore::DataStore(
     this,
     SLOT(processNewEventGoers(QVariantList)));
 
-  
+
   syncLibrary();
 }
 
@@ -138,47 +136,33 @@ void DataStore::setupDB(){
   }
   database = QSqlDatabase::addDatabase("QSQLITE", getMusicDBConnectionName());
   database.setDatabaseName(dbDir.absoluteFilePath(getMusicDBName()));
-  database.open(); 
+  database.open();
 
   QSqlQuery setupQuery(database);
 
-	EXEC_SQL(
-		"Error creating library table", 
-		setupQuery.exec(getCreateLibraryQuery()), 
-		setupQuery)	
-
-	EXEC_SQL(
-		"Error creating activePlaylist table.", 
-		setupQuery.exec(getCreateActivePlaylistQuery()),
-		setupQuery)	
-
-	EXEC_SQL(
-		"Error creating activePlaylist view.",
-  	setupQuery.exec(getCreateActivePlaylistViewQuery()),
-		setupQuery)
-
-
-	EXEC_SQL(
-		"Error creating add reqeusts table",
-  	setupQuery.exec(getCreatePlaylistAddRequestsTableQuery()),
-		setupQuery)
-	EXEC_SQL(
-		"Error creating remove requests table",
-  	setupQuery.exec(getCreatePlaylistRemoveRequestsTableQuery()),
-		setupQuery)
-	EXEC_SQL(
-		"Error creating event goers table",
-  	setupQuery.exec(getCreateEventGoersTableQuery()),
-		setupQuery)
-
   EXEC_SQL(
-    "Error creating song list table",
-    setupQuery.exec(getCreateSongListTableQuery()),
+    "Error creating library table",
+    setupQuery.exec(getCreateLibraryQuery()),
     setupQuery)
 
   EXEC_SQL(
-    "Error creating song list table",
-    setupQuery.exec(getCreateSongListEntryTableQuery()),
+    "Error creating activePlaylist table.",
+    setupQuery.exec(getCreateActivePlaylistQuery()),
+    setupQuery)
+
+  EXEC_SQL(
+    "Error creating activePlaylist view.",
+    setupQuery.exec(getCreateActivePlaylistViewQuery()),
+    setupQuery)
+
+
+  EXEC_SQL(
+    "Error creating add reqeusts table",
+    setupQuery.exec(getCreatePlaylistAddRequestsTableQuery()),
+    setupQuery)
+  EXEC_SQL(
+    "Error creating remove requests table",
+    setupQuery.exec(getCreatePlaylistRemoveRequestsTableQuery()),
     setupQuery)
 }
 

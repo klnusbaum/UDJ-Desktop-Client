@@ -417,7 +417,7 @@ private:
    * @return The port number to be used for communicating with the server.
    */
   static const QString & getServerPortNumber(){
-    static const QString serverPortNumber = "4897";
+    static const QString serverPortNumber = "4898";
     return serverPortNumber;
   }
 
@@ -428,7 +428,7 @@ private:
    */
   static const QString& getServerUrlPath(){
     static const QString SERVER_URL_PATH= 
-      "https://udjevents.com:" + getServerPortNumber() + "/udj/";
+      "https://udjplayer.com:" + getServerPortNumber() + "/udj/";
     return SERVER_URL_PATH;
   }
 

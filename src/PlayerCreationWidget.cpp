@@ -64,7 +64,7 @@ void PlayerCreationWidget::setupUi(){
   useAddress = new QCheckBox(tr("Provide Address")); 
 
   QFormLayout *formLayout = new QFormLayout;
-  formLayout->addRow(tr("Name of event"), nameEdit);
+  formLayout->addRow(tr("Name of player"), nameEdit);
   formLayout->addRow(tr("Password (optional)"), passwordEdit);
   formLayout->addRow(useAddress);
   formLayout->addRow(tr("Address:"), streetAddress);
@@ -150,8 +150,9 @@ void PlayerCreationWidget::playerCreateFail(const QString& errMessage){
   showMainWidget();
   QMessageBox::critical(
     this,
-    tr("Event Creation Failed"),
+    tr("Player Creation Failed"),
     errMessage);
+  emit playerCreateFailed();
 }
 
 
