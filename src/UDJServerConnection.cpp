@@ -317,7 +317,8 @@ void UDJServerConnection::handleAddLibSongsReply(QNetworkReply *reply){
 void UDJServerConnection::handleDeleteLibSongsReply(QNetworkReply *reply){
   if(!checkReplyAndFireErrors(reply, CommErrorHandler::LIB_SONG_DELETE)){
     QString path = reply->request().url().path();
-    QRegExp rx("/udj/users/" + QString::number(user_id) + "/library/(\\d+)");
+    QRegExp rx("/udj/users/" + QString::number(user_id) + "/players/" + 
+        QString::number(playerId) + "/library/(\\d+)");
     rx.indexIn(path);
     library_song_id_t songDeleted = rx.cap(1).toLong();
     emit songDeletedFromLibOnServer(songDeleted);
@@ -368,7 +369,7 @@ QUrl UDJServerConnection::getLibAddSongUrl() const{
 
 QUrl UDJServerConnection::getLibDeleteSongUrl(library_song_id_t toDelete) const{
   return QUrl(getServerUrlPath() + "users/" + QString::number(user_id) +
-    "/library/" + QString::number(toDelete));
+    "/players/" + QString::number(playerId) + "/library/" + QString::number(toDelete));
 }
 
 QUrl UDJServerConnection::getActivePlaylistUrl() const{
@@ -400,7 +401,8 @@ QUrl UDJServerConnection::getUsersUrl() const{
 }
 
 bool UDJServerConnection::isLibDeleteUrl(const QString& path) const{
-  QRegExp rx("^/udj/users/" + QString::number(user_id) + "/library/\\d+$");
+  QRegExp rx("^/udj/users/" + QString::number(user_id) + "/players/" +
+      QString::number(playerId) + "/library/\\d+$");
   return rx.exactMatch(path);
 }
 

@@ -61,5 +61,3 @@ LibraryWidget::LibraryWidget(DataStore* dataStore, QWidget* parent):
 
 
 } //end namespace
-
-

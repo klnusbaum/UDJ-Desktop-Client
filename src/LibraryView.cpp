@@ -79,7 +79,7 @@ void LibraryView::createActions(){
 void LibraryView::handleContextMenuRequest(const QPoint &pos){
   QMenu contextMenu(this);
 
-  QSqlQuery songLists = dataStore->getSongLists();
+  /*QSqlQuery songLists = dataStore->getSongLists();
   if(songLists.next()){
     QMenu *songListsMenu = new QMenu(tr("Add To Song Lists"), this);
     contextMenu.addMenu(songListsMenu);
@@ -91,15 +91,16 @@ void LibraryView::handleContextMenuRequest(const QPoint &pos){
       addedAction->setData(
         currentRecord.value(DataStore::getSongListIdColName()));
     }while(songLists.next());
-  }
+  }*/
   contextMenu.addAction(deleteSongAction);
-  QAction *selected = contextMenu.exec(QCursor::pos());
+  contextMenu.exec(QCursor::pos());
+  /*QAction *selected = contextMenu.exec(QCursor::pos());
   if(selected != NULL){
     QVariant data = selected->data();
     if(data.isValid()){
       addSongsToSongList(data.value<song_list_id_t>()); 
     }
-  }
+  }*/
 }
 
 

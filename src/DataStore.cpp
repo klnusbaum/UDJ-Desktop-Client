@@ -293,7 +293,6 @@ void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
   EXEC_BULK_QUERY("Error removing songs from library", 
     bulkDelete)
   if(bulkDelete.lastError().type() == QSqlError::NoError){
-    emit libSongsModified();
     syncLibrary();
   }
 }
@@ -454,7 +453,7 @@ void DataStore::syncLibrary(){
     "Error querying for songs to delete",
     needDeleteSongs.exec(
       "SELECT * FROM " + getLibraryTableName() + " WHERE " + 
-      getLibSyncStatusColName() + "=" + 
+      getLibSyncStatusColName() + "==" + 
       QString::number(getLibNeedsDeleteSyncStatus()) + ";"),
     needDeleteSongs)
 
