@@ -224,6 +224,10 @@ public:
     return unknownSongAlbum;
   }
 
+  static const QString& unknownGenre(){
+    static const QString unknownGenre = tr("Unknown");
+    return unknownGenre;
+  }
 
   /**
    * \brief Gets the name of the table in the musicdb that contains information
@@ -418,6 +422,16 @@ public:
   static const QString& getLibDurationColName(){
     static const QString libDurationColName = "Length";
     return libDurationColName;
+  }
+
+  static const QString& getLibGenreColName(){
+    static const QString libGenreColName = "Genre";
+    return libGenreColName;
+  }
+
+  static const QString& getLibTrackColName(){
+    static const QString libTrackColName = "Track";
+    return libTrackColName;
   }
 
   /** 
@@ -918,6 +932,8 @@ private:
    	  getLibSongColName() + " TEXT NOT NULL, " +
       getLibArtistColName() + " TEXT NOT NULL, "+
       getLibAlbumColName() + " TEXT NOT NULL, " + 
+      getLibGenreColName() + " TEXT NOT NULL, " +
+      getLibTrackColName() + " INTEGER NOT NULL, " +
       getLibFileColName() + " TEXT NOT NULL, " +
       getLibDurationColName() + " INTEGER NOT NULL, "+
       getLibIsDeletedColName() + " INTEGER DEFAULT 0, " + 

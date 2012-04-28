@@ -57,25 +57,15 @@ void UDJServerConnection::authenticate(
   DEBUG_MESSAGE("Doing auth request")
 }
 
-void UDJServerConnection::addLibSongOnServer(
-  const QString& songName,
-  const QString& artistName,
-  const QString& albumName,
-  const int duration,
-  const library_song_id_t hostId)
-{
-  DEBUG_MESSAGE("Adding song to library on server: " << songName.toStdString())
-  bool success = true;
+void UDJServerConnection::addLibSongsToServer(const QVariantList& songs){
+  DEBUG_MESSAGE("Adding songs to library on server")
 
-  lib_song_t songToAdd = {hostId, songName, artistName, albumName, duration};
-
-  const QByteArray songJSON = JSONHelper::getJSONForLibAdd(
-    songToAdd,
-    success);
+  QByteArray songJSON = JSONHelper::getJSONForLibAdd(songs);
   QNetworkRequest addSongRequest(getLibAddSongUrl());
   prepareJSONRequest(addSongRequest);
   QNetworkReply *reply = netAccessManager->put(addSongRequest, songJSON);
   reply->setProperty(getPayloadPropertyName(), songJSON);
+
 }
 
 void UDJServerConnection::deleteLibSongOnServer(library_song_id_t toDeleteId){
@@ -275,6 +265,7 @@ bool UDJServerConnection::checkReplyAndFireErrors(
     return false;
   }
   else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 404){
+    DEBUG_MESSAGE(reply->request().url().path().toStdString())
     emit commError(opType, CommErrorHandler::NOT_FOUND_ERROR, payload);
     return true;
   }
@@ -316,7 +307,8 @@ void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
 
 void UDJServerConnection::handleAddLibSongsReply(QNetworkReply *reply){
   if(!checkReplyAndFireErrors(reply, CommErrorHandler::LIB_SONG_ADD)){
-    const std::vector<library_song_id_t> updatedIds = JSONHelper::getUpdatedLibIds(reply);
+    QVariant payload = reply->property(getPayloadPropertyName());
+    std::vector<library_song_id_t> updatedIds = JSONHelper::getUpdatedLibIds(payload.toByteArray());
     emit songsAddedToLibOnServer(updatedIds);
   }
 }
@@ -371,7 +363,7 @@ void UDJServerConnection::handleRecievedActivePlaylistRemove(QNetworkReply *repl
 
 QUrl UDJServerConnection::getLibAddSongUrl() const{
   return QUrl(getServerUrlPath() + "users/" + QString::number(user_id) +
-    "/library/songs");
+    "/players/" + QString::number(playerId) + "/library/songs");
 }
 
 QUrl UDJServerConnection::getLibDeleteSongUrl(library_song_id_t toDelete) const{

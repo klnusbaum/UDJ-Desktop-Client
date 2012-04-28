@@ -88,21 +88,7 @@ public slots:
   /** @name Slots */
   //@{
 
-  /**
-   * \brief Adds a song to the library on the server.
-   *
-   * @param songName The name of the song.
-   * @param artistName The name of the artist.
-   * @param albumName The name of the album.
-   * @param duration The length of the song in seconds.
-   * @param hostid The id of the song on the host.
-   */
-  void addLibSongOnServer(
-    const QString& songName,
-    const QString& artistName,
-    const QString& albumName,
-    const int duration,
-    const library_song_id_t hostid);
+  void addLibSongsToServer(const QVariantList& songs);
 
   /**
    * \brief Deletes a song from the library on the server.

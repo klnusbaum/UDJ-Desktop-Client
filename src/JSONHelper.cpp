@@ -22,6 +22,7 @@
 
 namespace UDJ{
 
+/*
 const QByteArray JSONHelper::getJSONForLibAdd(const lib_song_t &song){
   bool ok;
   return getJSONForLibAdd(song, ok);
@@ -61,12 +62,19 @@ const QByteArray JSONHelper::getJSONForLibAdd(
 
   return QtJson::Json::serialize(QVariant(toAdd),success);
 }
+*/
 
-const std::vector<library_song_id_t> JSONHelper::getUpdatedLibIds(
-  QNetworkReply *reply)
-{
-  QByteArray responseData = reply->readAll();
-  QString responseString = QString::fromUtf8(responseData);
+QByteArray JSONHelper::getJSONForLibAdd(const QVariantList& songsToAdd){
+  bool success;
+  return getJSONForLibAdd(songsToAdd, success);
+}
+
+QByteArray JSONHelper::getJSONForLibAdd(const QVariantList& songsToAdd, bool &success){
+  return QtJson::Json::serialize(songsToAdd,success);
+}
+
+std::vector<library_song_id_t> JSONHelper::getUpdatedLibIds(const QByteArray& payload){
+  QString responseString = QString::fromUtf8(payload);
   bool success;
   QVariantList songsAdded = 
     QtJson::Json::parse(responseString, success).toList();
@@ -78,7 +86,7 @@ const std::vector<library_song_id_t> JSONHelper::getUpdatedLibIds(
   
   std::vector<library_song_id_t> toReturn(songsAdded.size());
   for(int i=0; i<songsAdded.size(); ++i){
-    toReturn[i] = songsAdded[i].value<library_song_id_t>();
+    toReturn[i] = songsAdded[i].toMap()["id"].value<library_song_id_t>();
   }
   return toReturn;
 }

@@ -74,29 +74,10 @@ public:
     const std::vector<client_request_id_t>& requestIds,
     const std::vector<library_song_id_t>& libIds,
     bool &success);
-  
-  /**
-   * \brief Creates the JSON necessary for doing a request to add the given
-   * songs to the library.
-   *
-   * @param songs The ids of the songs to be added.
-   * @return A bytearray contianing the JSON for the song add request.
-   */
-  static const QByteArray getJSONForLibAdd(
-    const std::vector<lib_song_t> &songs);
 
-  /**
-   * \brief Creates the JSON necessary for doing a request to add the given
-   * songs to the library.
-   *
-   * @param songs The ids of the songs to be added.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray contianing the JSON for the song add request.
-   */
-  static const QByteArray getJSONForLibAdd(
-    const std::vector<lib_song_t>& songs,
-    bool &success);
+  static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd);
+
+  static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd, bool &success);
 
   static const QByteArray getCreatePlayerJSON(
     const QString& playerName,
@@ -124,15 +105,7 @@ public:
     const int& zipcode,
     bool &success);
 
-  /**
-   * \brief Given a server reply, get's the library Ids that were successuflly
-   * updated on the server.
-   *
-   * @param reply The reply from the server.
-   * @return A vector containing all the library id's of the songs that were 
-   * updated on the server.
-   */
-  static const std::vector<library_song_id_t> getUpdatedLibIds(QNetworkReply *reply);
+  static std::vector<library_song_id_t> getUpdatedLibIds(const QByteArray& payload);
 
   /**
    * \brief Get's the id of a player from the given server reply.

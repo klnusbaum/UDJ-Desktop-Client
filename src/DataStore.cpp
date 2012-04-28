@@ -135,7 +135,6 @@ DataStore::DataStore(
     this,
     SLOT(onPlayerDeactivated()));
 
-  syncLibrary();
 }
 
 void DataStore::setupDB(){
@@ -203,6 +202,7 @@ void DataStore::addMusicToLibrary(
     }
     addSongToLibrary(songs[i]);
   }
+  syncLibrary();
   emit libSongsModified();
 }
 
@@ -211,6 +211,8 @@ void DataStore::addSongToLibrary(Phonon::MediaSource song){
   QString songName;
   QString artistName;
   QString albumName;
+  QString genre;
+  int track;
   int duration;
   TagLib::FileRef f(fileName.toStdString().c_str());
   if(!f.isNull() && f.tag() && f.audioProperties()){
@@ -218,7 +220,9 @@ void DataStore::addSongToLibrary(Phonon::MediaSource song){
     songName = TStringToQString(tag->title());
     artistName = TStringToQString(tag->artist());
     albumName = TStringToQString(tag->album());
+    genre = TStringToQString(tag->genre());
     duration = f.audioProperties()->length();
+    int track = tag->track();
   }
   else{
     //TODO throw error
@@ -234,6 +238,9 @@ void DataStore::addSongToLibrary(Phonon::MediaSource song){
   if(albumName == ""){
     albumName = unknownSongAlbum();
   }
+  if(genre == ""){
+    genre = unknownGenre();
+  }
 
   library_song_id_t hostId =-1;
   QSqlQuery addQuery(
@@ -242,25 +249,29 @@ void DataStore::addSongToLibrary(Phonon::MediaSource song){
     getLibSongColName() + ","+
     getLibArtistColName() + ","+
     getLibAlbumColName() + ","+
+    getLibGenreColName() + "," +
+    getLibTrackColName() + "," +
     getLibFileColName() + "," +
     getLibDurationColName() +")" +
-    "VALUES ( :song , :artist , :album , :file, :duration );", 
+    "VALUES ( :song , :artist , :album , :genre, :track, :file, :duration );", 
     database);
-  
+
   addQuery.bindValue(":song", songName);
   addQuery.bindValue(":artist", artistName);
   addQuery.bindValue(":album", albumName);
+  addQuery.bindValue(":genre", genre);
+  addQuery.bindValue(":track", track);
   addQuery.bindValue(":file", fileName);
   addQuery.bindValue(":duration", duration);
-	EXEC_INSERT(
-		"Failed to add song library" << songName.toStdString(), 
-		addQuery,
+  EXEC_INSERT(
+    "Failed to add song library" << songName.toStdString(), 
+    addQuery,
     hostId,
     library_song_id_t)
-  if(hostId != -1){
-	  serverConnection->addLibSongOnServer(
+  /*if(hostId != -1){
+    serverConnection->addLibSongOnServer(
       songName, artistName, albumName, duration, hostId);
-  }
+  }*/
 }
 
 void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
@@ -406,21 +417,61 @@ void DataStore::createNewPlayer(
 }
 
 void DataStore::syncLibrary(){
-  QSqlQuery getUnsyncedSongs(database);
-  EXEC_SQL(
-    "Error querying for unsynced songs",
-    getUnsyncedSongs.exec(
-      "SELECT * FROM " + getLibraryTableName() + " WHERE " + 
-      getLibSyncStatusColName() + "!=" + 
-      QString::number(getLibIsSyncedStatus()) + ";"),
-    getUnsyncedSongs)
 
-  while(getUnsyncedSongs.next()){  
+  QSqlQuery needAddSongs(database);
+  EXEC_SQL(
+    "Error querying for song to add",
+    needAddSongs.exec(
+      "SELECT * FROM " + getLibraryTableName() + " WHERE " + 
+      getLibSyncStatusColName() + "==" + 
+      QString::number(getLibNeedsAddSyncStatus()) + ";"),
+    needAddSongs)
+
+  QVariantList songsToAdd;
+  QSqlRecord currentRecord;
+  while(needAddSongs.next()){
+    currentRecord = needAddSongs.record();
+    QVariantMap songToAdd;
+    songToAdd["id"] = currentRecord.value(getLibIdColName());
+    songToAdd["title"] = currentRecord.value(getLibSongColName());
+    songToAdd["artist"] = currentRecord.value(getLibArtistColName());
+    songToAdd["album"] = currentRecord.value(getLibAlbumColName());
+    songToAdd["duration"] = currentRecord.value(getLibDurationColName());
+    songToAdd["track"] = currentRecord.value(getLibTrackColName()).toInt();
+    songToAdd["genre"] = currentRecord.value(getLibGenreColName()).toString();
+    songsToAdd.append(songToAdd);
+  }
+
+  if(songsToAdd.size() > 0){
+    serverConnection->addLibSongsToServer(songsToAdd);
+  }
+  else{
+    DEBUG_MESSAGE("Songs to add was 0.")
+  }
+
+  QSqlQuery needDeleteSongs(database);
+  EXEC_SQL(
+    "Error querying for songs to delete",
+    needDeleteSongs.exec(
+      "SELECT * FROM " + getLibraryTableName() + " WHERE " + 
+      getLibSyncStatusColName() + "=" + 
+      QString::number(getLibNeedsDeleteSyncStatus()) + ";"),
+    needDeleteSongs)
+
+
+  while(needDeleteSongs.next()){
+    currentRecord = needDeleteSongs.record();
+    serverConnection->deleteLibSongOnServer(
+      currentRecord.value(getLibIdColName()).value<library_song_id_t>());
+  }
+
+
+  /*while(getUnsyncedSongs.next()){
     QSqlRecord currentRecord = getUnsyncedSongs.record();
-    if(currentRecord.value(getLibSyncStatusColName()) == 
+    if(currentRecord.value(getLibSyncStatusColName()) ==
       getLibNeedsAddSyncStatus())
     {
-	    serverConnection->addLibSongOnServer(
+      serverConnection->addLibSongOnServer(
         currentRecord.value(getLibSongColName()).toString(),
         currentRecord.value(getLibArtistColName()).toString(),
         currentRecord.value(getLibAlbumColName()).toString(),
@@ -433,7 +484,7 @@ void DataStore::syncLibrary(){
       serverConnection->deleteLibSongOnServer(
         currentRecord.value(getLibIdColName()).value<library_song_id_t>());
     }
-  }
+  }*/
 }
 
 void DataStore::setLibSongSynced(library_song_id_t song){
@@ -882,6 +933,7 @@ void DataStore::resumePlaylistUpdates(){
 void DataStore::onPlayerSetActive(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
+  syncLibrary();
   emit playerActive();
 }
 
