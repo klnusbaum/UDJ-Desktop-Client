@@ -193,17 +193,16 @@ void DataStore::deactivatePlayer(){
 }
 
 void DataStore::addMusicToLibrary(
-  QList<Phonon::MediaSource> songs, QProgressDialog& progress)
+  QList<Phonon::MediaSource> songs, QProgressDialog* progress)
 {
   for(int i =0; i<songs.size(); ++i){
-    progress.setValue(i);
-    if(progress.wasCanceled()){
+    progress->setValue(i);
+    if(progress->wasCanceled()){
       break;
     }
     addSongToLibrary(songs[i]);
   }
   syncLibrary();
-  emit libSongsModified();
 }
 
 void DataStore::addSongToLibrary(Phonon::MediaSource song){
@@ -443,9 +442,6 @@ void DataStore::syncLibrary(){
 
   if(songsToAdd.size() > 0){
     serverConnection->addLibSongsToServer(songsToAdd);
-  }
-  else{
-    DEBUG_MESSAGE("Songs to add was 0.")
   }
 
   QSqlQuery needDeleteSongs(database);

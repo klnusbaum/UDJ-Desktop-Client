@@ -61,7 +61,7 @@ public:
 
   void addMusicToLibrary(
     QList<Phonon::MediaSource> songs, 
-    QProgressDialog& progress);
+    QProgressDialog* progress);
 
   void activatePlayer();
 

@@ -104,6 +104,8 @@ private slots:
    */
   void displayPlaylist();
 
+  void doneAdding();
+
   //@}
 
 private:
@@ -142,6 +144,8 @@ private:
   ActivePlaylistView *playlistView;
 
   QProgressDialog *quittingProgress;
+
+  QProgressDialog *addingProgress;
 
   bool isQuiting;
 

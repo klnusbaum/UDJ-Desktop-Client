@@ -101,11 +101,26 @@ void MetaWindow::addMusicToLibrary(){
     return;
   }
   int numNewFiles = musicToAdd.size();
-  QProgressDialog progress(
-    "Loading Library...", "Cancel", 0, numNewFiles, this); 
-  progress.setWindowModality(Qt::WindowModal);
-  dataStore->addMusicToLibrary(musicToAdd, progress);
-  progress.setValue(numNewFiles);
+  addingProgress = new QProgressDialog(
+    "Loading Library...", "Cancel", 0, numNewFiles+1, this);
+  addingProgress->setWindowModality(Qt::WindowModal);
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(doneAdding()));
+
+  dataStore->addMusicToLibrary(musicToAdd, addingProgress);
+  addingProgress->setLabelText(tr("Syncing With Server"));
+}
+
+void MetaWindow::doneAdding(){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(doneAdding()));
+  addingProgress->close();
 }
 
 void MetaWindow::addSongToLibrary(){
