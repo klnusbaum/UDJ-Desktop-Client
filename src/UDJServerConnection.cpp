@@ -108,17 +108,14 @@ void UDJServerConnection::getActivePlaylist(){
   netAccessManager->get(getActivePlaylistRequest);
 }
 
-void UDJServerConnection::addSongToActivePlaylist(
-  client_request_id_t requestId, 
-  library_song_id_t songId)
-{
-  std::vector<client_request_id_t> requestIds(1, requestId);
-  std::vector<library_song_id_t> songIds(1, songId);
-  addSongsToActivePlaylist(requestIds, songIds);
+void UDJServerConnection::addSongToActivePlaylist(library_song_id_t libId){
+  QNetworkRequest add2ActivePlaylistRequest(getActivePlaylistAddUrl(libId));
+  add2ActivePlaylistRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QNetworkReply *reply = netAccessManager->put(add2ActivePlaylistRequest, "");
 }
 
+/*
 void UDJServerConnection::addSongsToActivePlaylist(
-  const std::vector<client_request_id_t>& requestIds, 
   const std::vector<library_song_id_t>& songIds)
 {
   QNetworkRequest add2ActivePlaylistRequest(getActivePlaylistAddUrl());
@@ -136,7 +133,7 @@ void UDJServerConnection::addSongsToActivePlaylist(
   QNetworkReply *reply = 
     netAccessManager->put(add2ActivePlaylistRequest, songsAddJSON);
   reply->setProperty(getPayloadPropertyName(), songsAddJSON); 
-}
+}*/
 
 void UDJServerConnection::removeSongsFromActivePlaylist(
   const std::vector<playlist_song_id_t>& playlistIds)
@@ -209,7 +206,7 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getActivePlaylistUrl().path()){
     handleRecievedActivePlaylist(reply);
   }
-  else if(reply->request().url().path() == getActivePlaylistAddUrl().path()){
+  else if(isActivePlaylistAddUrl(reply->request().url().path())){
     handleRecievedActivePlaylistAdd(reply);
   }
   else if(reply->request().url().path() == getCurrentSongUrl().path()){
@@ -341,8 +338,11 @@ void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
 
 void UDJServerConnection::handleRecievedActivePlaylistAdd(QNetworkReply *reply){
   if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_ADD)){
-    QVariant payload = reply->property(getPayloadPropertyName());
-    emit songsAddedToActivePlaylist(JSONHelper::extractAddRequestIds(payload.toByteArray()));
+    QString path = reply->request().url().path();
+    QRegExp rx("/udj/players/" + QString::number(playerId) + "/active_playlist/(\\d+)");
+    rx.indexIn(path);
+    library_song_id_t songAdded = rx.cap(1).toLong();
+    emit songAddedToActivePlaylist(songAdded);
   }
 }
 
@@ -377,9 +377,9 @@ QUrl UDJServerConnection::getActivePlaylistUrl() const{
     "/active_playlist");
 }
 
-QUrl UDJServerConnection::getActivePlaylistAddUrl() const{
-  return QUrl(getServerUrlPath() + "events/" + QString::number(playerId) +
-    "/active_playlist/songs");
+QUrl UDJServerConnection::getActivePlaylistAddUrl(const library_song_id_t& libId) const{
+  return QUrl(getServerUrlPath() + "players/" + QString::number(playerId) +
+    "/active_playlist/songs/" + QString::number(libId));
 }
 
 QUrl UDJServerConnection::getActivePlaylistRemoveUrl(
@@ -437,6 +437,11 @@ bool UDJServerConnection::isSetInactiveReply(const QNetworkReply *reply) const{
     reply->property(getPayloadPropertyName()).toString() == "state=inactive";
 }
 
+bool UDJServerConnection::isActivePlaylistAddUrl(const QString& path) const{
+  QRegExp rx("^/udj/player/" + QString::number(playerId) + 
+    "/active_playlist/songs/\\d+$");
+  return rx.exactMatch(path);
+}
 
 
 

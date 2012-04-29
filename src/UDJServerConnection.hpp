@@ -129,19 +129,7 @@ public slots:
    * @param requestId The request id of this add request.
    * @param songId Id of the song to be added to the active playlist.
    */
-  void addSongToActivePlaylist(
-    client_request_id_t requestId,
-    library_song_id_t songId);
-
-  /**
-   * \brief Adds the given songs to the active playlist on the server.
-   *
-   * @param requestIds The request ids of this add request.
-   * @param songIds Ids of the songs to be added to the active playlist.
-   */
-  void addSongsToActivePlaylist(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& songIds);
+  void addSongToActivePlaylist(library_song_id_t songId);
 
   /**
    * \brief Removes the given songs from the active playlist on the server.
@@ -224,7 +212,9 @@ signals:
    * @param ids the client request ids of the songs that were succesfully added
    * to the active playlist for an event on the server.
    */
-  void songsAddedToActivePlaylist(const std::vector<client_request_id_t> ids);
+  //void songsAddedToActivePlaylist(const std::vector<client_request_id_t> ids);
+
+  void songAddedToActivePlaylist(const library_song_id_t& libId);
 
   /**
    * \brief emitted when a song is succesfully remove from the active playlist 
@@ -341,7 +331,7 @@ private:
    *
    * @return The url for adding songs to the active playlist on the server.
    */
-  QUrl getActivePlaylistAddUrl() const;
+  QUrl getActivePlaylistAddUrl(const library_song_id_t& libId) const;
 
   /**
    * \brief Get the url for removing a song from the active playlist on the 
@@ -384,6 +374,8 @@ private:
    * from the acitve playlist on the server. False otherwise.
    */
   bool isActivePlaylistRemoveUrl(const QString& path) const;
+
+  bool isActivePlaylistAddUrl(const QString& path) const;
 
   bool isPlayerCreateUrl(const QString& path) const;
 

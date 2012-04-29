@@ -21,6 +21,7 @@
 #include "ConfigDefs.hpp"
 #include "DataStore.hpp"
 #include <QTableView>
+#include <QModelIndex>
 
 class QContextMenuEvent;
 class QSortFilterProxyModel;
@@ -131,7 +132,7 @@ private slots:
    */
   void deleteSongs();
 
-  void addSongsToSongList(song_list_id_t songListId);
+  void addSongToPlaylist(const QModelIndex& index);
 
   static const QString& getDataQuery(){
     static const QString dataQuery = 

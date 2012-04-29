@@ -115,7 +115,7 @@ public:
   /**
    * \brief Syncs all the requests for additions to the active playlst.
    */
-  void syncPlaylistAddRequests();
+  //void syncPlaylistAddRequests();
 
   /**
    * \brief Syncs all the requests for removals from the active playlst.
@@ -736,8 +736,8 @@ public slots:
    *
    * @param libraryIds The ids of the songs to be added to the active playlist.
    */
-	void addSongsToActivePlaylist(
-    const std::vector<library_song_id_t>& libraryIds);
+	//void addSongsToActivePlaylist(
+    //const std::vector<library_song_id_t>& libraryIds);
 
   /**
    * \brief Removes the specified song from the active playlist.

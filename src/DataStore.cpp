@@ -297,13 +297,13 @@ void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
 }
 
 void DataStore::addSongToActivePlaylist(library_song_id_t libraryId){
-  std::vector<library_song_id_t> toAdd(1, libraryId);
-  addSongsToActivePlaylist(toAdd);
+  serverConnection->addSongToActivePlaylist(libraryId);
+/*  std::vector<library_song_id_t> toAdd(1, libraryId);
+  addSongsToActivePlaylist(toAdd);*/
 }
-
+/*
 void DataStore::addSongsToActivePlaylist(
   const std::vector<library_song_id_t>& libIds)
-{
   QVariantList toInsert;
   for(
     std::vector<library_song_id_t>::const_iterator it= libIds.begin();
@@ -319,7 +319,7 @@ void DataStore::addSongsToActivePlaylist(
   EXEC_BULK_QUERY("Error inserting songs into add queue for active playlist", 
     bulkInsert)
   syncPlaylistAddRequests();
-}
+}*/
 
 void DataStore::removeSongFromActivePlaylist(playlist_song_id_t plId){
   std::vector<library_song_id_t> toRemove(1, plId);
@@ -563,6 +563,7 @@ void DataStore::refreshActivePlaylist(){
   serverConnection->getActivePlaylist();
 }
 
+/*
 void DataStore::syncPlaylistAddRequests(){
   QSqlQuery needsSyncQuery(database);
 	EXEC_SQL(
@@ -586,6 +587,7 @@ void DataStore::syncPlaylistAddRequests(){
   }
   serverConnection->addSongsToActivePlaylist(requestIds, songIds);
 }
+*/
 
 void DataStore::setPlaylistAddRequestsSynced(
   const std::vector<client_request_id_t> requestIds)

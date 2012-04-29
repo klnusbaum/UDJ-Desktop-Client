@@ -51,6 +51,11 @@ LibraryView::LibraryView(DataStore *dataStore, QWidget* parent):
   connect(dataStore, SIGNAL(libSongsModified()), libraryModel, SLOT(refresh()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
     this, SLOT(handleContextMenuRequest(const QPoint&)));
+  connect(
+    this,
+    SIGNAL(activated(const QModelIndex& index)),
+    this,
+    SLOT(addSongToPlaylist(const QModelIndex& index)));
 }
 
 void LibraryView::configureColumns(){
@@ -78,29 +83,8 @@ void LibraryView::createActions(){
 
 void LibraryView::handleContextMenuRequest(const QPoint &pos){
   QMenu contextMenu(this);
-
-  /*QSqlQuery songLists = dataStore->getSongLists();
-  if(songLists.next()){
-    QMenu *songListsMenu = new QMenu(tr("Add To Song Lists"), this);
-    contextMenu.addMenu(songListsMenu);
-    QSqlRecord currentRecord;
-    do{
-      currentRecord = songLists.record();
-      QAction *addedAction = songListsMenu->addAction(
-        currentRecord.value(DataStore::getSongListNameColName()).toString());
-      addedAction->setData(
-        currentRecord.value(DataStore::getSongListIdColName()));
-    }while(songLists.next());
-  }*/
   contextMenu.addAction(deleteSongAction);
   contextMenu.exec(QCursor::pos());
-  /*QAction *selected = contextMenu.exec(QCursor::pos());
-  if(selected != NULL){
-    QVariant data = selected->data();
-    if(data.isValid()){
-      addSongsToSongList(data.value<song_list_id_t>()); 
-    }
-  }*/
 }
 
 
@@ -113,18 +97,15 @@ void LibraryView::deleteSongs(){
       proxyModel));
 }
 
-void LibraryView::addSongsToSongList(song_list_id_t songListId){
-  dataStore->addSongsToSongList(
-    songListId,
-    Utils::getSelectedIds<library_song_id_t>(
-      this,
-      libraryModel,
-      DataStore::getLibIdColName(),
-      proxyModel));
-}
-
 void LibraryView::filterContents(const QString& filter){
   proxyModel->setFilterFixedString(filter);
+}
+
+void LibraryView::addSongToPlaylist(const QModelIndex& index){
+  QModelIndex realIndex = proxyModel->mapToSource(index);
+  QSqlRecord selectedRecord = libraryModel->record(realIndex.row());
+  dataStore->addSongToActivePlaylist(
+    selectedRecord.value(DataStore::getLibIdColName()).value<library_song_id_t>());
 }
 
 

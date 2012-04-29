@@ -150,7 +150,7 @@ void CommErrorHandler::clearOnReauthFlags(){
     refreshActivePlaylistOnReauth=false;
   }
   if(syncPlaylistAddRequestsOnReauth){
-    dataStore->syncPlaylistAddRequests();
+    //dataStore->syncPlaylistAddRequests();
     syncPlaylistAddRequestsOnReauth=false;
   }
   if(setCurrentSongOnReauth){
