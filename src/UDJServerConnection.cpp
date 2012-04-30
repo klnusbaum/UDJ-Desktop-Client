@@ -221,6 +221,7 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   }
 }
 
+/*
 bool UDJServerConnection::checkReplyAndFireErrors(
   QNetworkReply *reply,
   CommErrorHandler::OperationType opType
@@ -263,18 +264,18 @@ bool UDJServerConnection::checkReplyAndFireErrors(
     return true;
   }
   return false;
-}
+}*/
 
 void UDJServerConnection::handleSetActiveReply(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_ACTIVE)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_ACTIVE)){
     emit playerSetActive();
-  }
+  //}
 }
 
 void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_INACTIVE)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_INACTIVE)){
     emit playerSetInactive();
-  }
+  //}
 }
 
 void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
@@ -323,43 +324,43 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
 }
 
 void UDJServerConnection::handleCreatePlayerReply(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::CREATE_PLAYER)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::CREATE_PLAYER)){
     //TODO handle bad json resturned from the server.
     player_id_t issuedId = JSONHelper::getPlayerId(reply);
     emit playerCreated(issuedId);
-  }
+  //}
 }
 
 void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_UPDATE)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_UPDATE)){
     emit newActivePlaylist(JSONHelper::getActivePlaylistFromJSON(reply));
-  }
+  //}
 }
 
 void UDJServerConnection::handleRecievedActivePlaylistAdd(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_ADD)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_ADD)){
     QString path = reply->request().url().path();
     QRegExp rx("/udj/players/" + QString::number(playerId) + "/active_playlist/(\\d+)");
     rx.indexIn(path);
     library_song_id_t songAdded = rx.cap(1).toLong();
     emit songAddedToActivePlaylist(songAdded);
-  }
+  //}
 }
 
 void UDJServerConnection::handleRecievedCurrentSongSet(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_CURRENT_SONG)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_CURRENT_SONG)){
     emit currentSongSet();
-  }
+  //}
 }
 
 void UDJServerConnection::handleRecievedActivePlaylistRemove(QNetworkReply *reply){
-  if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_REMOVE)){
+  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_REMOVE)){
     QString path = reply->request().url().path();
     QRegExp rx("/udj/players/" + QString::number(playerId) + "/active_playlist/(\\d+)");
     rx.indexIn(path);
     playlist_song_id_t songDeleted = rx.cap(1).toLong();
     emit songRemovedFromActivePlaylist(songDeleted);
-  }
+  //}
 }
 
 QUrl UDJServerConnection::getActivePlaylistUrl() const{

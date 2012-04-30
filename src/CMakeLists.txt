@@ -30,7 +30,7 @@ SET(UDJ_SRCS
   DataStore.cpp
   ActivePlaylistView.cpp
   LibraryView.cpp
-	UDJServerConnection.cpp
+  UDJServerConnection.cpp
   JSONHelper.cpp
   qt-json/json.cpp
   LoginWidget.cpp
@@ -41,7 +41,6 @@ SET(UDJ_SRCS
   LoginDialog.cpp
   PlayerCreateDialog.cpp
   simpleCrypt/simplecrypt.cpp
-  CommErrorHandler.cpp
   LibraryWidget.cpp
   ActivePlaylistModel.cpp
 )
@@ -70,7 +69,6 @@ SET(UDJ_MOC_HDRS
   WidgetWithLoader.hpp
   MusicModel.hpp
   LoginDialog.hpp
-  CommErrorHandler.hpp
   LibraryWidget.hpp
   ActivePlaylistModel.hpp
 )

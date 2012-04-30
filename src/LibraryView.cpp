@@ -157,10 +157,12 @@ void LibraryView::filterContents(const QString& filter){
 }
 
 void LibraryView::addSongToPlaylist(const QModelIndex& index){
+  /*
   QModelIndex realIndex = proxyModel->mapToSource(index);
   QSqlRecord selectedRecord = libraryModel->record(realIndex.row());
   dataStore->addSongToActivePlaylist(
     selectedRecord.value(DataStore::getLibIdColName()).value<library_song_id_t>());
+    */
 }
 
 

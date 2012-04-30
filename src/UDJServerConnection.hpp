@@ -20,7 +20,6 @@
 #define UDJ_SERVER_CONNECTION_HPP
 
 #include "ConfigDefs.hpp"
-#include "CommErrorHandler.hpp"
 #include <QSqlDatabase>
 #include <QDateTime>
 #include <QObject>
@@ -89,16 +88,6 @@ public slots:
   //@{
 
   void modLibContents(const QVariantList& songsToAdd, const QVariantList& songsToDelete);
-
-  //void addLibSongsToServer(const QVariantList& songs);
-
-  /**
-   * \brief Deletes a song from the library on the server.
-   *
-   * @param toDeleteId The host id of the song to delete from the library on the
-   * server.
-   */
-  //void deleteLibSongOnServer(library_song_id_t toDeleteId);
 
   /**
    * \brief Creates an event on the server.
@@ -170,10 +159,12 @@ signals:
    */
   void authFailed(const QString errMessage);
 
+  /*
   void commError(
     CommErrorHandler::OperationType opType,
     CommErrorHandler::CommErrorType error,
     const QByteArray &payload);
+  */
 
   void playerSetActive();
 
@@ -476,9 +467,11 @@ private:
    */
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
 
+  /*
   bool checkReplyAndFireErrors(
     QNetworkReply *reply,
     CommErrorHandler::OperationType opType);
+  */
 
   static bool isResponseType(QNetworkReply *reply, int code);
 

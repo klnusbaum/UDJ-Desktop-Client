@@ -123,15 +123,7 @@ private slots:
       DataStore::getLibDurationColName() + ", " +
       DataStore::getAdderUsernameColName() + ", " +
       DataStore::getTimeAddedColName() + 
-      " FROM " + DataStore::getActivePlaylistViewName() + 
-      " LEFT JOIN " + DataStore::getPlaylistRemoveRequestsTableName() + 
-      " ON " + DataStore::getActivePlaylistViewName() + "." + 
-        DataStore::getActivePlaylistIdColName() +
-      "=" + DataStore::getPlaylistRemoveRequestsTableName() + "." +
-        DataStore::getPlaylistRemoveEntryIdColName() + ";";
-      " WHERE " + DataStore::getPlaylistRemoveRequestsTableName() + "." +
-        DataStore::getPlaylistRemoveEntryIdColName() + 
-      " is null;";
+      " FROM " + DataStore::getActivePlaylistViewName() + ";";
     return dataQuery;
   }
 
