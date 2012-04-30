@@ -183,24 +183,6 @@ signals:
 
   void libModError(const QString& errMessage);
 
-
-  /**
-   * \brief Emitted when songs are added to the library on the server.
-   *
-   * @param addedIds Ids of the songs that were added to the library on the
-   * server.
-   */
-  void songsAddedToLibOnServer(const std::vector<library_song_id_t> addedIds);
-
-  /**
-   * \brief Emitted when a song is deleted from the library on the server.
-   *
-   * @param deletedId Id of the song that was deleted from the library on the
-   * server.
-   */
-  void songDeletedFromLibOnServer(
-    const library_song_id_t deletedId);
-
   /**
    * \brief Emitted when an event is succesfully created.
    */
@@ -302,33 +284,6 @@ private:
   QUrl getLibModUrl() const;
 
   /**
-   * \brief Get the url to be used for adding songs to the library on the 
-   * server.
-   *
-   * @return The url to be used for adding songs to the library on the 
-   * server.
-   */
-  QUrl getLibAddSongUrl() const;
-
-  /**
-   * \brief Get the url to be used for removing a song from the library on the
-   * server.
-   *
-   * @param toDelete The id of the song to delete from the library on the
-   * server.
-   * @return The url to be used for adding songs to the library on the
-   * server.
-   */
-  QUrl getLibDeleteSongUrl(library_song_id_t toDelete) const;
-
-  /**
-   * \brief Get the url to be used for ending an event.
-   *
-   * @return The url to be used for ending an event.
-   */
-  QUrl getEndEventUrl() const;
-
-  /**
    * \brief Get the url for retreiving the active playlist from the server.
    *
    * @return The for retreiving the active playlist from the server.
@@ -363,16 +318,6 @@ private:
   QUrl getCreatePlayerUrl() const;
 
   QUrl getPlayerStateUrl() const;
-
-  /**
-   * \brief Determines whether or not a url path is a path which can be used
-   * for deleting a song from the library on the server.
-   *
-   * @param path The path whose identity is in question.
-   * @return True if the url path is one which can be used for deleting a song
-   * from the libray on the server. False otherwise.
-   */
-  bool isLibDeleteUrl(const QString& path) const;
 
   /**
    * \brief Determines whether or not a url path is a path which can be used
@@ -494,22 +439,6 @@ private:
   void handleRecievedLibMod(QNetworkReply *reply);
 
   /**
-   * \brief Handle a response from the server regarding adding songs to the
-   * library.
-   *
-   * @param reply Response from the server.
-   */
-  //void handleAddLibSongsReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding deleiting songs from the
-   * library.
-   *
-   * @param reply Response from the server.
-   */
-  //void handleDeleteLibSongsReply(QNetworkReply *reply);
-
-  /**
    * \brief Handle a response from the server regarding player creation.
    *
    * @param reply Response from the server.
@@ -546,10 +475,6 @@ private:
    * @param reply Response from the server.
    */
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
-
-  void handleLocaitonResponse(QNetworkReply *reply);
-
-  void parseLocationResponse(QNetworkReply *reply);
 
   bool checkReplyAndFireErrors(
     QNetworkReply *reply,
