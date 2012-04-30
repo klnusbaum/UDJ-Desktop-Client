@@ -88,7 +88,9 @@ public slots:
   /** @name Slots */
   //@{
 
-  void addLibSongsToServer(const QVariantList& songs);
+  void modLibContents(const QVariantList& songsToAdd, const QVariantList& songsToDelete);
+
+  //void addLibSongsToServer(const QVariantList& songs);
 
   /**
    * \brief Deletes a song from the library on the server.
@@ -96,7 +98,7 @@ public slots:
    * @param toDeleteId The host id of the song to delete from the library on the
    * server.
    */
-  void deleteLibSongOnServer(library_song_id_t toDeleteId);
+  //void deleteLibSongOnServer(library_song_id_t toDeleteId);
 
   /**
    * \brief Creates an event on the server.
@@ -176,6 +178,11 @@ signals:
   void playerSetActive();
 
   void playerSetInactive();
+
+  void libSongsSyncedToServer(const std::vector<library_song_id_t>& syncedIds);
+
+  void libModError(const QString& errMessage);
+
 
   /**
    * \brief Emitted when songs are added to the library on the server.
@@ -291,6 +298,8 @@ private:
 
   /** @name Private Function */
   //@{
+
+  QUrl getLibModUrl() const;
 
   /**
    * \brief Get the url to be used for adding songs to the library on the 
@@ -458,6 +467,18 @@ private:
     return payloadPropertyName;
   }
 
+  static const char* getSongsAddedPropertyName(){
+    static const char* songsAddedPropertyName = "songs_added";
+    return songsAddedPropertyName;
+  }
+
+  static const char* getSongsDeletedPropertyName(){
+    static const char* songsDeletedPropertyName = "songs_deleted";
+    return songsDeletedPropertyName;
+  }
+
+
+
 
   /**
    * \brief Handle a response from the server regarding authentication.
@@ -470,13 +491,15 @@ private:
 
   void handleSetInactiveReply(QNetworkReply* reply);
 
+  void handleRecievedLibMod(QNetworkReply *reply);
+
   /**
    * \brief Handle a response from the server regarding adding songs to the
    * library.
    *
    * @param reply Response from the server.
    */
-  void handleAddLibSongsReply(QNetworkReply *reply);
+  //void handleAddLibSongsReply(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding deleiting songs from the
@@ -484,7 +507,7 @@ private:
    *
    * @param reply Response from the server.
    */
-  void handleDeleteLibSongsReply(QNetworkReply *reply);
+  //void handleDeleteLibSongsReply(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding player creation.
@@ -532,7 +555,10 @@ private:
     QNetworkReply *reply,
     CommErrorHandler::OperationType opType);
 
+  static bool isResponseType(QNetworkReply *reply, int code);
+
   //@}
+
 
 };
 

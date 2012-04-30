@@ -811,6 +811,8 @@ signals:
    */
   void libSongsModified();
 
+  void libModError(const QString& errMessage);
+
   /**
    * \brief Emitted when a player is created.
    */
@@ -900,23 +902,23 @@ private:
   /** @name Private Constants */
   //@{
   /**
-   * \brief Retrieves the name of the connection to the musicdb.
+   * \brief Retrieves the name of the connection to the playerdb.
    *
-   * @return The name of the connection to the musicdb.
+   * @return The name of the connection to the playerdb.
    */
-  static const QString& getMusicDBConnectionName(){
-    static const QString musicDBConnectionName("musicdbConn");
-    return musicDBConnectionName;
+  static const QString& getPlayerDBConnectionName(){
+    static const QString playerDBConnectionName("playerdbConn");
+    return playerDBConnectionName;
   }
 
   /**
-   * \brief Retrieves the name of the music database.
+   * \brief Retrieves the name of the player database.
    *
-   * @return The name of the the music database.
+   * @return The name of the the player database.
    */
-  static const QString& getMusicDBName(){
-    static const QString musicDBName("musicdb");
-    return musicDBName;
+  static const QString& getPlayerDBName(){
+    static const QString playerDBName("playerdb");
+    return playerDBName;
   }
 
   /** 

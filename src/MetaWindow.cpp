@@ -37,6 +37,7 @@
 #include <QLabel>
 #include <QStackedWidget>
 #include <QSplitter>
+#include <QMessageBox>
 
 
 namespace UDJ{
@@ -110,6 +111,12 @@ void MetaWindow::addMusicToLibrary(){
     this,
     SLOT(doneAdding()));
 
+  connect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
+
   dataStore->addMusicToLibrary(musicToAdd, addingProgress);
   addingProgress->setLabelText(tr("Syncing With Server"));
 }
@@ -120,8 +127,29 @@ void MetaWindow::doneAdding(){
     SIGNAL(libSongsModified()),
     this,
     SLOT(doneAdding()));
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
   addingProgress->close();
 }
+
+void MetaWindow::errorAdding(const QString& errMessage){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(doneAdding()));
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
+  addingProgress->close();
+  QMessageBox::critical(this, "Error", "Error adding songs. Try again in a little bit.");
+}
+
 
 void MetaWindow::addSongToLibrary(){
   QString fileName = QFileDialog::getOpenFileName(

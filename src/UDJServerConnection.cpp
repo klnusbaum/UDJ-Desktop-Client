@@ -57,21 +57,21 @@ void UDJServerConnection::authenticate(
   DEBUG_MESSAGE("Doing auth request")
 }
 
-void UDJServerConnection::addLibSongsToServer(const QVariantList& songs){
-  DEBUG_MESSAGE("Adding songs to library on server")
-
-  QByteArray songJSON = JSONHelper::getJSONForLibAdd(songs);
-  QNetworkRequest addSongRequest(getLibAddSongUrl());
-  prepareJSONRequest(addSongRequest);
-  QNetworkReply *reply = netAccessManager->put(addSongRequest, songJSON);
-  reply->setProperty(getPayloadPropertyName(), songJSON);
-
-}
-
-void UDJServerConnection::deleteLibSongOnServer(library_song_id_t toDeleteId){
-  QNetworkRequest deleteSongRequest(getLibDeleteSongUrl(toDeleteId));
-  deleteSongRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
-  QNetworkReply *reply = netAccessManager->deleteResource(deleteSongRequest);
+void UDJServerConnection::modLibContents(const QVariantList& songsToAdd, 
+   const QVariantList& songsToDelete)
+{
+  DEBUG_MESSAGE("Modding lib contents")
+  QNetworkRequest modRequest(getLibModUrl());
+  modRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QByteArray addJSON = JSONHelper::getJSONForLibAdd(songsToAdd);
+  QByteArray deleteJSON = JSONHelper::getJSONForLibDelete(songsToDelete);
+  QUrl params;
+  params.addQueryItem("to_add", addJSON);
+  params.addQueryItem("to_delete", deleteJSON);
+  QByteArray payload = params.encodedQuery();
+  QNetworkReply *reply = netAccessManager->post(modRequest, payload);
+  reply->setProperty(getSongsAddedPropertyName(), addJSON);
+  reply->setProperty(getSongsDeletedPropertyName(), deleteJSON);
 }
 
 void UDJServerConnection::createPlayer(
@@ -197,9 +197,6 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(isSetInactiveReply(reply)){
     handleSetInactiveReply(reply);
   }
-  else if(reply->request().url().path() == getLibAddSongUrl().path()){
-    handleAddLibSongsReply(reply);
-  }
   else if(isPlayerCreateUrl(reply->request().url().path())){
     handleCreatePlayerReply(reply);
   }
@@ -212,11 +209,11 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getCurrentSongUrl().path()){
     handleRecievedCurrentSongSet(reply);
   }
-  else if(isLibDeleteUrl(reply->request().url().path())){
-    handleDeleteLibSongsReply(reply);
-  }
   else if(isActivePlaylistRemoveUrl(reply->request().url().path())){
     handleRecievedActivePlaylistRemove(reply);
+  }
+  else if(reply->request().url().path() == getLibModUrl().path()){
+    handleRecievedLibMod(reply);
   }
   else{
     DEBUG_MESSAGE("Recieved unknown response")
@@ -301,8 +298,53 @@ void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
   }
 }
 
+void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
+  if(isResponseType(reply, 400)){
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    DEBUG_MESSAGE("400 lib mod error: " << responseMsg.toStdString())
+    emit libModError("Got 400");
+  }
+  else if(isResponseType(reply, 401)){
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    DEBUG_MESSAGE("401 lib mod error: " << responseMsg.toStdString())
+    emit libModError("Got 401");
+  }
+  else if(isResponseType(reply, 404)){
+    DEBUG_MESSAGE("404 on lib mod");
+    emit libModError("Got 404");
+  }
+  else if(isResponseType(reply, 409)){
+    DEBUG_MESSAGE("409 on lib mod");
+    emit libModError("Got 409");
+  }
+  else if(isResponseType(reply, 500)){
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    DEBUG_MESSAGE("500 lib mod error: " << responseMsg.toStdString())
+    emit libModError("Got 500");
+  }
+  else if(isResponseType(reply, 200)){
+    QVariant songsAdded = reply->property(getSongsAddedPropertyName());
+    QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
+    std::vector<library_song_id_t> addedIds = JSONHelper::getAddedLibIds(songsAdded.toByteArray());
+    std::vector<library_song_id_t> deletedIds =
+      JSONHelper::getDeletedLibIds(songsDeleted.toByteArray());
+    addedIds.insert(addedIds.begin(), deletedIds.begin(), deletedIds.end());
 
-void UDJServerConnection::handleAddLibSongsReply(QNetworkReply *reply){
+    emit libSongsSyncedToServer(addedIds);
+  }
+  else{
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    DEBUG_MESSAGE("Unknown lib mod error: " << responseMsg.toStdString())
+    emit libModError("Unknown error");
+  }
+}
+
+
+/*void UDJServerConnection::handleAddLibSongsReply(QNetworkReply *reply){
   if(!checkReplyAndFireErrors(reply, CommErrorHandler::LIB_SONG_ADD)){
     QVariant payload = reply->property(getPayloadPropertyName());
     std::vector<library_song_id_t> updatedIds = JSONHelper::getUpdatedLibIds(payload.toByteArray());
@@ -320,7 +362,7 @@ void UDJServerConnection::handleDeleteLibSongsReply(QNetworkReply *reply){
     library_song_id_t songDeleted = rx.cap(1).toLong();
     emit songDeletedFromLibOnServer(songDeleted);
   }
-}
+}*/
 
 void UDJServerConnection::handleCreatePlayerReply(QNetworkReply *reply){
   if(!checkReplyAndFireErrors(reply, CommErrorHandler::CREATE_PLAYER)){
@@ -421,6 +463,12 @@ QUrl UDJServerConnection::getPlayerStateUrl() const{
       QString::number(playerId) + "/state");
 }
 
+QUrl UDJServerConnection::getLibModUrl() const{
+  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+      QString::number(playerId) + "/library");
+}
+
+
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{
   return (path == "/udj/users/" + QString::number(user_id) + "/players/player");
 }
@@ -441,6 +489,10 @@ bool UDJServerConnection::isActivePlaylistAddUrl(const QString& path) const{
   QRegExp rx("^/udj/player/" + QString::number(playerId) + 
     "/active_playlist/songs/\\d+$");
   return rx.exactMatch(path);
+}
+
+bool UDJServerConnection::isResponseType(QNetworkReply *reply, int code){
+  return reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == code;
 }
 
 

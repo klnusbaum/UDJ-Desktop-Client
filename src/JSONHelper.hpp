@@ -79,6 +79,10 @@ public:
 
   static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd, bool &success);
 
+  static QByteArray getJSONForLibDelete(const QVariantList& songsToDelete);
+
+  static QByteArray getJSONForLibDelete(const QVariantList& songsToDelete, bool &success);
+
   static const QByteArray getCreatePlayerJSON(
     const QString& playerName,
     const QString& password);
@@ -105,7 +109,9 @@ public:
     const int& zipcode,
     bool &success);
 
-  static std::vector<library_song_id_t> getUpdatedLibIds(const QByteArray& payload);
+  static std::vector<library_song_id_t> getAddedLibIds(const QByteArray& payload);
+
+  static std::vector<library_song_id_t> getDeletedLibIds(const QByteArray& payload);
 
   /**
    * \brief Get's the id of a player from the given server reply.

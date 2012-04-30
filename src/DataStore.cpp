@@ -56,25 +56,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(
-      songsAddedToLibOnServer(const std::vector<library_song_id_t>)
-    ),
+    SIGNAL(libSongsSyncedToServer(const std::vector<library_song_id_t>&)),
     this,
-    SLOT(
-      setLibSongsSynced(const std::vector<library_song_id_t>)
-    )
-  );
-
-  connect(
-    serverConnection,
-    SIGNAL(
-      songDeletedFromLibOnServer(library_song_id_t)
-    ),
-    this,
-    SLOT(
-      setLibSongSynced(library_song_id_t)
-    )
-  );
+    SLOT(setLibSongsSynced(const std::vector<library_song_id_t>&)));
 
   connect(
     serverConnection,
@@ -135,6 +119,13 @@ DataStore::DataStore(
     this,
     SLOT(onPlayerDeactivated()));
 
+
+  connect(
+    serverConnection,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SIGNAL(libModError(const QString&)));
+
 }
 
 void DataStore::setupDB(){
@@ -144,8 +135,8 @@ void DataStore::setupDB(){
     //TODO handle if this fails
     dbDir.mkpath(dbDir.absolutePath());
   }
-  database = QSqlDatabase::addDatabase("QSQLITE", getMusicDBConnectionName());
-  database.setDatabaseName(dbDir.absoluteFilePath(getMusicDBName()));
+  database = QSqlDatabase::addDatabase("QSQLITE", getPlayerDBConnectionName());
+  database.setDatabaseName(dbDir.absoluteFilePath(getPlayerDBName()));
   database.open();
 
   QSqlQuery setupQuery(database);
@@ -440,10 +431,6 @@ void DataStore::syncLibrary(){
     songsToAdd.append(songToAdd);
   }
 
-  if(songsToAdd.size() > 0){
-    serverConnection->addLibSongsToServer(songsToAdd);
-  }
-
   QSqlQuery needDeleteSongs(database);
   EXEC_SQL(
     "Error querying for songs to delete",
@@ -453,33 +440,15 @@ void DataStore::syncLibrary(){
       QString::number(getLibNeedsDeleteSyncStatus()) + ";"),
     needDeleteSongs)
 
-
+  QVariantList songsToDelete;
   while(needDeleteSongs.next()){
     currentRecord = needDeleteSongs.record();
-    serverConnection->deleteLibSongOnServer(
-      currentRecord.value(getLibIdColName()).value<library_song_id_t>());
+    songsToDelete.append(currentRecord.value(getLibIdColName()));
   }
 
-
-  /*while(getUnsyncedSongs.next()){
-    QSqlRecord currentRecord = getUnsyncedSongs.record();
-    if(currentRecord.value(getLibSyncStatusColName()) ==
-      getLibNeedsAddSyncStatus())
-    {
-      serverConnection->addLibSongOnServer(
-        currentRecord.value(getLibSongColName()).toString(),
-        currentRecord.value(getLibArtistColName()).toString(),
-        currentRecord.value(getLibAlbumColName()).toString(),
-        currentRecord.value(getLibDurationColName()).toInt(),
-        currentRecord.value(getLibIdColName()).value<library_song_id_t>());
-    }
-    else if(currentRecord.value(getLibSyncStatusColName()) ==
-      getLibNeedsDeleteSyncStatus())
-    {
-      serverConnection->deleteLibSongOnServer(
-        currentRecord.value(getLibIdColName()).value<library_song_id_t>());
-    }
-  }*/
+  if(songsToDelete.size() > 0 || songsToAdd.size() > 0){
+    serverConnection->modLibContents(songsToAdd, songsToDelete);
+  }
 }
 
 void DataStore::setLibSongSynced(library_song_id_t song){

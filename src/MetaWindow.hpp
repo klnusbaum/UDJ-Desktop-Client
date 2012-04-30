@@ -94,6 +94,8 @@ private slots:
 
   void addSongToLibrary();
 
+  void errorAdding(const QString& errMessage);
+
   /**
    * \brief Displays the library view in the main content panel.
    */

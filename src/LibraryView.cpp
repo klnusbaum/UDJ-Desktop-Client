@@ -51,11 +51,11 @@ LibraryView::LibraryView(DataStore *dataStore, QWidget* parent):
   connect(dataStore, SIGNAL(libSongsModified()), libraryModel, SLOT(refresh()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
     this, SLOT(handleContextMenuRequest(const QPoint&)));
-  connect(
+  /*connect(
     this,
     SIGNAL(activated(const QModelIndex& index)),
     this,
-    SLOT(addSongToPlaylist(const QModelIndex& index)));
+    SLOT(addSongToPlaylist(const QModelIndex& index)));*/
 }
 
 void LibraryView::configureColumns(){
