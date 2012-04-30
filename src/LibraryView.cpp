@@ -25,6 +25,8 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSortFilterProxyModel>
+#include <QProgressDialog>
+#include <QMessageBox>
 
 namespace UDJ{
 
@@ -89,6 +91,21 @@ void LibraryView::handleContextMenuRequest(const QPoint &pos){
 
 
 void LibraryView::deleteSongs(){
+  deletingProgress = new QProgressDialog(tr("Deleting Songs..."), tr("Cancel"), 0,0, this);
+  deletingProgress->setWindowModality(Qt::WindowModal);
+
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(deletingDone()));
+
+  connect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
   dataStore->removeSongsFromLibrary(
     Utils::getSelectedIds<library_song_id_t>(
       this,
@@ -96,6 +113,44 @@ void LibraryView::deleteSongs(){
       DataStore::getLibIdColName(),
       proxyModel));
 }
+
+void LibraryView::deletingDone(){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(deletingDone()));
+
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
+  deletingProgress->close();
+}
+
+void LibraryView::deletingError(const QString& errMessage){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(deletingDone()));
+
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
+  deletingProgress->close();
+
+  QMessageBox::critical(
+    this,
+    tr("Error"),
+    tr("Error deleting songs from library. Try again in a little bit"));
+}
+
 
 void LibraryView::filterContents(const QString& filter){
   proxyModel->setFilterFixedString(filter);

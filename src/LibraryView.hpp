@@ -25,6 +25,7 @@
 
 class QContextMenuEvent;
 class QSortFilterProxyModel;
+class QProgressDialog;
 
 namespace UDJ{
 
@@ -68,6 +69,10 @@ private slots:
    */
   void handleContextMenuRequest(const QPoint &pos);
 
+  void deletingDone();
+
+  void deletingError(const QString& errMessage);
+
 private:
 
   /** @name Private Memeber */
@@ -88,6 +93,8 @@ private:
  
   /** \brief Actions used for adding songs to the list of available songs. */
   QAction *addToAvailableMusicAction;
+
+  QProgressDialog *deletingProgress;
 
   //@}
 
