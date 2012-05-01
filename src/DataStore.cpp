@@ -44,7 +44,8 @@ DataStore::DataStore(
   QObject *parent)
   :QObject(parent),
   username(username),
-  password(password)
+  password(password),
+  isReauthing(false)
 {
   serverConnection = new UDJServerConnection(this);
   serverConnection->setTicket(ticket);
@@ -116,7 +117,19 @@ DataStore::DataStore(
     serverConnection,
     SIGNAL(libModError(const QString&)),
     this,
-    SIGNAL(libModError(const QString&)));
+    SLOT(onLibModError(const QString&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(authenticated(const QByteArray& ticketHash, const user_id_t& userId)),
+    this,
+    SLOT(onReauth(const QByteArray& ticketHash, const user_id_t& userId)));
+
+  connect(
+    serverConnection,
+    SIGNAL(authFailed(const QString&)),
+    this,
+    SLOT(onAuthFail(const QString&)));
 
 }
 
@@ -155,7 +168,7 @@ void DataStore::activatePlayer(){
   if(settings.contains(getPlayerIdSettingName())){
     serverConnection->setPlayerId(getPlayerId());
     serverConnection->setPlayerActive();
-    activePlaylistRefreshTimer->start();
+    //activePlaylistRefreshTimer->start();
   }
   else{
     emit needPlayerCreate();
@@ -595,6 +608,50 @@ void DataStore::onPlayerDeactivated(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerStateSettingName(), getPlayerInactiveState());
   emit playerDeactivated();
+}
+
+void DataStore::onLibModError(const QString& errMessage, int errorCode){
+  if(errorCode == 401){
+    reauthFunctions.insert(SYNC_LIB);
+    initReauth();
+  }
+}
+
+
+
+
+
+void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
+  isReauthing=false;
+  serverConnection->setTicket(ticketHash);
+  serverConnection->setUserId(userId);
+
+  Q_FOREACH(ReauthFunction r, reauthFunctions){
+    doReauthFunction(r);
+  }
+
+  reauthFunctions.clear();
+}
+
+void DataStore::doReauthFunction(const ReauthFunction& functionType){
+  switch(functionType){
+  case SYNC_LIB:
+    syncLibrary();
+    break;
+  }
+}
+
+void DataStore::onAuthFail(const QString& errMessage){
+  isReauthing=false;
+  DEBUG_MESSAGE("BAD STUFF, BAD AUTH CREDS");
+  //TODO need to do something here
+}
+
+void DataStore::initReauth(){
+  if(!isReauthing){
+    isReauthing=true;
+    serverConnection->authenticate(getUsername(), getPassword());
+  }
 }
 
 

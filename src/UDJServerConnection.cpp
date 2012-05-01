@@ -221,65 +221,16 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   }
 }
 
-/*
-bool UDJServerConnection::checkReplyAndFireErrors(
-  QNetworkReply *reply,
-  CommErrorHandler::OperationType opType
-)
-{
-  QByteArray payload;
-  QVariant potentialPayload = reply->property(getPayloadPropertyName());
-  if(potentialPayload.isValid()){
-    payload = potentialPayload.toByteArray();
-  }
-
-  if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 404 &&
-      opType==CommErrorHandler::LIB_SONG_DELETE)
-  {
-    return false;
-  }
-  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 404){
-    DEBUG_MESSAGE(reply->request().url().path().toStdString())
-    emit commError(opType, CommErrorHandler::NOT_FOUND_ERROR, payload);
-    return true;
-  }
-  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 401){
-    emit commError(opType, CommErrorHandler::AUTH, payload);
-    return true;
-  }
-  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 409){
-    emit commError(opType, CommErrorHandler::CONFLICT, payload);
-    return true;
-  }
-  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 500){
-    QByteArray response = reply->readAll();
-    QString resposneMessage = QString(response);
-    DEBUG_MESSAGE(resposneMessage.toStdString())
-    emit commError(opType, CommErrorHandler::SERVER_ERROR, payload);
-    return true;
-  }
-  else if(reply->error() != QNetworkReply::NoError){
-    DEBUG_MESSAGE("Unknown error: " << QString(reply->readAll()).toStdString())
-    emit commError(opType, CommErrorHandler::UNKNOWN_ERROR, payload);
-    return true;
-  }
-  return false;
-}*/
-
 void UDJServerConnection::handleSetActiveReply(QNetworkReply *reply){
-  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_ACTIVE)){
     emit playerSetActive();
-  //}
 }
 
 void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
-  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_PLAYER_INACTIVE)){
-    emit playerSetInactive();
-  //}
+  emit playerSetInactive();
 }
 
 void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
-  if(isResponseType(reply, 400)){
+  /*if(isResponseType(reply, 400)){
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     DEBUG_MESSAGE("400 lib mod error: " << responseMsg.toStdString())
@@ -305,7 +256,8 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
     DEBUG_MESSAGE("500 lib mod error: " << responseMsg.toStdString())
     emit libModError("Got 500");
   }
-  else if(isResponseType(reply, 200)){
+  else*/
+  if(isResponseType(reply, 200)){
     QVariant songsAdded = reply->property(getSongsAddedPropertyName());
     QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
     std::vector<library_song_id_t> addedIds = JSONHelper::getAddedLibIds(songsAdded.toByteArray());
@@ -318,8 +270,8 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
   else{
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
-    DEBUG_MESSAGE("Unknown lib mod error: " << responseMsg.toStdString())
-    emit libModError("Unknown error");
+    emit libModError("error: " + responseMsg,
+        reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() );
   }
 }
 

@@ -30,7 +30,6 @@ class QTimer;
 namespace UDJ{
 
 class UDJServerConnection;
-class CommErrorHandler;
 
 /** 
  * \brief A class that provides access to all persisten storage used by UDJ.
@@ -38,6 +37,10 @@ class CommErrorHandler;
 class DataStore : public QObject{
 Q_OBJECT
 public:
+
+  enum ReauthFunction{
+    SYNC_LIB
+  };
 
   /** @name Constructor(s) and Destructor */
   //@{
@@ -598,7 +601,6 @@ signals:
    */
   void libSongsModified();
 
-  void libModError(const QString& errMessage);
 
   /**
    * \brief Emitted when a player is created.
@@ -648,6 +650,10 @@ private:
 
   QString password;
 
+  QSet<ReauthFunction> reauthFunctions;
+
+  bool isReauthing;
+
   //@}
 
   /** @name Private Functions */
@@ -660,6 +666,10 @@ private:
    * \brief Deletes all the entries in the active playlist table.
    */
   void clearActivePlaylist();
+
+  void initReauth();
+
+  void doReauthFunction(const ReauthFunction& functionType);
 
   //@}
 
@@ -857,6 +867,14 @@ private slots:
   void onPlayerSetActive();
 
   void onPlayerDeactivated();
+
+  void onLibModError(const QString& errMessage, int errorCode);
+
+  void onReauth(const QByteArray& ticketHAsh, const user_id_t& userId);
+
+  void onAuthFail(const QString& errMessage);
+
+
 
 //@}
 

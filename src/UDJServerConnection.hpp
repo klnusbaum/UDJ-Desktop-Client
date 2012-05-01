@@ -172,7 +172,7 @@ signals:
 
   void libSongsSyncedToServer(const std::vector<library_song_id_t>& syncedIds);
 
-  void libModError(const QString& errMessage);
+  void libModError(const QString& errMessage, int error_code);
 
   /**
    * \brief Emitted when an event is succesfully created.
@@ -411,6 +411,11 @@ private:
   static const char* getSongsDeletedPropertyName(){
     static const char* songsDeletedPropertyName = "songs_deleted";
     return songsDeletedPropertyName;
+  }
+
+  static const QByteArray& getMissingResourceHeader(){
+    static const QByteArray missingResourceHeader = "X-Udj-Missing-Resource";
+    return missingResourceHeader;
   }
 
 
