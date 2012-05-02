@@ -168,7 +168,7 @@ void DataStore::activatePlayer(){
   if(settings.contains(getPlayerIdSettingName())){
     serverConnection->setPlayerId(getPlayerId());
     serverConnection->setPlayerActive();
-    //activePlaylistRefreshTimer->start();
+    activePlaylistRefreshTimer->start();
   }
   else{
     emit needPlayerCreate();
@@ -492,7 +492,6 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
   QSqlQuery addQuery(
     "INSERT INTO "+getActivePlaylistTableName()+ 
     "("+
-    getActivePlaylistIdColName() + ","+
     getActivePlaylistLibIdColName() + ","+
     getDownVoteColName() + ","+
     getUpVoteColName() + "," +
@@ -500,17 +499,16 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
     getTimeAddedColName() +"," +
     getAdderUsernameColName() +"," +
     getAdderIdColName() + ")" +
-    " VALUES ( :id , :libid , :down , :up, :pri , :time , :username, :adder );",
+    " VALUES ( :libid , :down , :up, :pri , :time , :username, :adder );",
     database);
 
-  addQuery.bindValue(":id", songToAdd["id"]);
-  addQuery.bindValue(":libid", songToAdd["lib_song_id"]);
-  addQuery.bindValue(":down", songToAdd["down_votes"]);
-  addQuery.bindValue(":up", songToAdd["up_votes"]);
+  addQuery.bindValue(":libid", songToAdd["song"].toMap()["id"]);
+  addQuery.bindValue(":down", songToAdd["downvoters"].toMap().size());
+  addQuery.bindValue(":up", songToAdd["upvoters"].toMap().size());
   addQuery.bindValue(":pri", priority);
   addQuery.bindValue(":time", songToAdd["time_added"]);
-  addQuery.bindValue(":username", songToAdd["adder_username"]);
-  addQuery.bindValue(":adder", songToAdd["adder_id"]);
+  addQuery.bindValue(":username", songToAdd["adder"].toMap()["username"]);
+  addQuery.bindValue(":adder", songToAdd["adder"].toMap()["id"]);
 
   long insertId;
   EXEC_INSERT(
@@ -521,6 +519,7 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
 }
 
 void DataStore::setActivePlaylist(const QVariantList newSongs){
+  DEBUG_MESSAGE("Setting active playlist")
   clearActivePlaylist();
   for(int i=0; i<newSongs.size(); ++i){
     addSong2ActivePlaylistFromQVariant(newSongs[i].toMap(), i); 
@@ -545,7 +544,7 @@ void DataStore::onPlayerCreate(const player_id_t& issuedId){
 void DataStore::onPlayerCreationFailed(const QString& errMessage, int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  //TODO do other stuff as well
+  //TODO do other stuff as well. like do reauth
   emit playerCreationFailed(errMessage);
 }
 
@@ -588,18 +587,6 @@ void DataStore::clearSavedCredentials(){
   settings.setValue(getHasValidCredsSettingName(), false);
   settings.setValue(getUsernameSettingName(), "");
   settings.setValue(getPasswordSettingName(), "");
-}
-
-void DataStore::pausePlaylistUpdates(){
-  if(activePlaylistRefreshTimer->isActive()){
-    activePlaylistRefreshTimer->stop();
-  }
-}
-
-void DataStore::resumePlaylistUpdates(){
-  if(!activePlaylistRefreshTimer->isActive()){
-    activePlaylistRefreshTimer->start();
-  }
 }
 
 void DataStore::onPlayerSetActive(){

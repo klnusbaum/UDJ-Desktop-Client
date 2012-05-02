@@ -115,10 +115,18 @@ void ActivePlaylistView::handleSelectionChange(
   const QItemSelection& deselected)
 {
   if(selected.indexes().size() == 0){
-    dataStore->resumePlaylistUpdates();
+    connect(
+      dataStore,
+      SIGNAL(activePlaylistModified()),
+      model, 
+      SLOT(refresh()));
   }
   else{
-    dataStore->pausePlaylistUpdates();
+    disconnect(
+      dataStore,
+      SIGNAL(activePlaylistModified()),
+      model, 
+      SLOT(refresh()));
   }
 }
 

@@ -186,6 +186,11 @@ signals:
    */
   void newActivePlaylist(const QVariantList newPlaylist);
 
+  void getActivePlaylistFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
   /**
    * \brief emitted when songs are succesfully added to the active playlist 
    * for an event on the server.

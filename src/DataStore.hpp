@@ -574,10 +574,6 @@ public slots:
    */
   void setCurrentSong(const library_song_id_t& songToPlay);
 
-  void pausePlaylistUpdates();
-
-  void resumePlaylistUpdates();
-
   //@}
 
 signals:

@@ -265,9 +265,18 @@ void UDJServerConnection::handleCreatePlayerReply(QNetworkReply *reply){
 }
 
 void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
-  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::PLAYLIST_UPDATE)){
+  if(isResponseType(reply, 200)){
     emit newActivePlaylist(JSONHelper::getActivePlaylistFromJSON(reply));
-  //}
+  }
+  else{
+    DEBUG_MESSAGE("Getting playlist failed")
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    emit getActivePlaylistFail(
+      "error: " + responseMsg, 
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
 }
 
 void UDJServerConnection::handleRecievedActivePlaylistAdd(QNetworkReply *reply){
