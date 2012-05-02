@@ -537,19 +537,18 @@ public slots:
    */
   void refreshActivePlaylist();
 
-  /**
-   * \brief Add the given songs to the active playlist.
-   *
-   * @param libraryIds The ids of the songs to be added to the active playlist.
-   */
-  void addSongsToActivePlaylist(const std::vector<library_song_id_t>& libraryIds);
+  void addSongToActivePlaylist(library_song_id_t libraryId);
+
+  void addSongsToActivePlaylist(const QVariantList& libIds);
+
+  void removeSongFromActivePlaylist(library_song_id_t libraryId);
 
   /**
    * \brief Removes the specified songs from the active playlist.
    *
    * @param pl_ids Ids of the songs to be removed from the active playlist.
    */
-  void removeSongsFromActivePlaylist(const std::vector<playlist_song_id_t>& pl_ids);
+  void removeSongsFromActivePlaylist(const QVariantList& libraryIds);
 
   /** 
    * \brief Creates a new player with the given name and password.
@@ -889,6 +888,11 @@ private slots:
   void onReauth(const QByteArray& ticketHash, const user_id_t& userId);
 
   void onAuthFail(const QString& errMessage);
+
+  void onActivePlaylistModFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
 
   static QByteArray getHeaderValue(const QByteArray& headerName, const QList<QNetworkReply::RawHeaderPair>& headers);

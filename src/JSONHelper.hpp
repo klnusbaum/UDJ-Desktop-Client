@@ -41,8 +41,10 @@ public:
 
   /** @name Converter Functions */
   //@{
-
   
+  static QByteArray getJSONLibIds(const QVariantList& libIds);
+
+
   /**
    * \brief Creates the JSON necessary for doing a request to add a song
    * to the library.
@@ -52,7 +54,7 @@ public:
    */
   static const QByteArray getJSONForLibAdd(const lib_song_t &song);
 
-  
+
   /**
    * \brief Creates the JSON necessary for doing a request to add a song
    * to the library.
@@ -66,14 +68,6 @@ public:
     const lib_song_t &song,
     bool &success);
 
-  static const QByteArray getAddToActiveJSON(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& libIds);
-
-  static const QByteArray getAddToActiveJSON(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& libIds,
-    bool &success);
 
   static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd);
 
@@ -129,9 +123,6 @@ public:
    * their approriate order.
    */
   static const QVariantList getActivePlaylistFromJSON(QNetworkReply *reply);
-
-  static std::vector<client_request_id_t> extractAddRequestIds(
-    const QByteArray& payload);
 
   static const QVariantMap getAuthReplyFromJSON(QNetworkReply *reply, bool &success);
 

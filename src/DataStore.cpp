@@ -132,6 +132,12 @@ DataStore::DataStore(
     this,
     SLOT(onSetCurrentSongFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
+  connect(
+    serverConnection,
+    SIGNAL(activePlaylistModified()),
+    this,
+    SLOT(refreshActivePlaylist()));
+
 
   connect(
     serverConnection,
@@ -295,39 +301,23 @@ void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
   }
 }
 
-/*
-void DataStore::addSongToActivePlaylist(library_song_id_t libraryId){
-  serverConnection->addSongToActivePlaylist(libraryId);
-  std::vector<library_song_id_t> toAdd(1, libraryId);
-  addSongsToActivePlaylist(toAdd);
-}*/
 
-void DataStore::addSongsToActivePlaylist(const std::vector<library_song_id_t>& libIds){
-  /*
-  QVariantList toInsert;
-  for(
-    std::vector<library_song_id_t>::const_iterator it= libIds.begin();
-    it!=libIds.end();
-    ++it)
-  {
-    toInsert << QVariant::fromValue<library_song_id_t>(*it);
-  }
-  QSqlQuery bulkInsert(database);
-  bulkInsert.prepare("INSERT INTO " + getPlaylistAddRequestsTableName() + 
-    "(" + getPlaylistAddLibIdColName() + ") VALUES( ? );");
-  bulkInsert.addBindValue(toInsert);
-  EXEC_BULK_QUERY("Error inserting songs into add queue for active playlist", 
-    bulkInsert)
-  syncPlaylistAddRequests();*/
+void DataStore::addSongToActivePlaylist(library_song_id_t libraryId){
+  QVariantList libIds;
+  libIds << QVariant::fromValue(libraryId);
+  addSongsToActivePlaylist(libIds);
 }
 
-/*
-void DataStore::removeSongFromActivePlaylist(playlist_song_id_t plId){
-  std::vector<library_song_id_t> toRemove(1, plId);
-  removeSongsFromActivePlaylist(toRemove);
-}*/
+void DataStore::addSongsToActivePlaylist(const QVariantList& libIds){
+  QVariantList emptyList;
+  serverConnection->modActivePlaylist(libIds, emptyList);
+}
 
-void DataStore::removeSongsFromActivePlaylist(const std::vector<library_song_id_t>& libIds){
+void DataStore::removeSongFromActivePlaylist(library_song_id_t libId){
+
+}
+
+void DataStore::removeSongsFromActivePlaylist(const QVariantList& libIds){
 
 }
 
@@ -554,7 +544,14 @@ void DataStore::onGetActivePlaylistFail(
     initReauth();
   }
   //TODO handle other possible errors?
+}
 
+void DataStore::onActivePlaylistModFailed(
+  const QString& errMessage,
+  int errorCode,
+  const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  //TODO do stuff on failure
 }
 
 void DataStore::refreshActivePlaylist(){

@@ -53,11 +53,11 @@ LibraryView::LibraryView(DataStore *dataStore, QWidget* parent):
   connect(dataStore, SIGNAL(libSongsModified()), libraryModel, SLOT(refresh()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
     this, SLOT(handleContextMenuRequest(const QPoint&)));
-  /*connect(
+  connect(
     this,
-    SIGNAL(activated(const QModelIndex& index)),
+    SIGNAL(activated(const QModelIndex&)),
     this,
-    SLOT(addSongToPlaylist(const QModelIndex& index)));*/
+    SLOT(addSongToPlaylist(const QModelIndex&)));
 }
 
 void LibraryView::configureColumns(){
@@ -158,12 +158,10 @@ void LibraryView::filterContents(const QString& filter){
 }
 
 void LibraryView::addSongToPlaylist(const QModelIndex& index){
-  /*
   QModelIndex realIndex = proxyModel->mapToSource(index);
   QSqlRecord selectedRecord = libraryModel->record(realIndex.row());
   dataStore->addSongToActivePlaylist(
     selectedRecord.value(DataStore::getLibIdColName()).value<library_song_id_t>());
-    */
 }
 
 

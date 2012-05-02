@@ -75,7 +75,7 @@ void ActivePlaylistView::configureHeaders(){
   model->setHeaderData(
     timeAddedIndex, Qt::Horizontal, tr("Time Added"), Qt::DisplayRole);
 }
-  
+
 void ActivePlaylistView::setCurrentSong(const QModelIndex& index){
   QSqlRecord songToPlayRecord = model->record(index.row());
   QVariant data = 
@@ -103,11 +103,13 @@ void ActivePlaylistView::handleContextMenuRequest(const QPoint& pos){
 }
 
 void ActivePlaylistView::removeSongs(){
+  /*
   dataStore->removeSongsFromActivePlaylist(
     Utils::getSelectedIds<playlist_song_id_t>(
       this,
       model,
       DataStore::getActivePlaylistIdColName()));
+  */
 }
 
 void ActivePlaylistView::handleSelectionChange(

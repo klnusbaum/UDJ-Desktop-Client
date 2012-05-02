@@ -114,21 +114,7 @@ public slots:
    */
   void getActivePlaylist();
 
-  /**
-   * \brief Adds the given song to the active playlist on the server.
-   *
-   * @param requestId The request id of this add request.
-   * @param songId Id of the song to be added to the active playlist.
-   */
-  void addSongToActivePlaylist(library_song_id_t songId);
-
-  /**
-   * \brief Removes the given songs from the active playlist on the server.
-   *
-   * @param playlistIds The ids of the playlist entries that should be remove.
-   */
-  void removeSongsFromActivePlaylist(
-    const std::vector<playlist_song_id_t>& playlistIds);
+  void modActivePlaylist(const QVariantList& toAdd, const QVariantList& toRemove);
 
   /**
    * \brief Set's the current song that the host is playing on the server.
@@ -190,26 +176,6 @@ signals:
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief emitted when songs are succesfully added to the active playlist 
-   * for an event on the server.
-   *
-   * @param ids the client request ids of the songs that were succesfully added
-   * to the active playlist for an event on the server.
-   */
-  //void songsAddedToActivePlaylist(const std::vector<client_request_id_t> ids);
-
-  void songAddedToActivePlaylist(const library_song_id_t& libId);
-
-  /**
-   * \brief emitted when a song is succesfully remove from the active playlist 
-   * for an event on the server.
-   *
-   * @param songId Playlist id of song that was succesfully removed
-   * from the active playlist for an event on the server.
-   */
-  void songRemovedFromActivePlaylist(const playlist_song_id_t songId);
-
-  /**
    * \brief Emitted when the current song that the host is playing is
    * succesfully set on the server.
    */
@@ -219,6 +185,13 @@ signals:
    * \brief Emitted when there in a error setting host is playing on the server.
    */
   void setCurrentSongFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  void activePlaylistModified();
+
+  void activePlaylistModFailed(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
@@ -289,22 +262,6 @@ private:
   QUrl getActivePlaylistUrl() const;
 
   /**
-   * \brief Get the url for adding songs to the active playlist on the server.
-   *
-   * @return The url for adding songs to the active playlist on the server.
-   */
-  QUrl getActivePlaylistAddUrl(const library_song_id_t& libId) const;
-
-  /**
-   * \brief Get the url for removing a song from the active playlist on the 
-   * server.
-   *
-   * @return The url for removing a song from the active playlist on the 
-   * server.
-   */
-  QUrl getActivePlaylistRemoveUrl(playlist_song_id_t toDelete) const;
-
-  /**
    * \brief Get the url to be used for setting the current song on the server.
    *
    * @return The url to be used for setting the current song on the server.
@@ -317,23 +274,15 @@ private:
 
   QUrl getPlayerStateUrl() const;
 
-  /**
-   * \brief Determines whether or not a url path is a path which can be used
-   * for deleting a song from the active playlist on the server.
-   *
-   * @param path The path whose identity is in question.
-   * @return True if the url path is one which can be used for deleting a song
-   * from the acitve playlist on the server. False otherwise.
-   */
-  bool isActivePlaylistRemoveUrl(const QString& path) const;
-
-  bool isActivePlaylistAddUrl(const QString& path) const;
-
   bool isPlayerCreateUrl(const QString& path) const;
 
   bool isSetActiveReply(const QNetworkReply *reply) const;
 
   bool isSetInactiveReply(const QNetworkReply *reply) const;
+
+  bool isGetActivePlaylistReply(const QNetworkReply *reply) const;
+
+  bool isModActivePlaylistReply(const QNetworkReply *reply) const;
 
 
 
@@ -420,6 +369,11 @@ private:
     return songsDeletedPropertyName;
   }
 
+  static const char* getSongsRemovedPropertyName(){
+    static const char* songsRemovedPropertyName = "songs_removed";
+    return songsRemovedPropertyName;
+  }
+
   static const QByteArray& getMissingResourceHeader(){
     static const QByteArray missingResourceHeader = "X-Udj-Missing-Resource";
     return missingResourceHeader;
@@ -479,11 +433,7 @@ private:
    */
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
 
-  /*
-  bool checkReplyAndFireErrors(
-    QNetworkReply *reply,
-    CommErrorHandler::OperationType opType);
-  */
+  void handleRecievedPlaylistMod(QNetworkReply *reply);
 
   static bool isResponseType(QNetworkReply *reply, int code);
 
