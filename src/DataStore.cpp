@@ -45,7 +45,8 @@ DataStore::DataStore(
   :QObject(parent),
   username(username),
   password(password),
-  isReauthing(false)
+  isReauthing(false),
+  currentSongId(-1)
 {
   serverConnection = new UDJServerConnection(this);
   serverConnection->setTicket(ticket);
@@ -124,6 +125,13 @@ DataStore::DataStore(
     SIGNAL(libModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
     SLOT(onLibModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(setCurrentSongFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onSetCurrentSongFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
 
   connect(
     serverConnection,
@@ -346,7 +354,7 @@ Phonon::MediaSource DataStore::getNextSongToPlay(){
 Phonon::MediaSource DataStore::takeNextSongToPlay(){
   QSqlQuery nextSongQuery(
     "SELECT " + getLibFileColName() + ", " + 
-    getActivePlaylistIdColName() +" FROM " +
+    getActivePlaylistLibIdColName() +" FROM " +
     getActivePlaylistViewName() + " LIMIT 1;", 
     database);
   EXEC_SQL(
@@ -355,12 +363,14 @@ Phonon::MediaSource DataStore::takeNextSongToPlay(){
     nextSongQuery)
   nextSongQuery.next();
   if(!nextSongQuery.isValid()){
+    currentSongId = -1;
     return Phonon::MediaSource("");
   }
   QString filePath = nextSongQuery.value(0).toString();
-  playlist_song_id_t  currentSongId  = 
-    nextSongQuery.value(1).value<playlist_song_id_t>();
-  
+  currentSongId =
+    nextSongQuery.value(1).value<library_song_id_t>();
+
+  DEBUG_MESSAGE("Setting current song with id: " << currentSongId)
   serverConnection->setCurrentSong(currentSongId);
   return Phonon::MediaSource(filePath);
 }
@@ -540,7 +550,7 @@ void DataStore::onGetActivePlaylistFail(
 {
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
-    reauthFunctions.insert(GET_ACTIVE_PLAYLIST);
+    reauthActions.insert(GET_ACTIVE_PLAYLIST);
     initReauth();
   }
   //TODO handle other possible errors?
@@ -628,10 +638,23 @@ void DataStore::onLibModError(
   DEBUG_MESSAGE("Got bad libmod " << errorCode)
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
-    reauthFunctions.insert(SYNC_LIB);
+    reauthActions.insert(SYNC_LIB);
     initReauth();
   }
 }
+
+void DataStore::onSetCurrentSongFailed(
+  const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  DEBUG_MESSAGE("Setting current song failed: " << errMessage.toStdString())
+  DEBUG_MESSAGE("Setting current song failed: " << errorCode)
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    reauthActions.insert(SET_CURRENT_SONG);
+    initReauth();
+  }
+}
+
 
 
 
@@ -642,20 +665,25 @@ void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
   serverConnection->setTicket(ticketHash);
   serverConnection->setUserId(userId);
 
-  Q_FOREACH(ReauthFunction r, reauthFunctions){
-    doReauthFunction(r);
+  Q_FOREACH(ReauthAction r, reauthActions){
+    doReauthAction(r);
   }
 
-  reauthFunctions.clear();
+  reauthActions.clear();
 }
 
-void DataStore::doReauthFunction(const ReauthFunction& functionType){
-  switch(functionType){
+void DataStore::doReauthAction(const ReauthAction& action){
+  switch(action){
     case SYNC_LIB:
       syncLibrary();
       break;
     case GET_ACTIVE_PLAYLIST:
       refreshActivePlaylist();
+      break;
+    case SET_CURRENT_SONG:
+      if(currentSongId != -1){
+        serverConnection->setCurrentSong(currentSongId);
+      }
       break;
   }
 }

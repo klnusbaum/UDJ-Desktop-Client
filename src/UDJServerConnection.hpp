@@ -137,8 +137,6 @@ public slots:
    */
   void setCurrentSong(playlist_song_id_t currentSong);
 
-  void setCurrentSong(const QByteArray& payload);
-
   //@}
 
 signals:
@@ -220,7 +218,10 @@ signals:
   /**
    * \brief Emitted when there in a error setting host is playing on the server.
    */
-  void currentSongSetError();
+  void setCurrentSongFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
 
   void newEventGoers(QVariantList eventGoers);

@@ -132,17 +132,13 @@ void UDJServerConnection::removeSongsFromActivePlaylist(
 }
 
 
-void UDJServerConnection::setCurrentSong(playlist_song_id_t currentSong){
-  QString params = "playlist_entry_id="+QString::number(currentSong);
-  setCurrentSong(params.toUtf8());
-}
-
-void UDJServerConnection::setCurrentSong(const QByteArray& payload){
+void UDJServerConnection::setCurrentSong(library_song_id_t currentSong){
+  DEBUG_MESSAGE("Setting current song")
+  QString params = "lib_id="+QString::number(currentSong);
   QNetworkRequest setCurrentSongRequest(getCurrentSongUrl());
   setCurrentSongRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   QNetworkReply *reply =
-    netAccessManager->post(setCurrentSongRequest, payload);
-  reply->setProperty(getPayloadPropertyName(), payload);
+    netAccessManager->post(setCurrentSongRequest, params.toUtf8());
 }
 
 void UDJServerConnection::setPlayerActive(){
@@ -290,9 +286,19 @@ void UDJServerConnection::handleRecievedActivePlaylistAdd(QNetworkReply *reply){
 }
 
 void UDJServerConnection::handleRecievedCurrentSongSet(QNetworkReply *reply){
-  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::SET_CURRENT_SONG)){
+  if(isResponseType(reply, 200)){
     emit currentSongSet();
-  //}
+  }
+  else{
+    DEBUG_MESSAGE("Setting current song failed")
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    emit setCurrentSongFailed(
+      "error: " + responseMsg, 
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+
 }
 
 void UDJServerConnection::handleRecievedActivePlaylistRemove(QNetworkReply *reply){
@@ -324,7 +330,7 @@ QUrl UDJServerConnection::getActivePlaylistRemoveUrl(
 
 
 QUrl UDJServerConnection::getCurrentSongUrl() const{
-  return QUrl(getServerUrlPath() + "player/" + QString::number(playerId) +
+  return QUrl(getServerUrlPath() + "players/" + QString::number(playerId) +
     "/current_song");
 }
 

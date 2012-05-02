@@ -39,9 +39,10 @@ class DataStore : public QObject{
 Q_OBJECT
 public:
 
-  enum ReauthFunction{
+  enum ReauthAction{
     SYNC_LIB,
-    GET_ACTIVE_PLAYLIST
+    GET_ACTIVE_PLAYLIST,
+    SET_CURRENT_SONG
   };
 
   /** @name Constructor(s) and Destructor */
@@ -641,9 +642,11 @@ private:
 
   QString password;
 
-  QSet<ReauthFunction> reauthFunctions;
+  QSet<ReauthAction> reauthActions;
 
   bool isReauthing;
+
+  library_song_id_t currentSongId;
 
   //@}
 
@@ -660,7 +663,7 @@ private:
 
   void initReauth();
 
-  void doReauthFunction(const ReauthFunction& functionType);
+  void doReauthAction(const ReauthAction& action);
 
   /**
    * \brief Adds a single song to the music library.
@@ -873,9 +876,17 @@ private slots:
 
   void onPlayerDeactivated();
 
-  void onLibModError(const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers);
+  void onLibModError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
-  void onReauth(const QByteArray& ticketHAsh, const user_id_t& userId);
+  void onSetCurrentSongFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  void onReauth(const QByteArray& ticketHash, const user_id_t& userId);
 
   void onAuthFail(const QString& errMessage);
 

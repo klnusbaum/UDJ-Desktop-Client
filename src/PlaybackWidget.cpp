@@ -56,14 +56,13 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
     this,
     SLOT(setNewSource(Phonon::MediaSource)));
 
-  /*connect(
+  connect(
     dataStore,
     SIGNAL(activePlaylistModified()),
     this,
-    SLOT(handlePlaylistChange()));*/
+    SLOT(handlePlaylistChange()));
 
   Phonon::createPath(mediaObject, audioOutput);
-  //playNextSong();
 }
 
 void PlaybackWidget::tick(qint64 time){
