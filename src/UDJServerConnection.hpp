@@ -165,12 +165,20 @@ signals:
 
   void libSongsSyncedToServer(const std::vector<library_song_id_t>& syncedIds);
 
-  void libModError(const QString& errMessage, int error_code, const QList<QNetworkReply::RawHeaderPair>& headers);
+  void libModError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Emitted when an event is succesfully created.
    */
   void playerCreated(const player_id_t& issuedId);
+
+  void playerCreationFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Emitted when a new version of the active playlist is retrieved from

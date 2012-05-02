@@ -249,11 +249,19 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
 }
 
 void UDJServerConnection::handleCreatePlayerReply(QNetworkReply *reply){
-  //if(!checkReplyAndFireErrors(reply, CommErrorHandler::CREATE_PLAYER)){
-    //TODO handle bad json resturned from the server.
+  if(isResponseType(reply, 201)){
     player_id_t issuedId = JSONHelper::getPlayerId(reply);
     emit playerCreated(issuedId);
-  //}
+  }
+  else{
+    DEBUG_MESSAGE("Player creation failed")
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    emit playerCreationFailed(
+      "error: " + responseMsg, 
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
 }
 
 void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){

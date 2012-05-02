@@ -864,7 +864,8 @@ private slots:
 
   void onPlayerCreate(const player_id_t& issuedId);
 
-  void onPlayerCreateFail(const QString message);
+  void onPlayerCreationFailed(const QString& errMessage, int errorCode,
+          const QList<QNetworkReply::RawHeaderPair>& headers);
 
   void onPlayerSetActive();
 

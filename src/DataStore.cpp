@@ -68,9 +68,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerCreationFailed(const QString)),
+    SIGNAL(playerCreationFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
-    SLOT(onPlayerCreateFail(const QString)));
+    SLOT(onPlayerCreationFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -542,8 +542,11 @@ void DataStore::onPlayerCreate(const player_id_t& issuedId){
   emit playerCreated();
 }
 
-void DataStore::onPlayerCreateFail(const QString message){
-  emit playerCreationFailed(message);
+void DataStore::onPlayerCreationFailed(const QString& errMessage, int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  //TODO do other stuff as well
+  emit playerCreationFailed(errMessage);
 }
 
 
