@@ -156,7 +156,9 @@ void MetaWindow::addSongToLibrary(){
       tr("Pick song to add"),
       QDir::homePath(),
       tr("Audio Files ") + MusicFinder::getMusicFileExtFilter());
-  dataStore->addSongToLibrary(Phonon::MediaSource(fileName));
+  QList<Phonon::MediaSource> songList;
+  songList.append(Phonon::MediaSource(fileName));
+  dataStore->addMusicToLibrary(songList);
 }
 
 void MetaWindow::setupUi(){

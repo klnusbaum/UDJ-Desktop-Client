@@ -100,6 +100,7 @@ void LibraryView::deleteSongs(){
     this,
     SLOT(deletingDone()));
 
+
   connect(
     dataStore,
     SIGNAL(libModError(const QString&)),

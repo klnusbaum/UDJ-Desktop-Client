@@ -230,33 +230,6 @@ void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
 }
 
 void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
-  /*if(isResponseType(reply, 400)){
-    QByteArray response = reply->readAll();
-    QString responseMsg = QString(response);
-    DEBUG_MESSAGE("400 lib mod error: " << responseMsg.toStdString())
-    emit libModError("Got 400");
-  }
-  else if(isResponseType(reply, 401)){
-    QByteArray response = reply->readAll();
-    QString responseMsg = QString(response);
-    DEBUG_MESSAGE("401 lib mod error: " << responseMsg.toStdString())
-    emit libModError("Got 401");
-  }
-  else if(isResponseType(reply, 404)){
-    DEBUG_MESSAGE("404 on lib mod");
-    emit libModError("Got 404");
-  }
-  else if(isResponseType(reply, 409)){
-    DEBUG_MESSAGE("409 on lib mod");
-    emit libModError("Got 409");
-  }
-  else if(isResponseType(reply, 500)){
-    QByteArray response = reply->readAll();
-    QString responseMsg = QString(response);
-    DEBUG_MESSAGE("500 lib mod error: " << responseMsg.toStdString())
-    emit libModError("Got 500");
-  }
-  else*/
   if(isResponseType(reply, 200)){
     QVariant songsAdded = reply->property(getSongsAddedPropertyName());
     QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
@@ -268,6 +241,7 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
     emit libSongsSyncedToServer(addedIds);
   }
   else{
+    DEBUG_MESSAGE("Got bad lib mod")
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit libModError("error: " + responseMsg,

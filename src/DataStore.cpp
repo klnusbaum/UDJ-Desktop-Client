@@ -115,15 +115,15 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(libModError(const QString&)),
+    SIGNAL(libModError(const QString&, int)),
     this,
-    SLOT(onLibModError(const QString&)));
+    SLOT(onLibModError(const QString&, int)));
 
   connect(
     serverConnection,
-    SIGNAL(authenticated(const QByteArray& ticketHash, const user_id_t& userId)),
+    SIGNAL(authenticated(const QByteArray&, const user_id_t&)),
     this,
-    SLOT(onReauth(const QByteArray& ticketHash, const user_id_t& userId)));
+    SLOT(onReauth(const QByteArray&, const user_id_t&)));
 
   connect(
     serverConnection,
@@ -180,19 +180,21 @@ void DataStore::deactivatePlayer(){
 }
 
 void DataStore::addMusicToLibrary(
-  QList<Phonon::MediaSource> songs, QProgressDialog* progress)
+  const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
 {
   for(int i =0; i<songs.size(); ++i){
-    progress->setValue(i);
-    if(progress->wasCanceled()){
-      break;
+    if(progress != NULL){
+      progress->setValue(i);
+      if(progress->wasCanceled()){
+        break;
+      }
     }
     addSongToLibrary(songs[i]);
   }
   syncLibrary();
 }
 
-void DataStore::addSongToLibrary(Phonon::MediaSource song){
+void DataStore::addSongToLibrary(const Phonon::MediaSource& song){
   QString fileName = song.fileName();
   QString songName;
   QString artistName;
@@ -611,7 +613,9 @@ void DataStore::onPlayerDeactivated(){
 }
 
 void DataStore::onLibModError(const QString& errMessage, int errorCode){
+  DEBUG_MESSAGE("Got bad libmod " << errorCode)
   if(errorCode == 401){
+    DEBUG_MESSAGE("Got 401")
     reauthFunctions.insert(SYNC_LIB);
     initReauth();
   }
@@ -622,6 +626,7 @@ void DataStore::onLibModError(const QString& errMessage, int errorCode){
 
 
 void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
+  DEBUG_MESSAGE("in on reauth")
   isReauthing=false;
   serverConnection->setTicket(ticketHash);
   serverConnection->setUserId(userId);
@@ -634,8 +639,10 @@ void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
 }
 
 void DataStore::doReauthFunction(const ReauthFunction& functionType){
+  DEBUG_MESSAGE("In do reauth funciton")
   switch(functionType){
   case SYNC_LIB:
+    DEBUG_MESSAGE("no redoing synclibrary")
     syncLibrary();
     break;
   }
@@ -643,12 +650,14 @@ void DataStore::doReauthFunction(const ReauthFunction& functionType){
 
 void DataStore::onAuthFail(const QString& errMessage){
   isReauthing=false;
-  DEBUG_MESSAGE("BAD STUFF, BAD AUTH CREDS");
+  DEBUG_MESSAGE("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
   //TODO need to do something here
 }
 
 void DataStore::initReauth(){
+  DEBUG("In init reauth")
   if(!isReauthing){
+    DEBUG("Doing actual reauthenticate")
     isReauthing=true;
     serverConnection->authenticate(getUsername(), getPassword());
   }

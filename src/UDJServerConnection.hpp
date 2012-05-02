@@ -159,13 +159,6 @@ signals:
    */
   void authFailed(const QString errMessage);
 
-  /*
-  void commError(
-    CommErrorHandler::OperationType opType,
-    CommErrorHandler::CommErrorType error,
-    const QByteArray &payload);
-  */
-
   void playerSetActive();
 
   void playerSetInactive();

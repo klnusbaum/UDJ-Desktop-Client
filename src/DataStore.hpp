@@ -63,19 +63,12 @@ public:
   //@{
 
   void addMusicToLibrary(
-    QList<Phonon::MediaSource> songs, 
-    QProgressDialog* progress);
+    const QList<Phonon::MediaSource>& songs, 
+    QProgressDialog* progress=0);
 
   void activatePlayer();
 
   void deactivatePlayer();
-
-  /**
-   * \brief Adds a single song to the music library.
-   *
-   * @param song Song to be added to the library.
-   */
-  void addSongToLibrary(Phonon::MediaSource song);
 
   /**
    * \brief Removes the given songs from the music library. 
@@ -670,6 +663,14 @@ private:
   void initReauth();
 
   void doReauthFunction(const ReauthFunction& functionType);
+
+  /**
+   * \brief Adds a single song to the music library.
+   *
+   * @param song Song to be added to the library.
+   */
+  void addSongToLibrary(const Phonon::MediaSource& song);
+
 
   //@}
 
