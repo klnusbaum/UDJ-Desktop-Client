@@ -40,7 +40,8 @@ Q_OBJECT
 public:
 
   enum ReauthFunction{
-    SYNC_LIB
+    SYNC_LIB,
+    GET_ACTIVE_PLAYLIST
   };
 
   /** @name Constructor(s) and Destructor */
@@ -856,6 +857,11 @@ private slots:
    * @param newSongs The new songs which should populate the active playlist.
    */
   void setActivePlaylist(const QVariantList newSongs);
+
+  void onGetActivePlaylistFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
 
   void onPlayerCreate(const player_id_t& issuedId);

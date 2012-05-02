@@ -80,6 +80,12 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
+    SIGNAL(getActivePlaylistFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onGetActivePlaylistFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
     SIGNAL(songsAddedToActivePlaylist(const std::vector<client_request_id_t>)),
     this,
     SLOT(setPlaylistAddRequestsSynced(const std::vector<client_request_id_t>)));
@@ -527,6 +533,20 @@ void DataStore::setActivePlaylist(const QVariantList newSongs){
   emit activePlaylistModified();
 }
 
+void DataStore::onGetActivePlaylistFail(
+  const QString& errMessage,
+  int errorCode,
+  const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    reauthFunctions.insert(GET_ACTIVE_PLAYLIST);
+    initReauth();
+  }
+  //TODO handle other possible errors?
+
+}
+
 void DataStore::refreshActivePlaylist(){
   serverConnection->getActivePlaylist();
 }
@@ -631,9 +651,12 @@ void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
 
 void DataStore::doReauthFunction(const ReauthFunction& functionType){
   switch(functionType){
-  case SYNC_LIB:
-    syncLibrary();
-    break;
+    case SYNC_LIB:
+      syncLibrary();
+      break;
+    case GET_ACTIVE_PLAYLIST:
+      refreshActivePlaylist();
+      break;
   }
 }
 
