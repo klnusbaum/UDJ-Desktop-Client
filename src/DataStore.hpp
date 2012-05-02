@@ -24,6 +24,7 @@
 #include <QProgressDialog>
 #include <QSettings>
 #include "ConfigDefs.hpp"
+#include <QNetworkReply>
 
 class QTimer;
 
@@ -869,12 +870,21 @@ private slots:
 
   void onPlayerDeactivated();
 
-  void onLibModError(const QString& errMessage, int errorCode);
+  void onLibModError(const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers);
 
   void onReauth(const QByteArray& ticketHAsh, const user_id_t& userId);
 
   void onAuthFail(const QString& errMessage);
 
+
+  static QByteArray getHeaderValue(const QByteArray& headerName, const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  static inline bool isTicketAuthError(
+      int errorCode,
+      const QList<QNetworkReply::RawHeaderPair>& headers)
+  {
+    return errorCode==401 && getHeaderValue("WWW-Authenticate", headers) == "ticket-hash";
+  }
 
 
 //@}

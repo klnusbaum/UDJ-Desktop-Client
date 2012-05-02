@@ -25,9 +25,9 @@
 #include <QObject>
 #include <vector>
 #include <QNetworkRequest>
+#include <QNetworkReply>
 
 class QNetworkAccessManager;
-class QNetworkReply;
 class QNetworkCookieJar;
 
 namespace UDJ{
@@ -165,7 +165,7 @@ signals:
 
   void libSongsSyncedToServer(const std::vector<library_song_id_t>& syncedIds);
 
-  void libModError(const QString& errMessage, int error_code);
+  void libModError(const QString& errMessage, int error_code, const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Emitted when an event is succesfully created.

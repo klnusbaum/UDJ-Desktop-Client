@@ -17,8 +17,6 @@
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <QNetworkAccessManager>
-#include <QNetworkCookieJar>
-#include <QNetworkReply>
 #include <QBuffer>
 #include <QRegExp>
 #include <QStringList>
@@ -245,7 +243,8 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit libModError("error: " + responseMsg,
-        reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() );
+        reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+        reply->rawHeaderPairs());
   }
 }
 

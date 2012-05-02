@@ -115,9 +115,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(libModError(const QString&, int)),
+    SIGNAL(libModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
-    SLOT(onLibModError(const QString&, int)));
+    SLOT(onLibModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -612,15 +612,16 @@ void DataStore::onPlayerDeactivated(){
   emit playerDeactivated();
 }
 
-void DataStore::onLibModError(const QString& errMessage, int errorCode){
+void DataStore::onLibModError(
+    const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
+{
   DEBUG_MESSAGE("Got bad libmod " << errorCode)
-  if(errorCode == 401){
-    DEBUG_MESSAGE("Got 401")
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthFunctions.insert(SYNC_LIB);
     initReauth();
   }
 }
-
 
 
 
@@ -639,10 +640,8 @@ void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
 }
 
 void DataStore::doReauthFunction(const ReauthFunction& functionType){
-  DEBUG_MESSAGE("In do reauth funciton")
   switch(functionType){
   case SYNC_LIB:
-    DEBUG_MESSAGE("no redoing synclibrary")
     syncLibrary();
     break;
   }
@@ -655,12 +654,24 @@ void DataStore::onAuthFail(const QString& errMessage){
 }
 
 void DataStore::initReauth(){
-  DEBUG("In init reauth")
   if(!isReauthing){
-    DEBUG("Doing actual reauthenticate")
     isReauthing=true;
     serverConnection->authenticate(getUsername(), getPassword());
   }
+}
+
+QByteArray DataStore::getHeaderValue(
+    const QByteArray& headerName,
+    const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  //Yes yes, I know this is an O(n) search. But it's fine. 
+  //This list of headers shouldn't be that long.
+  Q_FOREACH(const QNetworkReply::RawHeaderPair& pair, headers){
+    if(headerName == pair.first){
+      return pair.second;
+    }
+  }
+  return "";
 }
 
 
