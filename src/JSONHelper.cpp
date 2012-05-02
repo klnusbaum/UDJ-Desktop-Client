@@ -19,6 +19,7 @@
 #include <QNetworkReply>
 #include "JSONHelper.hpp"
 #include "qt-json/json.h"
+#include <QSet>
 
 namespace UDJ{
 
@@ -162,9 +163,13 @@ const QVariantList JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
   return activePlaylist["active_playlist"].toList();
 }
 
-QByteArray JSONHelper::getJSONLibIds(const QVariantList& libIds){
+QByteArray JSONHelper::getJSONLibIds(const QSet<library_song_id_t>& libIds){
   bool success;
-  return QtJson::Json::serialize(libIds, success);
+  QVariantList idList;
+  Q_FOREACH(library_song_id_t libId, libIds){
+    idList.append(QVariant::fromValue(libId));
+  }
+  return QtJson::Json::serialize(idList, success);
 }
 
 const QVariantMap JSONHelper::getAuthReplyFromJSON(QNetworkReply *reply, bool &success){

@@ -114,7 +114,9 @@ public slots:
    */
   void getActivePlaylist();
 
-  void modActivePlaylist(const QVariantList& toAdd, const QVariantList& toRemove);
+  void modActivePlaylist(
+    const QSet<library_song_id_t>& toAdd,
+    const QSet<library_song_id_t>& toRemove);
 
   /**
    * \brief Set's the current song that the host is playing on the server.

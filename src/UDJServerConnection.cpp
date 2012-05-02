@@ -107,8 +107,8 @@ void UDJServerConnection::getActivePlaylist(){
 }
 
 void UDJServerConnection::modActivePlaylist(
-  const QVariantList& toAdd,
-  const QVariantList& toRemove
+  const QSet<library_song_id_t>& toAdd,
+  const QSet<library_song_id_t>& toRemove
 )
 {
   QNetworkRequest modRequest(getActivePlaylistUrl());
@@ -165,7 +165,6 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(isPlayerCreateUrl(reply->request().url().path())){
     handleCreatePlayerReply(reply);
   }
-  //else if(reply->request().url().path() == getActivePlaylistUrl().path()){
   else if(isGetActivePlaylistReply(reply)){
     handleRecievedActivePlaylist(reply);
   }
@@ -175,7 +174,6 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getLibModUrl().path()){
     handleRecievedLibMod(reply);
   }
-  //else if(reply->request().url().path() == getPlaylistModUrl().path()){
   else if(isModActivePlaylistReply(reply)){
     handleRecievedPlaylistMod(reply);
   }

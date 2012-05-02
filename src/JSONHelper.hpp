@@ -42,7 +42,7 @@ public:
   /** @name Converter Functions */
   //@{
   
-  static QByteArray getJSONLibIds(const QVariantList& libIds);
+  static QByteArray getJSONLibIds(const QSet<library_song_id_t>& libIds);
 
 
   /**

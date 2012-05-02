@@ -42,7 +42,8 @@ public:
   enum ReauthAction{
     SYNC_LIB,
     GET_ACTIVE_PLAYLIST,
-    SET_CURRENT_SONG
+    SET_CURRENT_SONG,
+    MOD_PLAYLIST
   };
 
   /** @name Constructor(s) and Destructor */
@@ -539,7 +540,7 @@ public slots:
 
   void addSongToActivePlaylist(library_song_id_t libraryId);
 
-  void addSongsToActivePlaylist(const QVariantList& libIds);
+  void addSongsToActivePlaylist(const QSet<library_song_id_t>& libIds);
 
   void removeSongFromActivePlaylist(library_song_id_t libraryId);
 
@@ -548,7 +549,7 @@ public slots:
    *
    * @param pl_ids Ids of the songs to be removed from the active playlist.
    */
-  void removeSongsFromActivePlaylist(const QVariantList& libraryIds);
+  void removeSongsFromActivePlaylist(const QSet<library_song_id_t>& libraryIds);
 
   /** 
    * \brief Creates a new player with the given name and password.
@@ -646,6 +647,10 @@ private:
   bool isReauthing;
 
   library_song_id_t currentSongId;
+
+  QSet<library_song_id_t> playlistIdsToAdd;
+
+  QSet<library_song_id_t> playlistIdsToRemove;
 
   //@}
 

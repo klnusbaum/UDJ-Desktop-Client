@@ -138,6 +138,12 @@ DataStore::DataStore(
     this,
     SLOT(refreshActivePlaylist()));
 
+  connect(
+    serverConnection,
+    SIGNAL(activePlaylistModFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onActivePlaylistModFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
 
   connect(
     serverConnection,
@@ -303,21 +309,21 @@ void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
 
 
 void DataStore::addSongToActivePlaylist(library_song_id_t libraryId){
-  QVariantList libIds;
-  libIds << QVariant::fromValue(libraryId);
+  QSet<library_song_id_t> libIds;
+  libIds.insert(libraryId);
   addSongsToActivePlaylist(libIds);
 }
 
-void DataStore::addSongsToActivePlaylist(const QVariantList& libIds){
-  QVariantList emptyList;
-  serverConnection->modActivePlaylist(libIds, emptyList);
+void DataStore::addSongsToActivePlaylist(const QSet<library_song_id_t>& libIds){
+  QSet<library_song_id_t> emptySet;
+  serverConnection->modActivePlaylist(libIds, emptySet);
 }
 
 void DataStore::removeSongFromActivePlaylist(library_song_id_t libId){
 
 }
 
-void DataStore::removeSongsFromActivePlaylist(const QVariantList& libIds){
+void DataStore::removeSongsFromActivePlaylist(const QSet<library_song_id_t>& libIds){
 
 }
 
