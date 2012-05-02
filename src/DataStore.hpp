@@ -894,6 +894,10 @@ private slots:
 
   void onAuthFail(const QString& errMessage);
 
+  void onActivePlaylistModified(
+    const QSet<library_song_id_t>& added,
+    const QSet<library_song_id_t>& removed);
+
   void onActivePlaylistModFailed(
     const QString& errMessage,
     int errorCode,

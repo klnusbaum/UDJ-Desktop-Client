@@ -191,7 +191,9 @@ signals:
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
-  void activePlaylistModified();
+  void activePlaylistModified(
+    const QSet<library_song_id_t>& added,
+    const QSet<library_song_id_t>& removed);
 
   void activePlaylistModFailed(
     const QString& errMessage,

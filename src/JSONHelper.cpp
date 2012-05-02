@@ -172,6 +172,17 @@ QByteArray JSONHelper::getJSONLibIds(const QSet<library_song_id_t>& libIds){
   return QtJson::Json::serialize(idList, success);
 }
 
+QSet<library_song_id_t> JSONHelper::extractSongLibIds(const QByteArray& idsString){
+  bool success;
+  QVariantList libIds = QtJson::Json::parse(idsString, success).toList();
+  QSet<library_song_id_t> toReturn;
+  Q_FOREACH(QVariant libId, libIds){
+    toReturn.insert(libId.value<library_song_id_t>());
+  }
+  return toReturn;
+}
+
+
 const QVariantMap JSONHelper::getAuthReplyFromJSON(QNetworkReply *reply, bool &success){
   QByteArray responseData = reply->readAll();
   QString responseString = QString::fromUtf8(responseData);

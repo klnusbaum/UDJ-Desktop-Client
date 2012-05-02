@@ -22,6 +22,7 @@
 #include <QStringList>
 #include "UDJServerConnection.hpp"
 #include "JSONHelper.hpp"
+#include <QSet>
 
 
 namespace UDJ{
@@ -266,7 +267,10 @@ void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
 
 void UDJServerConnection::handleRecievedPlaylistMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
-    emit activePlaylistModified();
+    emit activePlaylistModified(
+      JSONHelper::extractSongLibIds(reply->property(getSongsAddedPropertyName()).toByteArray()),
+      JSONHelper::extractSongLibIds(reply->property(getSongsRemovedPropertyName()).toByteArray())
+    );
   }
   else{
     DEBUG_MESSAGE("Modding playlist failed")

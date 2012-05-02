@@ -41,8 +41,10 @@ public:
 
   /** @name Converter Functions */
   //@{
-  
+
   static QByteArray getJSONLibIds(const QSet<library_song_id_t>& libIds);
+
+  static QSet<library_song_id_t> extractSongLibIds(const QByteArray& idsString);
 
 
   /**

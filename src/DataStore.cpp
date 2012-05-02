@@ -134,9 +134,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(activePlaylistModified()),
+    SIGNAL(activePlaylistModified(const QSet<library_song_id_t>&, const QSet<library_song_id_t>&)),
     this,
-    SLOT(refreshActivePlaylist()));
+    SLOT(onActivePlaylistModified(const QSet<library_song_id_t>&, const QSet<library_song_id_t>&)));
 
   connect(
     serverConnection,
@@ -315,7 +315,9 @@ void DataStore::addSongToActivePlaylist(library_song_id_t libraryId){
 }
 
 void DataStore::addSongsToActivePlaylist(const QSet<library_song_id_t>& libIds){
+  playlistIdsToAdd.unite(libIds);
   QSet<library_song_id_t> emptySet;
+  DEBUG_MESSAGE("Playlist ids to add size now: " << playlistIdsToAdd.size());
   serverConnection->modActivePlaylist(libIds, emptySet);
 }
 
@@ -552,11 +554,28 @@ void DataStore::onGetActivePlaylistFail(
   //TODO handle other possible errors?
 }
 
+void DataStore::onActivePlaylistModified(
+  const QSet<library_song_id_t>& added,
+  const QSet<library_song_id_t>& removed)
+{
+  playlistIdsToAdd.subtract(added);
+  playlistIdsToRemove.subtract(removed);
+
+  DEBUG_MESSAGE("Playlist ids to add size now: " << playlistIdsToAdd.size());
+  refreshActivePlaylist();
+}
+
 void DataStore::onActivePlaylistModFailed(
   const QString& errMessage,
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
+  DEBUG_MESSAGE("Active playlist mod failed.")
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    reauthActions.insert(MOD_PLAYLIST);
+    initReauth();
+  }
   //TODO do stuff on failure
 }
 
@@ -687,6 +706,9 @@ void DataStore::doReauthAction(const ReauthAction& action){
       if(currentSongId != -1){
         serverConnection->setCurrentSong(currentSongId);
       }
+      break;
+    case MOD_PLAYLIST:
+      serverConnection->modActivePlaylist(playlistIdsToAdd, playlistIdsToRemove);
       break;
   }
 }
