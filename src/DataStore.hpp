@@ -542,13 +542,6 @@ public slots:
 
   void addSongsToActivePlaylist(const QSet<library_song_id_t>& libIds);
 
-  void removeSongFromActivePlaylist(library_song_id_t libraryId);
-
-  /**
-   * \brief Removes the specified songs from the active playlist.
-   *
-   * @param pl_ids Ids of the songs to be removed from the active playlist.
-   */
   void removeSongsFromActivePlaylist(const QSet<library_song_id_t>& libraryIds);
 
   /** 
@@ -558,11 +551,11 @@ public slots:
    * @param password The password for the event (maybe empty).
    */
   void createNewPlayer(
-    const QString& name, 
+    const QString& name,
     const QString& password);
 
   void createNewPlayer(
-    const QString& name, 
+    const QString& name,
     const QString& password,
     const QString& streetAddress,
     const QString& city,
