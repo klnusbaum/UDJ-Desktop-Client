@@ -75,17 +75,24 @@ void LibraryView::configureColumns(){
 
 void LibraryView::createActions(){
   deleteSongAction = new QAction(getDeleteContextMenuItemName(), this);
+  addToPlaylistAction = new QAction(getAddToPlaylistContextMenuItemName(), this);
   connect(
-    deleteSongAction, 
-    SIGNAL(triggered()), 
-    this, 
+    deleteSongAction,
+    SIGNAL(triggered()),
+    this,
     SLOT(deleteSongs()));
+  connect(
+    addToPlaylistAction,
+    SIGNAL(triggered()),
+    this,
+    SLOT(addSongsToActivePlaylist()));
 }
 
 
 void LibraryView::handleContextMenuRequest(const QPoint &pos){
   QMenu contextMenu(this);
   contextMenu.addAction(deleteSongAction);
+  contextMenu.addAction(addToPlaylistAction);
   contextMenu.exec(QCursor::pos());
 }
 
@@ -162,6 +169,15 @@ void LibraryView::addSongToPlaylist(const QModelIndex& index){
   QSqlRecord selectedRecord = libraryModel->record(realIndex.row());
   dataStore->addSongToActivePlaylist(
     selectedRecord.value(DataStore::getLibIdColName()).value<library_song_id_t>());
+}
+
+void LibraryView::addSongsToActivePlaylist(){
+  dataStore->addSongsToActivePlaylist(
+    Utils::getSelectedIds<library_song_id_t>(
+      this,
+      libraryModel,
+      DataStore::getLibIdColName(),
+      proxyModel));
 }
 
 

@@ -90,9 +90,9 @@ private:
 
   /** \brief Action used for deleting songs from the library. */
   QAction *deleteSongAction;
+
+  QAction *addToPlaylistAction;
  
-  /** \brief Actions used for adding songs to the list of available songs. */
-  QAction *addToAvailableMusicAction;
 
   QProgressDialog *deletingProgress;
 
@@ -116,16 +116,9 @@ private:
     return deleteContextMenuItemName;
   }
 
-  /**
-   * \brief Gets the name used for the add to available music
-   *  context menu item.
-   *
-   * @return The name for the add to available music  context menu item.
-   */
-  static const QString& getAddToAvailableContextMenuItemName(){
-    static const QString addToAvailableContextMenuItemName = 
-      tr("Add to Available Music");
-    return addToAvailableContextMenuItemName;
+  static const QString& getAddToPlaylistContextMenuItemName(){
+    static const QString addToPlaylistContextMenuItemName = tr("Add To Playlist");
+    return addToPlaylistContextMenuItemName;
   }
 
   //@}
@@ -140,6 +133,8 @@ private slots:
   void deleteSongs();
 
   void addSongToPlaylist(const QModelIndex& index);
+
+  void addSongsToActivePlaylist();
 
   static const QString& getDataQuery(){
     static const QString dataQuery = 

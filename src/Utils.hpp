@@ -23,7 +23,6 @@
 #include <QSqlRecord>
 #include <QSortFilterProxyModel>
 #include <set>
-#include <vector>
 
 namespace UDJ{
 
@@ -31,14 +30,14 @@ namespace UDJ{
 namespace Utils{
 
 
-template<class T> std::vector<T> getSelectedIds(
+template<class T> QSet<T> getSelectedIds(
   const QTableView* view,
   const QSqlQueryModel* model,
   const QString& colName,
   const QSortFilterProxyModel *proxyModel=0)
 {
   QModelIndexList selected = view->selectionModel()->selectedIndexes();
-  std::vector<T> selectedIds;
+  QSet<T> selectedIds;
   std::set<int> rows;
   for(
     QModelIndexList::const_iterator it = selected.begin();
@@ -57,8 +56,8 @@ template<class T> std::vector<T> getSelectedIds(
   )
   {
     QSqlRecord selectedRecord = model->record(*it);
-    selectedIds.push_back(
-      selectedRecord.value(colName).value<library_song_id_t>());
+    selectedIds.insert(
+      selectedRecord.value(colName).value<T>());
   }
   return selectedIds;
 }

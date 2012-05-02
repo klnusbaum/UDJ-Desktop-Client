@@ -105,10 +105,10 @@ void ActivePlaylistView::handleContextMenuRequest(const QPoint& pos){
 void ActivePlaylistView::removeSongs(){
   /*
   dataStore->removeSongsFromActivePlaylist(
-    Utils::getSelectedIds<playlist_song_id_t>(
+    Utils::getSelectedIds<library_song_id_t>(
       this,
       model,
-      DataStore::getActivePlaylistIdColName()));
+      DataStore::getActivePlaylistLibIdColName()));
   */
 }
 

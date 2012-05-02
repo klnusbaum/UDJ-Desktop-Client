@@ -284,14 +284,10 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song){
     library_song_id_t)
 }
 
-void DataStore::removeSongsFromLibrary(std::vector<library_song_id_t> toRemove){
+void DataStore::removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove){
   QVariantList toDelete;
-  for(
-    std::vector<library_song_id_t>::const_iterator it= toRemove.begin();
-    it!=toRemove.end();
-    ++it)
-  {
-    toDelete << QVariant::fromValue<library_song_id_t>(*it);
+  Q_FOREACH(library_song_id_t id, toRemove){
+    toDelete << QVariant::fromValue<library_song_id_t>(id);
   }
   QSqlQuery bulkDelete(database);
   bulkDelete.prepare("UPDATE " + getLibraryTableName() +  " "

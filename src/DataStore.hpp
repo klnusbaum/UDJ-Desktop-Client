@@ -79,7 +79,7 @@ public:
    *
    * @param toRemove The list of songs to be removed from the library.
    */
-  void removeSongsFromLibrary(std::vector<library_song_id_t> toRemove);
+  void removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove);
 
   /**
    * \brief Given a media source, determines the song name from the current
