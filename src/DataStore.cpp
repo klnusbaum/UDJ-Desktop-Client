@@ -503,8 +503,8 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
     database);
 
   addQuery.bindValue(":libid", songToAdd["song"].toMap()["id"]);
-  addQuery.bindValue(":down", songToAdd["downvoters"].toMap().size());
-  addQuery.bindValue(":up", songToAdd["upvoters"].toMap().size());
+  addQuery.bindValue(":down", songToAdd["downvoters"].toList().size());
+  addQuery.bindValue(":up", songToAdd["upvoters"].toList().size());
   addQuery.bindValue(":pri", priority);
   addQuery.bindValue(":time", songToAdd["time_added"]);
   addQuery.bindValue(":username", songToAdd["adder"].toMap()["username"]);

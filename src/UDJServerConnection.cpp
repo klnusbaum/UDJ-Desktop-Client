@@ -324,12 +324,12 @@ QUrl UDJServerConnection::getActivePlaylistRemoveUrl(
 
 
 QUrl UDJServerConnection::getCurrentSongUrl() const{
-  return QUrl(getServerUrlPath() + "events/" + QString::number(playerId) +
+  return QUrl(getServerUrlPath() + "player/" + QString::number(playerId) +
     "/current_song");
 }
 
 QUrl UDJServerConnection::getUsersUrl() const{
-  return QUrl(getServerUrlPath() + "events/" + QString::number(playerId) +
+  return QUrl(getServerUrlPath() + "player/" + QString::number(playerId) +
     "/users");
 }
 
