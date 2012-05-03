@@ -47,6 +47,14 @@ public:
     SET_CURRENT_VOLUME
   };
 
+  typedef struct {
+    Phonon::MediaSource source;
+    QString title;
+    QString artist;
+  } song_info_t;
+
+
+
   /** @name Constructor(s) and Destructor */
   //@{
 
@@ -169,7 +177,7 @@ public:
    *
    * @return The next song that should be played.
    */
-  Phonon::MediaSource takeNextSongToPlay();
+  song_info_t takeNextSongToPlay();
 
   const QString getPlayerState() const{
     QSettings settings(

@@ -139,7 +139,7 @@ private:
   QAction *pauseAction;
 
   /** \brief Used to display the name of the currently playing song. */
-  QLabel *songTitle;
+  QLabel *songInfo;
 
   /** \bried Used to display the time played of the current song. */
   QLabel *timeLabel;

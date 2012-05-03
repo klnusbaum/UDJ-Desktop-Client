@@ -119,13 +119,26 @@ void PlaybackWidget::sourceChanged(const Phonon::MediaSource &source){
 }
 
 void PlaybackWidget::metaDataChanged(){
-  QStringList titleInfo = mediaObject->metaData(Phonon::TitleMetaData);
+/*  QStringList titleInfo = mediaObject->metaData(Phonon::TitleMetaData);
+  QStringList artistInfo = mediaObject->metaData(Phonon::ArtistMetaData);
+
+  QString infoString = "";
   if(titleInfo.size() > 0){
-    songTitle->setText(titleInfo.at(0));
+    infoString = titleInfo.at(0);
   }
   else{
-    songTitle->setText("");
+    infoString = tr("Unknown");
   }
+
+  if(artistInfo.size() > 0 && artistInfo.at(0) != ""){
+    infoString += " - " + artistInfo.at(0);
+  }
+  else{
+    infoString += " - Unknown";
+  }
+
+
+  songInfo->setText(infoString);*/
 }
 
 void PlaybackWidget::stateChanged(
@@ -135,10 +148,11 @@ void PlaybackWidget::stateChanged(
 }
 
 void PlaybackWidget::playNextSong(){
-  Phonon::MediaSource nextSong = dataStore->takeNextSongToPlay();
-  mediaObject->setCurrentSource(nextSong);
-  if(nextSong.type() != Phonon::MediaSource::Empty){
+  DataStore::song_info_t nextSong = dataStore->takeNextSongToPlay();
+  mediaObject->setCurrentSource(nextSong.source);
+  if(nextSong.source.type() != Phonon::MediaSource::Empty){
     mediaObject->play();
+    songInfo->setText(nextSong.title + " - " + nextSong.artist);
   }
 }
 
@@ -153,7 +167,7 @@ void PlaybackWidget::handlePlaylistChange(){
 
 void PlaybackWidget::setupUi(){
 
-  songTitle = new QLabel(this);
+  songInfo = new QLabel(this);
   timeLabel = new QLabel("--:--", this);
 
   QToolBar *bar = new QToolBar;
@@ -168,7 +182,7 @@ void PlaybackWidget::setupUi(){
   seekSlider->setMediaObject(mediaObject);
 
   QHBoxLayout *infoLayout = new QHBoxLayout;
-  infoLayout->addWidget(songTitle);
+  infoLayout->addWidget(songInfo);
   infoLayout->addStretch();
   infoLayout->addWidget(timeLabel);
 
@@ -224,7 +238,7 @@ void PlaybackWidget::setNewSource(Phonon::MediaSource newSong){
 void PlaybackWidget::clearWidget(){
   mediaObject->stop();
   mediaObject->clear();
-  songTitle->setText("");
+  songInfo->setText("");
   timeLabel->setText("--:--");
 }
 

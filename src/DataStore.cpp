@@ -336,9 +336,11 @@ Phonon::MediaSource DataStore::getNextSongToPlay(){
   }
 }
 
-Phonon::MediaSource DataStore::takeNextSongToPlay(){
+DataStore::song_info_t DataStore::takeNextSongToPlay(){
   QSqlQuery nextSongQuery(
     "SELECT " + getLibFileColName() + ", " + 
+    getLibSongColName() + ", " +
+    getLibArtistColName() + ", " +
     getActivePlaylistLibIdColName() +" FROM " +
     getActivePlaylistViewName() + " LIMIT 1;", 
     database);
@@ -349,15 +351,24 @@ Phonon::MediaSource DataStore::takeNextSongToPlay(){
   nextSongQuery.next();
   if(!nextSongQuery.isValid()){
     currentSongId = -1;
-    return Phonon::MediaSource("");
+    song_info_t toReturn = {Phonon::MediaSource(""), "", "" };
+    return toReturn;
   }
-  QString filePath = nextSongQuery.value(0).toString();
   currentSongId =
-    nextSongQuery.value(1).value<library_song_id_t>();
+    nextSongQuery.value(3).value<library_song_id_t>();
 
   DEBUG_MESSAGE("Setting current song with id: " << currentSongId)
   serverConnection->setCurrentSong(currentSongId);
-  return Phonon::MediaSource(filePath);
+
+  QString filePath = nextSongQuery.value(0).toString();
+  song_info_t toReturn = {
+    Phonon::MediaSource(filePath),
+    nextSongQuery.value(1).toString(),
+    nextSongQuery.value(2).toString()
+  };
+
+  return toReturn;
+
 }
 
 void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
