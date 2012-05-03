@@ -517,21 +517,16 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
 
 void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
   DEBUG_MESSAGE("Setting active playlist")
-  clearActivePlaylist();
-  QVariantList newSongs = newPlaylist["active_playlist"].toList();
-  for(int i=0; i<newSongs.size(); ++i){
-    addSong2ActivePlaylistFromQVariant(newSongs[i].toMap(), i); 
-  }
   library_song_id_t retrievedCurrentId =
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
   if(retrievedCurrentId != currentSongId){
     QSqlQuery getSongQuery(
       "SELECT " + getLibFileColName() + "  FROM " +
-      getLibraryTableName() + " WHERE " + 
-      getLibIdColName() + " = " + QString::number(retrievedCurrentId) + ";", 
+      getActivePlaylistViewName() + " WHERE " + 
+      getActivePlaylistLibIdColName() + " = " + QString::number(retrievedCurrentId) + ";", 
       database);
     EXEC_SQL(
-      "Getting song for manual from library failed",
+      "Getting song for manual playlist set failed.",
       getSongQuery.exec(),
       getSongQuery)
     getSongQuery.next();
@@ -541,6 +536,11 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
       currentSongId = retrievedCurrentId;
       emit manualSongChange(Phonon::MediaSource(filePath));
     }
+  }
+  clearActivePlaylist();
+  QVariantList newSongs = newPlaylist["active_playlist"].toList();
+  for(int i=0; i<newSongs.size(); ++i){
+    addSong2ActivePlaylistFromQVariant(newSongs[i].toMap(), i); 
   }
   emit activePlaylistModified();
 }
