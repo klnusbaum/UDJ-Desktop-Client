@@ -856,7 +856,7 @@ private slots:
    *
    * @param newSongs The new songs which should populate the active playlist.
    */
-  void setActivePlaylist(const QVariantList newSongs);
+  void setActivePlaylist(const QVariantMap& newSongs);
 
   void onGetActivePlaylistFail(
     const QString& errMessage,

@@ -75,21 +75,15 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(newActivePlaylist(const QVariantList)),
+    SIGNAL(newActivePlaylist(const QVariantMap&)),
     this,
-    SLOT(setActivePlaylist(const QVariantList)));
+    SLOT(setActivePlaylist(const QVariantMap&)));
 
   connect(
     serverConnection,
     SIGNAL(getActivePlaylistFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
     SLOT(onGetActivePlaylistFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
-
-  connect(
-    serverConnection,
-    SIGNAL(songsAddedToActivePlaylist(const std::vector<client_request_id_t>)),
-    this,
-    SLOT(setPlaylistAddRequestsSynced(const std::vector<client_request_id_t>)));
 
   connect(activePlaylistRefreshTimer,
     SIGNAL(timeout()),
@@ -101,12 +95,6 @@ DataStore::DataStore(
     SIGNAL(currentSongSet()),
     this,
     SLOT(refreshActivePlaylist()));
-
-  connect(
-    serverConnection,
-    SIGNAL(songRemovedFromActivePlaylist(const playlist_song_id_t)),
-    this,
-    SLOT(setPlaylistRemoveRequestSynced(const playlist_song_id_t)));
 
   connect(
     serverConnection,
@@ -527,11 +515,32 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
     long)
 }
 
-void DataStore::setActivePlaylist(const QVariantList newSongs){
+void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
   DEBUG_MESSAGE("Setting active playlist")
   clearActivePlaylist();
+  QVariantList newSongs = newPlaylist["active_playlist"].toList();
   for(int i=0; i<newSongs.size(); ++i){
     addSong2ActivePlaylistFromQVariant(newSongs[i].toMap(), i); 
+  }
+  library_song_id_t retrievedCurrentId =
+    newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
+  if(retrievedCurrentId != currentSongId){
+    QSqlQuery getSongQuery(
+      "SELECT " + getLibFileColName() + "  FROM " +
+      getLibraryTableName() + " WHERE " + 
+      getLibIdColName() + " = " + QString::number(retrievedCurrentId) + ";", 
+      database);
+    EXEC_SQL(
+      "Getting song for manual from library failed",
+      getSongQuery.exec(),
+      getSongQuery)
+    getSongQuery.next();
+    if(getSongQuery.isValid()){
+      DEBUG_MESSAGE("Got file, for manual song set")
+      QString filePath = getSongQuery.value(0).toString();
+      currentSongId = retrievedCurrentId;
+      emit manualSongChange(Phonon::MediaSource(filePath));
+    }
   }
   emit activePlaylistModified();
 }

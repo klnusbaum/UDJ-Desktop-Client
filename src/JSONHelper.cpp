@@ -149,7 +149,7 @@ player_id_t JSONHelper::getPlayerId(QNetworkReply *reply){
   return playerCreated["player_id"].value<player_id_t>();
 }
 
-const QVariantList JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
+QVariantMap JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
   QByteArray responseData = reply->readAll();
   QString responseString = QString::fromUtf8(responseData);
   bool success;
@@ -160,7 +160,7 @@ const QVariantList JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
      "request" << std::endl <<
       responseString.toStdString() << std::endl;
   }
-  return activePlaylist["active_playlist"].toList();
+  return activePlaylist;
 }
 
 QByteArray JSONHelper::getJSONLibIds(const QSet<library_song_id_t>& libIds){

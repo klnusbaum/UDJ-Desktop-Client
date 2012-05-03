@@ -117,14 +117,7 @@ public:
    */
   static player_id_t getPlayerId(QNetworkReply *reply);
 
-  /**
-   * \brief Gets the active playlist from the servers reply.
-   *
-   * @param reply The servers response.
-   * @return A QVariantList containing all the songs in the active playlist in
-   * their approriate order.
-   */
-  static const QVariantList getActivePlaylistFromJSON(QNetworkReply *reply);
+  static QVariantMap getActivePlaylistFromJSON(QNetworkReply *reply);
 
   static const QVariantMap getAuthReplyFromJSON(QNetworkReply *reply, bool &success);
 

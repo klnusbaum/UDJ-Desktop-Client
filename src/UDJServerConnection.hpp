@@ -170,7 +170,7 @@ signals:
    * \brief Emitted when a new version of the active playlist is retrieved from
    * the server.
    */
-  void newActivePlaylist(const QVariantList newPlaylist);
+  void newActivePlaylist(const QVariantMap& newPlaylist);
 
   void getActivePlaylistFail(
     const QString& errMessage,
