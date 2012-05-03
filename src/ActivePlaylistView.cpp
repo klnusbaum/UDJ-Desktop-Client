@@ -77,10 +77,12 @@ void ActivePlaylistView::configureHeaders(){
 }
 
 void ActivePlaylistView::setCurrentSong(const QModelIndex& index){
+  DEBUG_MESSAGE("Manual setting of current song")
   QSqlRecord songToPlayRecord = model->record(index.row());
   QVariant data = 
-    songToPlayRecord.value(DataStore::getActivePlaylistIdColName());
-  dataStore->setCurrentSong(data.value<playlist_song_id_t>());
+    songToPlayRecord.value(DataStore::getActivePlaylistLibIdColName());
+  selectionModel()->clearSelection();
+  dataStore->setCurrentSong(data.value<library_song_id_t>());
 }
 
 void ActivePlaylistView::createActions(){

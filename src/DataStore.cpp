@@ -366,11 +366,11 @@ Phonon::MediaSource DataStore::takeNextSongToPlay(){
   return Phonon::MediaSource(filePath);
 }
 
-void DataStore::setCurrentSong(const playlist_song_id_t& songToPlay){
+void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
   QSqlQuery getSongQuery(
     "SELECT " + getLibFileColName() + "  FROM " +
     getActivePlaylistViewName() + " WHERE " + 
-    getActivePlaylistIdColName() + " = " + QString::number(songToPlay) + ";", 
+    getActivePlaylistLibIdColName() + " = " + QString::number(songToPlay) + ";", 
     database);
   EXEC_SQL(
     "Getting song for manual playlist set failed.",
@@ -378,9 +378,11 @@ void DataStore::setCurrentSong(const playlist_song_id_t& songToPlay){
     getSongQuery)
   getSongQuery.next();
   if(getSongQuery.isValid()){
+    DEBUG_MESSAGE("Got file, for manual song set")
     QString filePath = getSongQuery.value(0).toString();
-    emit manualSongChange(Phonon::MediaSource(filePath));
+    currentSongId = songToPlay;
     serverConnection->setCurrentSong(songToPlay);
+    emit manualSongChange(Phonon::MediaSource(filePath));
   }
 }
 
