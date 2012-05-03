@@ -43,7 +43,8 @@ public:
     SYNC_LIB,
     GET_ACTIVE_PLAYLIST,
     SET_CURRENT_SONG,
-    MOD_PLAYLIST
+    MOD_PLAYLIST,
+    SET_CURRENT_VOLUME
   };
 
   /** @name Constructor(s) and Destructor */
@@ -138,6 +139,13 @@ public:
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getPlayerIdSettingName()).value<player_id_t>();
   }
+
+  inline qreal getPlayerVolume() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getPlayerVolumeSettingName()).value<qreal>();
+  }
+
 
   inline const QString& getUsername() const{
     return username;
@@ -492,6 +500,11 @@ public:
     return playerIdSetting;
   }
 
+  static const QString& getPlayerVolumeSettingName(){
+    static const QString playerVolumeSettingName = "volume";
+    return playerVolumeSettingName;
+  }
+
   static const QString& getPlayerNameSettingName(){
     static const QString playerIdSetting = "playerName";
     return playerIdSetting;
@@ -569,6 +582,7 @@ public slots:
    */
   void setCurrentSong(const library_song_id_t& songToPlay);
 
+  void changeVolumeSilently(qreal newVolume);
   //@}
 
 signals:
@@ -614,6 +628,8 @@ signals:
   void playerActive();
 
   void playerDeactivated();
+
+  void volumeChanged(qreal newVolume);
 
 //@}
 
@@ -892,6 +908,11 @@ private slots:
     const QSet<library_song_id_t>& removed);
 
   void onActivePlaylistModFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  void onSetVolumeFailed(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

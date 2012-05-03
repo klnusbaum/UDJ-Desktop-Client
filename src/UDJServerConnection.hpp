@@ -125,6 +125,8 @@ public slots:
    */
   void setCurrentSong(playlist_song_id_t currentSong);
 
+  void setVolume(int newVolume);
+
   //@}
 
 signals:
@@ -200,8 +202,14 @@ signals:
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  void volumeSetOnServer();
 
-  void newEventGoers(QVariantList eventGoers);
+  void setVolumeFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
 
   //@}
 
@@ -277,6 +285,8 @@ private:
   QUrl getCreatePlayerUrl() const;
 
   QUrl getPlayerStateUrl() const;
+
+  QUrl getVolumeUrl() const;
 
   bool isPlayerCreateUrl(const QString& path) const;
 
@@ -438,6 +448,8 @@ private:
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
 
   void handleRecievedPlaylistMod(QNetworkReply *reply);
+
+  void handleRecievedVolumeSet(QNetworkReply *reply);
 
   static bool isResponseType(QNetworkReply *reply, int code);
 

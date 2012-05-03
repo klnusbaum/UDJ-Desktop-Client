@@ -106,6 +106,10 @@ private slots:
 
    void pause();
 
+   void onPlayerActivated();
+
+   void onPlayerDeactivated();
+
   //@}
 
 private:

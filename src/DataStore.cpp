@@ -132,6 +132,12 @@ DataStore::DataStore(
     this,
     SLOT(onActivePlaylistModFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
+  connect(
+    serverConnection,
+    SIGNAL(setVolumeFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onSetVolumeFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
 
   connect(
     serverConnection,
@@ -402,6 +408,20 @@ void DataStore::createNewPlayer(
     zipcode);
 }
 
+void DataStore::changeVolumeSilently(qreal newVolume){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerVolumeSettingName(), newVolume);
+  serverConnection->setVolume((int)(newVolume * 10));
+}
+
+
+
+
+
+
+
+
+
 void DataStore::syncLibrary(){
 
   QSqlQuery needAddSongs(database);
@@ -517,6 +537,14 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
 
 void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
   DEBUG_MESSAGE("Setting active playlist")
+
+  qreal retrievedVolume = newPlaylist["volume"].toReal()/10;
+  if(retrievedVolume != getPlayerVolume()){
+    QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    settings.setValue(getPlayerVolumeSettingName(), retrievedVolume);
+    emit volumeChanged(retrievedVolume);
+  }
+
   library_song_id_t retrievedCurrentId =
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
   if(retrievedCurrentId != currentSongId){
@@ -543,6 +571,7 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     addSong2ActivePlaylistFromQVariant(newSongs[i].toMap(), i); 
   }
   emit activePlaylistModified();
+  
 }
 
 void DataStore::onGetActivePlaylistFail(
@@ -603,6 +632,124 @@ void DataStore::onPlayerCreationFailed(const QString& errMessage, int errorCode,
 }
 
 
+void DataStore::onPlayerSetActive(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
+  syncLibrary();
+  emit playerActive();
+}
+
+void DataStore::onPlayerDeactivated(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerStateSettingName(), getPlayerInactiveState());
+  emit playerDeactivated();
+}
+
+void DataStore::onLibModError(
+    const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  DEBUG_MESSAGE("Got bad libmod " << errorCode)
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    reauthActions.insert(SYNC_LIB);
+    initReauth();
+  }
+}
+
+void DataStore::onSetCurrentSongFailed(
+  const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  DEBUG_MESSAGE("Setting current song failed: " << errorCode << " " << errMessage.toStdString())
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    reauthActions.insert(SET_CURRENT_SONG);
+    initReauth();
+  }
+}
+
+void DataStore::onSetVolumeFailed(
+  const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  DEBUG_MESSAGE("Setting volume failed " << errorCode << " " << errMessage.toStdString())
+  if(isTicketAuthError(errorCode, headers)){
+    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    reauthActions.insert(SET_CURRENT_VOLUME);
+    initReauth();
+  }
+}
+
+
+
+
+
+void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
+  DEBUG_MESSAGE("in on reauth")
+  isReauthing=false;
+  serverConnection->setTicket(ticketHash);
+  serverConnection->setUserId(userId);
+
+  Q_FOREACH(ReauthAction r, reauthActions){
+    doReauthAction(r);
+  }
+
+  reauthActions.clear();
+}
+
+void DataStore::doReauthAction(const ReauthAction& action){
+  switch(action){
+    case SYNC_LIB:
+      syncLibrary();
+      break;
+    case GET_ACTIVE_PLAYLIST:
+      refreshActivePlaylist();
+      break;
+    case SET_CURRENT_SONG:
+      if(currentSongId != -1){
+        serverConnection->setCurrentSong(currentSongId);
+      }
+      break;
+    case MOD_PLAYLIST:
+      serverConnection->modActivePlaylist(playlistIdsToAdd, playlistIdsToRemove);
+      break;
+    case SET_CURRENT_VOLUME:
+      QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+      serverConnection->setVolume((int)(getPlayerVolume() * 10));
+      break;
+  }
+}
+
+void DataStore::onAuthFail(const QString& errMessage){
+  isReauthing=false;
+  DEBUG_MESSAGE("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
+  //TODO need to do something here
+}
+
+void DataStore::initReauth(){
+  if(!isReauthing){
+    isReauthing=true;
+    serverConnection->authenticate(getUsername(), getPassword());
+  }
+}
+
+QByteArray DataStore::getHeaderValue(
+    const QByteArray& headerName,
+    const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  //Yes yes, I know this is an O(n) search. But it's fine. 
+  //This list of headers shouldn't be that long.
+  Q_FOREACH(const QNetworkReply::RawHeaderPair& pair, headers){
+    if(headerName == pair.first){
+      return pair.second;
+    }
+  }
+  return "";
+}
+
+
+
+
+
+
 void DataStore::saveCredentials(
   const QString& username, const QString& password)
 {
@@ -643,104 +790,6 @@ void DataStore::clearSavedCredentials(){
   settings.setValue(getPasswordSettingName(), "");
 }
 
-void DataStore::onPlayerSetActive(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
-  syncLibrary();
-  emit playerActive();
-}
-
-void DataStore::onPlayerDeactivated(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerStateSettingName(), getPlayerInactiveState());
-  emit playerDeactivated();
-}
-
-void DataStore::onLibModError(
-    const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
-{
-  DEBUG_MESSAGE("Got bad libmod " << errorCode)
-  if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
-    reauthActions.insert(SYNC_LIB);
-    initReauth();
-  }
-}
-
-void DataStore::onSetCurrentSongFailed(
-  const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
-{
-  DEBUG_MESSAGE("Setting current song failed: " << errMessage.toStdString())
-  DEBUG_MESSAGE("Setting current song failed: " << errorCode)
-  if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
-    reauthActions.insert(SET_CURRENT_SONG);
-    initReauth();
-  }
-}
-
-
-
-
-
-void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
-  DEBUG_MESSAGE("in on reauth")
-  isReauthing=false;
-  serverConnection->setTicket(ticketHash);
-  serverConnection->setUserId(userId);
-
-  Q_FOREACH(ReauthAction r, reauthActions){
-    doReauthAction(r);
-  }
-
-  reauthActions.clear();
-}
-
-void DataStore::doReauthAction(const ReauthAction& action){
-  switch(action){
-    case SYNC_LIB:
-      syncLibrary();
-      break;
-    case GET_ACTIVE_PLAYLIST:
-      refreshActivePlaylist();
-      break;
-    case SET_CURRENT_SONG:
-      if(currentSongId != -1){
-        serverConnection->setCurrentSong(currentSongId);
-      }
-      break;
-    case MOD_PLAYLIST:
-      serverConnection->modActivePlaylist(playlistIdsToAdd, playlistIdsToRemove);
-      break;
-  }
-}
-
-void DataStore::onAuthFail(const QString& errMessage){
-  isReauthing=false;
-  DEBUG_MESSAGE("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
-  //TODO need to do something here
-}
-
-void DataStore::initReauth(){
-  if(!isReauthing){
-    isReauthing=true;
-    serverConnection->authenticate(getUsername(), getPassword());
-  }
-}
-
-QByteArray DataStore::getHeaderValue(
-    const QByteArray& headerName,
-    const QList<QNetworkReply::RawHeaderPair>& headers)
-{
-  //Yes yes, I know this is an O(n) search. But it's fine. 
-  //This list of headers shouldn't be that long.
-  Q_FOREACH(const QNetworkReply::RawHeaderPair& pair, headers){
-    if(headerName == pair.first){
-      return pair.second;
-    }
-  }
-  return "";
-}
 
 
 } //end namespace

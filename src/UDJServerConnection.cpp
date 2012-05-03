@@ -134,6 +134,16 @@ void UDJServerConnection::setCurrentSong(library_song_id_t currentSong){
     netAccessManager->post(setCurrentSongRequest, params.toUtf8());
 }
 
+void UDJServerConnection::setVolume(int volume){
+  DEBUG_MESSAGE("Setting volume")
+  QUrl params;
+  params.addQueryItem("volume", QString::number(volume));
+  QNetworkRequest setCurrentVolumeRequest(getVolumeUrl());
+  setCurrentVolumeRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QNetworkReply *reply = 
+    netAccessManager->post(setCurrentVolumeRequest,  params.encodedQuery());
+}
+
 void UDJServerConnection::setPlayerActive(){
   DEBUG_MESSAGE("Setting player active")
   QString params("state=playing");
@@ -174,6 +184,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   }
   else if(reply->request().url().path() == getLibModUrl().path()){
     handleRecievedLibMod(reply);
+  }
+  else if(reply->request().url().path() == getVolumeUrl().path()){
+    handleRecievedVolumeSet(reply);
   }
   else if(isModActivePlaylistReply(reply)){
     handleRecievedPlaylistMod(reply);
@@ -298,6 +311,20 @@ void UDJServerConnection::handleRecievedCurrentSongSet(QNetworkReply *reply){
   }
 }
 
+void UDJServerConnection::handleRecievedVolumeSet(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit volumeSetOnServer();
+  }
+  else{
+    QByteArray response = reply->readAll();
+    QString responseMsg = QString(response);
+    emit setVolumeFailed(
+      "error: " + responseMsg,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+}
+
 QUrl UDJServerConnection::getActivePlaylistUrl() const{
   return QUrl(getServerUrlPath() + "players/" + QString::number(playerId) +
     "/active_playlist");
@@ -326,6 +353,12 @@ QUrl UDJServerConnection::getLibModUrl() const{
   return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
       QString::number(playerId) + "/library");
 }
+
+QUrl UDJServerConnection::getVolumeUrl() const{
+  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+      QString::number(playerId) + "/volume");
+}
+
 
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{
   return (path == "/udj/users/" + QString::number(user_id) + "/players/player");
