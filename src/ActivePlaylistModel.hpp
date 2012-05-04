@@ -24,13 +24,38 @@ namespace UDJ{
 
 class DataStore;
 
+/**
+ * \brief A class serving as a model for the Active Playlist.
+ */
 class ActivePlaylistModel : public MusicModel{
 Q_OBJECT
 public:
 
+  /** @name Constructor(s) and Destructor */
+  //@{
+
+  /**
+   * \brief Constructs an ActivePlaylistModel
+   *
+   * @param query The query used to back the model.
+   * @param dataStore The DataStore backing this instance of UDJ.
+   * @param parent The parent QObject.
+   */
   ActivePlaylistModel(const QString& query, DataStore *dataStore, QObject *parent);
 
+  //@}
+
+
+  /** @name Overridden from MusicModel */
+  //@{
+
+  /**
+   * \brief .
+   */
   virtual QVariant data(const QModelIndex& item, int role) const;
+
+  //@}
+
 
 };
 
