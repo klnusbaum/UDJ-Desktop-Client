@@ -26,22 +26,66 @@ namespace UDJ{
 
 class DataStore;
 
-
+/**
+ * \brief Widget for displaying information about the player
+ */
 class PlayerDashboard : public QWidget{
   Q_OBJECT
 public:
+
+  /** @name Constructors */
+  //@{
+
+  /**
+   * \brief Constructs a PlayerDashboard.
+   *
+   * \param dataStore The DataStore backing this client.
+   * \param parent The parent widget.
+   */
   PlayerDashboard(DataStore *dataStore, QWidget *parent=0);
 
+  //@}
+
 private slots:
+
+  /** @name Private Slots */
+  //@{
+
+  /** \brief Takes appropriate action upon the creation of a player.  */
   void onPlayerCreation();
 
+  //@}
+
 private:
+
+  /** @name Private Memebers */
+  //@{
+
+  /** \brief The DataStore backing the client */
   DataStore *dataStore;
+
+  /** \brief Lable for name */
   QLabel *nameLabel;
+
+  /** \brief Lable for location */
   QLabel *locationLabel;
 
+  //@}
+
+  /** @name Private functions */
+  //@{
+
+  /**
+   * \brief Sets up UI components
+   */
   void setupUi();
+
+  /**
+   * \brief Sets the player info to be displayed.
+   */
   void setPlayerInfo();
+
+  //@}
 };
 
 
