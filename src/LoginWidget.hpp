@@ -39,6 +39,8 @@ public:
 
   /**
    * \brief Constructs a Login Widget
+   *
+   * \param parent Parent Widget.
    */
   LoginWidget(QWidget *parent=0);
 
@@ -58,7 +60,14 @@ public slots:
 
 signals:
 
+  /**
+   * \brief Emitted once the main gui is started.
+   */
   void startedMainGUI();
+
+  /**
+   * \brief Emitted when logging in fails.
+   */
   void loginFailed();
 
 
@@ -76,8 +85,8 @@ private:
   /** \brief lineedit used for entering the password. */
   QLineEdit *passwordBox;
 
+  /** \brief Checkbox for indicating whether or not credentials should be saved. */
   QCheckBox *saveCreds;
-
 
   /** \brief Actual display for the login widget. */
   QWidget *loginDisplay;
@@ -85,8 +94,10 @@ private:
   /** \brief Connection to the server. */
   UDJServerConnection *serverConnection;
 
+  /** \brief Username label */
   QLabel *usernameLabel;
 
+  /** \brief Password label */
   QLabel *passwordLabel;
 
 
@@ -107,6 +118,9 @@ private slots:
   /** 
    * \brief Once the user has succesfully authenitcated, this starts up the
    * main gui for udj.
+   *
+   * \param ticketHash Ticket hash recieved from the server upon succesfully authentication.
+   * \param userId User id recieved from the server upon succesfully authentication.
    */
   void startMainGUI(const QByteArray& ticketHash, const user_id_t& userId);
 
@@ -118,6 +132,11 @@ private slots:
    */
   void displayLoginFailedMessage(const QString errorMessage);
 
+  /**
+   * \brief Takes appropriate action when the user clicks on the saveCreds check box.
+   *
+   * \param newSetting The current state of the save credentials check box.
+   */
   void saveCredsChanged(bool newSetting);
 
   //@}
