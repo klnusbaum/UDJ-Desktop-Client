@@ -38,7 +38,7 @@ class PlaybackWidget : public QWidget{
 Q_OBJECT
 
 public:
-  /** @name Enums */
+  /** @name Public Enums */
   //@{
 
   /** \brief The various states of playback that the widget can be in. */
@@ -60,6 +60,10 @@ public:
   //@}
 
 private slots:
+
+  /** @name Private Slots */
+  //@{
+
   /**
    * \brief Handles whenever the state of the primary
    * MediaObject is changed. 
@@ -97,16 +101,22 @@ private slots:
     */
    void setNewSource(DataStore::song_info_t newSong);
 
+   /** \brief Clears the data on the playback widget. */
    void clearWidget();
 
+   /** \brief Takes appropriate action when the playlist is changed. */
    void handlePlaylistChange();
 
+   /** \brief Enables playback. */
    void play();
 
+   /** \brief Pauses playback. */
    void pause();
 
+   /** \brief Takes appropriate action when the player is activated. */
    void onPlayerActivated();
 
+   /** \brief Takes appropriate action when the player is deactivated. */
    void onPlayerDeactivated();
 
   //@}
@@ -137,7 +147,7 @@ private:
   /** \brief Pauses playback */
   QAction *pauseAction;
 
-  /** \brief Used to display the name of the currently playing song. */
+  /** \brief Used to display info of the currently playing song. */
   QLabel *songInfo;
 
   /** \bried Used to display the time played of the current song. */
