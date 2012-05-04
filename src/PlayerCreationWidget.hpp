@@ -31,7 +31,7 @@ namespace UDJ{
 
 class DataStore;
 
-/** \brief Widget used to create new events. */
+/** \brief Widget used to create a new player. */
 class PlayerCreationWidget : public WidgetWithLoader{
 Q_OBJECT
 public:
@@ -49,17 +49,24 @@ public:
   //@}
 
 public slots:
+
+  /** @name Public Slots */
+  //@{
+
   /** \brief Attemps to create a new event */
   void doCreation();
+
+  //@}
 
 
 signals:
   /** @name Signals */
   //@{
 
-  /** \brief Emitted when a new player is created */
+  /** \brief Emitted when a new player is created. */
   void playerCreated();
 
+  /** \brief Emitted when creating a new player fails. */
   void playerCreateFailed();
 
   //@}
@@ -71,10 +78,21 @@ private:
   /** \brief Initilizes the UI */
   void setupUi();
 
+  /** \brief Sets up all the options for the state combo box. */
   void setupStateCombo();
 
+  /**
+   * \brief Gets the adress inputs which are currently bad 
+   *
+   * \return The address inputs that are currently bad
+   */
   QString getAddressBadInputs() const;
 
+  /**
+   * \brief Retrieves the regex for validating the zipcode.
+   *
+   * \return The regex for validating the zipcode.
+   */
   static const QRegExp& getZipcodeRegex(){
     static const QRegExp zipcodeRegex("^\\d{5}(-\\d{4})?$");
     return zipcodeRegex;
@@ -91,19 +109,11 @@ private:
   /** \brief lineedit used to the password of the event */
   QLineEdit *passwordEdit;
 
+  /** \brief Checkbox used to indicate the user wishes to provide a location for the player */
   QCheckBox *useAddress;
 
   /** \brief Lable to display instructions */
   QLabel *createLabel;
-
-  /** \brief Button used to actually attempt to create the new player */
-  QPushButton *createPlayerButton;
-
-  /** 
-   * \brief Widget containing form elements which need to be filled out in
-   * order to create the new player.
-   */
-  QWidget *playerForm;
 
   /**
    * \brief The data store containing music that could potentially be added
@@ -111,11 +121,20 @@ private:
    */
   DataStore *dataStore;
 
+  /** \brief LineEdit used to specify the street address of the player */
   QLineEdit *streetAddress;
+
+  /** \brief LineEdit used to specify the city of the player */
   QLineEdit *city;
+
+  /** \brief LineEdit used to specify the state of the player */
   QComboBox *state;
+
+  /** \brief LineEdit used to specify the zipcode of the player */
   QLineEdit *zipcode;
 
+  /** \brief From containing the inputs required for player creation. */
+  QWidget *playerForm;
 
   //@}
 
@@ -133,6 +152,11 @@ private slots:
    */
   void playerCreateFail(const QString& errMessage);
 
+  /**
+   * \brief Enables/disables the address inputs.
+   *
+   * \param enable If true, the address inputs become enabled, otherwise they become disabled.
+   */
   void enableAddressInputs(bool enable);
 
   //@}
