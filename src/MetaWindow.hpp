@@ -49,9 +49,8 @@ class PlayerDashboard;
  * \brief A class that is the main point of interaction with the user. 
  * 
  * This is the main window with which the user will interact. It contains
- * all information about the current playlist, their music library, which
- * event goers are currently logged into their event, and any relevant 
- * settings.
+ * all information about the current playlist, their music, and any other relevant
+ * information.
  */
 class MetaWindow : public QMainWindow{
   Q_OBJECT
@@ -61,8 +60,12 @@ public:
 
   /** \brief Constructs a MetaWindow
    *
+   * @param username The username being used by the client.
+   * @param password The password being used by the client.
    * @param ticketHash Ticket hash that should be used by the data store.
    * @param userId UserId that should be used by the data store.
+   * @param parent The parent widget
+   * @param flags Any window flags.
    */
   MetaWindow(
     const QString& username,
@@ -75,7 +78,14 @@ public:
   //@}
 
 protected:
+
+  /** @name Overridden from QMainWindow */
+  //@{
+
+  /** \brief . */
   virtual void closeEvent(QCloseEvent *event);
+
+  //@}
 
 private slots:
 
@@ -92,12 +102,20 @@ private slots:
    */
   void addMusicToLibrary();
 
+  /**
+   * \brief Displays stuff for adding a single to the library.
+   */
   void addSongToLibrary();
 
+  /**
+   * \brief Takes appropriate action when adding songs on the server fails.
+   *
+   * @param errMessage A error message describing what happened.
+   */
   void errorAdding(const QString& errMessage);
 
   /**
-   * \brief Displays the library view in the main content panel.
+   * \brief Displays the library widget in the main content panel.
    */
   void displayLibrary();
 
@@ -106,6 +124,9 @@ private slots:
    */
   void displayPlaylist();
 
+  /**
+   * \brief Takes appropriate action when adding songs to the server is finished.
+   */
   void doneAdding();
 
   //@}
@@ -113,13 +134,13 @@ private slots:
 private:
   /** @name Private Members */
   //@{
-  
-  /** \brief The main widget holding all the various tabs in the display. */
-  QTabWidget *tabs;
+
   /** \brief Used to display the contents of the users media library */
   LibraryWidget* libraryWidget;
+
   /** \brief The users media library */
   DataStore* dataStore;
+
   /** \brief A widget used for displaying and modifying settings */
   SettingsWidget* settingsWidget;
 
@@ -129,6 +150,7 @@ private:
   /** \brief Causes the application to quit. */
   QAction *quitAction;
 
+  /** \brief Trigers addition of single song to the library */
   QAction *addSongAction;
 
 //  QFileSystemWatcher* fileWatcher;
@@ -136,29 +158,30 @@ private:
 
   /** \brief The main display widget. */
   QWidget *mainWidget;
-  
+
   /** \brief The list of potential activites that can be done in UDJ. */
   ActivityList *activityList;
 
   /** \brief Widget used for controlling music playback. */
   PlaybackWidget *playbackWidget;
 
+  /** \brief Widget used to display the active playlist. */
   ActivePlaylistView *playlistView;
 
+  /** \brief Progress dialog used when quitting.*/
   QProgressDialog *quittingProgress;
 
+  /** \brief Progress dialog used when adding songs to the library.*/
   QProgressDialog *addingProgress;
 
   /** \brief Stack used to display various UI components. */
   QStackedWidget *contentStack;
 
+  /** \brief Dashboard used to display information about the player. */
   PlayerDashboard *dashboard;
 
+  /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;
-
-
-
-
 
   //@}
 
@@ -167,6 +190,7 @@ private:
 
   /** \brief Sets up all the MetaWindow's UI components. */
   void setupUi();
+
   /** \brief Sets up the MetaWindow's menus. */
   void setupMenus();
 
