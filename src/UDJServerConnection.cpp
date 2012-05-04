@@ -325,11 +325,6 @@ QUrl UDJServerConnection::getCurrentSongUrl() const{
     "/current_song");
 }
 
-QUrl UDJServerConnection::getUsersUrl() const{
-  return QUrl(getServerUrlPath() + "player/" + QString::number(playerId) +
-    "/users");
-}
-
 QUrl UDJServerConnection::getCreatePlayerUrl() const{
   return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/player");
 }

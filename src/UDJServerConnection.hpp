@@ -412,10 +412,19 @@ private:
    */
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
 
+  /**
+   * \brief Handle a response from the server regarding a modification of the playlist.
+   *
+   * @param reply Response from the server.
+   */
   void handleRecievedPlaylistMod(QNetworkReply *reply);
 
+  /**
+   * \brief Handle a response from the server regarding the setting of the player volume.
+   *
+   * @param reply Response from the server.
+   */
   void handleRecievedVolumeSet(QNetworkReply *reply);
-
 
   /**
    * \brief Prepares a network request that is going to include JSON.
@@ -432,9 +441,9 @@ private:
   QUrl getLibModUrl() const;
 
   /**
-   * \brief Get the url for retreiving the active playlist from the server.
+   * \brief Get the url for interacting with the active playlist from the server.
    *
-   * @return The for retreiving the active playlist from the server.
+   * @return The for interacting with the active playlist from the server.
    */
   QUrl getActivePlaylistUrl() const;
 
@@ -444,13 +453,6 @@ private:
    * @return The url to be used for setting the current song on the server.
    */
   QUrl getCurrentSongUrl() const;
-
-  /**
-   * \brief Gets the url that should be used for obtaining the list of users from the server
-   *
-   * \return The url that sholud be used for obtaining the list of users from the server.
-   */
-  QUrl getUsersUrl() const;
 
   /**
    * \brief Gets the url that should be used for creating a player on the server.
@@ -484,24 +486,6 @@ private:
    * false otherwise.
    */
   bool isPlayerCreateUrl(const QString& path) const;
-
-  /**
-   * \brief Determines if the given network reply is in response to a request to set the
-   * player as active.
-   *
-   * \param reply The network reply in question.
-   * \return True if the reply is a response to a set active request. False otherwise.
-   */
-  bool isSetActiveReply(const QNetworkReply *reply) const;
-
-  /**
-   * \brief Determines if the given network reply is in response to a request to set the
-   * player as inactive.
-   *
-   * \param reply The network reply in question.
-   * \return True if the reply is a response to a set inactive request. False otherwise.
-   */
-  bool isSetInactiveReply(const QNetworkReply *reply) const;
 
   /**
    * \brief Determines if the given network reply is in response to a request to 
@@ -608,17 +592,6 @@ private:
   static const QByteArray& getMissingResourceHeader(){
     static const QByteArray missingResourceHeader = "X-Udj-Missing-Resource";
     return missingResourceHeader;
-  }
-
-
-  /**
-   * \brief Gets the property name for a payload property.
-   *
-   * \return The property name for a payload property.
-   */
-  static const char* getPayloadPropertyName(){
-    static const char* payloadPropertyName = "payload";
-    return payloadPropertyName;
   }
 
   /**
