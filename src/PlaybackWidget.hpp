@@ -113,12 +113,6 @@ private slots:
    /** \brief Pauses playback. */
    void pause();
 
-   /** \brief Takes appropriate action when the player is activated. */
-   void onPlayerActivated();
-
-   /** \brief Takes appropriate action when the player is deactivated. */
-   void onPlayerDeactivated();
-
   //@}
 
 private:
