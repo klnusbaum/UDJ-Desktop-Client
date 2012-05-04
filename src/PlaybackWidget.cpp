@@ -36,8 +36,25 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
   mediaObject = new Phonon::MediaObject(this);
   createActions();
   setupUi();
+  Phonon::createPath(mediaObject, audioOutput);
+
+  audioOutput->setVolume(dataStore->getPlayerVolume());
 
   mediaObject->setTickInterval(1000);
+
+  connect(
+    audioOutput,
+    SIGNAL(volumeChanged(qreal)),
+    dataStore,
+    SLOT(changeVolumeSilently(qreal)));
+
+  connect(
+    dataStore,
+    SIGNAL(volumeChanged(qreal)),
+    audioOutput,
+    SLOT(setVolume(qreal)));
+
+
   connect(mediaObject, SIGNAL(tick(qint64)), this, SLOT(tick(qint64)));
   connect(mediaObject, SIGNAL(stateChanged(Phonon::State, Phonon::State)),
     this, SLOT(stateChanged(Phonon::State, Phonon::State)));
@@ -74,38 +91,6 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
     SLOT(onPlayerDeactivated()));
 
 
-  Phonon::createPath(mediaObject, audioOutput);
-
-  audioOutput->setVolume(dataStore->getPlayerVolume());
-}
-
-void PlaybackWidget::onPlayerActivated(){
-  DEBUG_MESSAGE("Connecting volume signals in playback widget")
-  connect(
-    audioOutput,
-    SIGNAL(volumeChanged(qreal)),
-    dataStore,
-    SLOT(changeVolumeSilently(qreal)));
-
-  connect(
-    dataStore,
-    SIGNAL(volumeChanged(qreal)),
-    audioOutput,
-    SLOT(setVolume(qreal)));
-}
-
-void PlaybackWidget::onPlayerDeactivated(){
-  disconnect(
-    audioOutput,
-    SIGNAL(volumeChanged(qreal)),
-    dataStore,
-    SLOT(changeVolumeSilently(qreal)));
-
-  disconnect(
-    dataStore,
-    SIGNAL(volumeChanged(qreal)),
-    audioOutput,
-    SLOT(setVolume(qreal)));
 }
 
 void PlaybackWidget::tick(qint64 time){
