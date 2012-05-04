@@ -29,7 +29,15 @@ namespace UDJ{
 
 namespace Utils{
 
-
+/**
+ * Get's the ids currently selected in a view by 
+ * getting them from the model (and or proxy model) backing the view.
+ *
+ * \param view The view whose selected ids are in question.
+ * \param model The model contaning the ids.
+ * \param colName The name of the id column in the model.
+ * \param proxyModel A proxy model being used by the view.
+ */
 template<class T> QSet<T> getSelectedIds(
   const QTableView* view,
   const QSqlQueryModel* model,
