@@ -18,6 +18,7 @@
  */
 #ifndef PLAYBACK_WIDGET_HPP
 #define PLAYBACK_WIDGET_HPP
+#include "DataStore.hpp"
 #include <QWidget>
 #include <phonon/audiooutput.h>
 #include <phonon/seekslider.h>
@@ -30,8 +31,6 @@ class QLabel;
 
 
 namespace UDJ{
-
-class DataStore;
 
 /** \brief Widget used for controlling music playback. */
 class PlaybackWidget : public QWidget{
@@ -96,7 +95,7 @@ private slots:
     *
     * @param newSong The new song that should be playing.
     */
-   void setNewSource(Phonon::MediaSource newSong);
+   void setNewSource(DataStore::song_info_t newSong);
 
    void clearWidget();
 

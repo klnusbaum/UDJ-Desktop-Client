@@ -134,7 +134,7 @@ public:
   inline const QString getPlayerName() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getPlayerNameSettingName()).toString();
+    return settings.value(getPlayerNameSettingName(), tr("Not Set")).toString();
   }
 
   /**
@@ -161,6 +161,24 @@ public:
 
   inline const QString& getPassword() const{
     return password;
+  }
+
+  inline bool hasLocation() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.contains(getAddressSettingName());
+  }
+
+
+  inline QString getLocationString() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return 
+      settings.value(getAddressSettingName()).toString() + " " + 
+      settings.value(getCitySettingName()).toString() + " " +
+      settings.value(getStateSettingName()).toString() + ", " +
+      settings.value(getZipCodeSettingName()).toString();
+
   }
 
   /**
@@ -523,6 +541,26 @@ public:
     return playerStateSettingName;
   }
 
+  static const QString& getAddressSettingName(){
+    static const QString addressSettingName = "address";
+    return addressSettingName;
+  }
+
+  static const QString& getCitySettingName(){
+    static const QString citySettingName = "city";
+    return citySettingName;
+  }
+
+  static const QString& getStateSettingName(){
+    static const QString stateSettingName = "state";
+    return stateSettingName;
+  }
+
+  static const QString& getZipCodeSettingName(){
+    static const QString zipCodeSettingName = "zipCode";
+    return zipCodeSettingName;
+  }
+
   static const QString& getNoPlayerState(){
     static const QString noPlayerState = "noPlayer";
     return noPlayerState;
@@ -631,7 +669,7 @@ signals:
    *
    * @param newSong The song that should be set as the current song.
    */
-  void manualSongChange(Phonon::MediaSource newSong);
+  void manualSongChange(DataStore::song_info_t newSong);
 
   void playerActive();
 

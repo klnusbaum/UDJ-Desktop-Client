@@ -373,7 +373,9 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
 
 void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
   QSqlQuery getSongQuery(
-    "SELECT " + getLibFileColName() + "  FROM " +
+    "SELECT " + getLibFileColName() + ", " +
+    getLibSongColName() + ", " +
+    getLibArtistColName() + " FROM " +
     getActivePlaylistViewName() + " WHERE " + 
     getActivePlaylistLibIdColName() + " = " + QString::number(songToPlay) + ";", 
     database);
@@ -387,7 +389,13 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
     QString filePath = getSongQuery.value(0).toString();
     currentSongId = songToPlay;
     serverConnection->setCurrentSong(songToPlay);
-    emit manualSongChange(Phonon::MediaSource(filePath));
+    DEBUG_MESSAGE("Retrieved Artist " << getSongQuery.value(2).toString().toStdString())
+    song_info_t toEmit = {
+      Phonon::MediaSource(filePath),
+      getSongQuery.value(1).toString(),
+      getSongQuery.value(2).toString()
+    };
+    emit manualSongChange(toEmit);
   }
 }
 
@@ -410,6 +418,10 @@ void DataStore::createNewPlayer(
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
+  settings.setValue(getAddressSettingName(), streetAddress);
+  settings.setValue(getCitySettingName(), city);
+  settings.setValue(getStateSettingName(), state);
+  settings.setValue(getZipCodeSettingName(), zipcode);
   serverConnection->createPlayer(
     name,
     password,
@@ -421,8 +433,10 @@ void DataStore::createNewPlayer(
 
 void DataStore::changeVolumeSilently(qreal newVolume){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerVolumeSettingName(), newVolume);
-  serverConnection->setVolume((int)(newVolume * 10));
+  if(settings.value(getPlayerVolumeSettingName()).toReal() == newVolume){
+    settings.setValue(getPlayerVolumeSettingName(), newVolume);
+    serverConnection->setVolume((int)(newVolume * 10));
+  }
 }
 
 
@@ -560,7 +574,9 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
   if(retrievedCurrentId != currentSongId){
     QSqlQuery getSongQuery(
-      "SELECT " + getLibFileColName() + "  FROM " +
+      "SELECT " + getLibFileColName() + ", " +
+      getLibSongColName() + ", " +
+      getLibArtistColName() + " FROM " +
       getActivePlaylistViewName() + " WHERE " + 
       getActivePlaylistLibIdColName() + " = " + QString::number(retrievedCurrentId) + ";", 
       database);
@@ -573,7 +589,12 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
       DEBUG_MESSAGE("Got file, for manual song set")
       QString filePath = getSongQuery.value(0).toString();
       currentSongId = retrievedCurrentId;
-      emit manualSongChange(Phonon::MediaSource(filePath));
+      song_info_t toEmit = {
+        Phonon::MediaSource(filePath),
+        getSongQuery.value(1).toString(),
+        getSongQuery.value(2).toString()
+      };
+      emit manualSongChange(toEmit);
     }
   }
   clearActivePlaylist();
@@ -590,6 +611,7 @@ void DataStore::onGetActivePlaylistFail(
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
+  DEBUG_MESSAGE("Playlist error: " << errorCode << " " <<errMessage.toStdString())
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthActions.insert(GET_ACTIVE_PLAYLIST);
@@ -630,8 +652,8 @@ void DataStore::onPlayerCreate(const player_id_t& issuedId){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerIdSettingName(), QVariant::fromValue(issuedId));
   settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
-  activePlaylistRefreshTimer->start();
   serverConnection->setPlayerId(issuedId);
+  activatePlayer();
   emit playerCreated();
 }
 
@@ -647,6 +669,7 @@ void DataStore::onPlayerSetActive(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
   syncLibrary();
+  refreshActivePlaylist();
   emit playerActive();
 }
 

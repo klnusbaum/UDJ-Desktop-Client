@@ -17,7 +17,7 @@
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef METAWINDOW_HPP
-#define MEATWINDOW_HPP
+#define METAWINDOW_HPP
 #include <QMainWindow>
 #include <QTableView>
 #include <QSqlDatabase>
@@ -43,7 +43,7 @@ class LibraryWidget;
 class ActivityList;
 class EventWidget;
 class DataStore;
-class SongListView;
+class PlayerDashboard;
 
 /**
  * \brief A class that is the main point of interaction with the user. 
@@ -149,14 +149,16 @@ private:
 
   QProgressDialog *addingProgress;
 
+  /** \brief Stack used to display various UI components. */
+  QStackedWidget *contentStack;
+
+  PlayerDashboard *dashboard;
+
   bool isQuiting;
 
 
 
 
-
-  /** \brief Stack used to display various UI components. */
-  QStackedWidget *contentStack;
 
   //@}
 

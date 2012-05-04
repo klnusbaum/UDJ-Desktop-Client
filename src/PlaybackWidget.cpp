@@ -18,7 +18,6 @@
  */
 
 #include "PlaybackWidget.hpp"
-#include "DataStore.hpp"
 #include <QAction>
 #include <QLabel>
 #include <QTime>
@@ -52,9 +51,9 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
     SLOT(metaDataChanged()));
   connect(
     dataStore,
-    SIGNAL(manualSongChange(Phonon::MediaSource)),
+    SIGNAL(manualSongChange(DataStore::song_info_t)),
     this,
-    SLOT(setNewSource(Phonon::MediaSource)));
+    SLOT(setNewSource(DataStore::song_info_t)));
 
   connect(
     dataStore,
@@ -230,9 +229,11 @@ void PlaybackWidget::createActions(){
   connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
 }
 
-void PlaybackWidget::setNewSource(Phonon::MediaSource newSong){
-  mediaObject->setCurrentSource(newSong);
+void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
+  DEBUG_MESSAGE("in set new source")
+  mediaObject->setCurrentSource(newSong.source);
   mediaObject->play();
+  songInfo->setText(newSong.title + " - " + newSong.artist);
 }
 
 void PlaybackWidget::clearWidget(){

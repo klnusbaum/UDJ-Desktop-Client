@@ -24,6 +24,7 @@
 #include "ActivityList.hpp"
 #include "ActivePlaylistView.hpp"
 #include "PlayerCreateDialog.hpp"
+#include "PlayerDashboard.hpp"
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -185,7 +186,11 @@ void MetaWindow::setupUi(){
   content->addWidget(contentStackContainer);
   content->setStretchFactor(1, 10);
 
+  dashboard = new PlayerDashboard(dataStore, this);
+
+
   QVBoxLayout *mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(dashboard);
   mainLayout->addWidget(content,6);
   mainLayout->addWidget(playbackWidget);
 

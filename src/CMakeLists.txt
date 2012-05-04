@@ -43,6 +43,7 @@ SET(UDJ_SRCS
   simpleCrypt/simplecrypt.cpp
   LibraryWidget.cpp
   ActivePlaylistModel.cpp
+  PlayerDashboard.cpp
 )
 
 SET(UDJ_HDRS 
@@ -71,6 +72,7 @@ SET(UDJ_MOC_HDRS
   LoginDialog.hpp
   LibraryWidget.hpp
   ActivePlaylistModel.hpp
+  PlayerDashboard.hpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/src")
