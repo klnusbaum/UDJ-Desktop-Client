@@ -33,12 +33,18 @@ namespace UDJ{
 class UDJServerConnection;
 
 /** 
- * \brief A class that provides access to all persisten storage used by UDJ.
+ * \brief A class that provides access to all persistent/semi-persistent storage used by UDJ.
  */
 class DataStore : public QObject{
 Q_OBJECT
 public:
 
+  /** @name Public Typedefs and Enums */
+  //@{
+
+  /**
+   * \brief Actions that can be preformed once the client has reauthenticated.
+   */
   enum ReauthAction{
     SYNC_LIB,
     GET_ACTIVE_PLAYLIST,
@@ -47,12 +53,16 @@ public:
     SET_CURRENT_VOLUME
   };
 
+  /**
+   * \brief A minimal set of info describing a song in the database.
+   */
   typedef struct {
     Phonon::MediaSource source;
     QString title;
     QString artist;
   } song_info_t;
 
+  //@}
 
 
   /** @name Constructor(s) and Destructor */
@@ -60,46 +70,51 @@ public:
 
   /** \brief Constructs a DataStore
    *
-   * @param serverConnection Connection to the UDJ server.
-   * @param parent The parent widget.
+   * @param username The username being used by the client.
+   * @param password The password being used by the client.
+   * @param ticketHash The tickethash being used for communication with the server.
+   * @param userId Id of the user using this client.
+   * @param parent The parent object.
    */
   DataStore(
     const QString& username,
     const QString& password,
-    const QByteArray& ticketHash, 
-    const user_id_t& userId, 
+    const QByteArray& ticketHash,
+    const user_id_t& userId,
     QObject *parent=0);
 
   //@}
 
-  /** @name Getters and Setters */
+  /** @name Modifiers */
   //@{
 
+  /**
+   * \brief Adds a list of songs to the music library.
+   *
+   * @param songs The list of songs to be added to the library.
+   * @param progress A progress dialog representing the progress of the 
+   * of adding the songs to the library.
+   */
   void addMusicToLibrary(
     const QList<Phonon::MediaSource>& songs, 
     QProgressDialog* progress=0);
 
+  /**
+   * \brief Puts the player in an active mode.
+   */
   void activatePlayer();
 
+  /**
+   * \brief Deactivates the player.
+   */
   void deactivatePlayer();
 
   /**
    * \brief Removes the given songs from the music library. 
    *
-   * @param toRemove The list of songs to be removed from the library.
+   * @param toRemove A set of song ids to remove from the library.
    */
   void removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove);
-
-  /**
-   * \brief Given a media source, determines the song name from the current
-   * model data.
-   *
-   * @param source Source whose song name is desired.
-   * @return The name of the song contained in the given source according
-   * to current model data. If the source could not be found in the model
-   * and emptry string is returned.
-   */
-  QString getSongNameFromSource(const Phonon::MediaSource &source) const;
 
   /**
    * \brief Gets the raw connection to the actual database that the DataStore
@@ -110,26 +125,14 @@ public:
   QSqlDatabase getDatabaseConnection();
 
   /**
-   * \brief Adds any songs to the server for which the
-   * host client doesn't have valid server_lib_song_id.
+   * \brief Syncs the current state of the library with the server.
    */
   void syncLibrary();
 
   /**
-   * \brief Syncs all the requests for additions to the active playlst.
-   */
-  //void syncPlaylistAddRequests();
-
-  /**
-   * \brief Syncs all the requests for removals from the active playlst.
-   */
-  void syncPlaylistRemoveRequests();
-
-
-  /**
-   * \brief Gets the name of the current event.
+   * \brief Gets the name of the player.
    *
-   * @return The name of the current event.
+   * @return The name of the player.
    */
   inline const QString getPlayerName() const{
     QSettings settings(
@@ -138,9 +141,9 @@ public:
   }
 
   /**
-   * \brief Gets the id of the current event.
+   * \brief Gets the id of the player.
    *
-   * @return The id of the current event.
+   * @return The id of the player.
    */
   inline const player_id_t getPlayerId() const{
     QSettings settings(
@@ -148,6 +151,11 @@ public:
     return settings.value(getPlayerIdSettingName()).value<player_id_t>();
   }
 
+  /**
+   * \brief Gets the volume of the player.
+   *
+   * @return The volume of the player.
+   */
   inline qreal getPlayerVolume() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
@@ -155,14 +163,29 @@ public:
   }
 
 
+  /**
+   * \brief Gets the username being used by the client
+   *
+   * @return The username being used by the client.
+   */
   inline const QString& getUsername() const{
     return username;
   }
 
+  /**
+   * \brief Gets the password being used by the client
+   *
+   * @return The password being used by the client.
+   */
   inline const QString& getPassword() const{
     return password;
   }
 
+  /**
+   * \brief Determines whether or not the player's location has been set.
+   *
+   * @return True if the player's location is set, false otherwise.
+   */
   inline bool hasLocation() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
@@ -170,6 +193,11 @@ public:
   }
 
 
+  /**
+   * \brief Retrieves a string describing the location of the player.
+   *
+   * @return A string describing the locaiton of the player.
+   */
   inline QString getLocationString() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
@@ -197,29 +225,48 @@ public:
    */
   song_info_t takeNextSongToPlay();
 
+  /**
+   * \brief Retrieves the state of the player.
+   *
+   * @return The state of the player.
+   */
   const QString getPlayerState() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getPlayerStateSettingName()).toString();
   }
 
-  const bool isCurrentlyActive() const{
-    QSettings settings(
-      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return 
-      settings.value(getPlayerStateSettingName()).toString()
-      ==
-      getPlayerActiveState();
-  }
-
+  /**
+   * \brief Saves the given credentials to persistent storage in a secure manner.
+   *
+   * @param username The username to save.
+   * @param password The password to save.
+   */
   static void saveCredentials(const QString& username, const QString& password);
 
+  /**
+   * \brief Marks the current saved credentials as invalid.
+   */
   static void setCredentialsDirty();
 
+  /**
+   * \brief Determines whether or not the currently saved credentials are valid.
+   *
+   * @return True if the currently saved credentials are valide, false otherwise.
+   */
   static bool hasValidSavedCredentials();
 
+  /**
+   * \brief Retrieves the currently saved credentials.
+   *
+   * @param username Pointer to the QString where the retreived username should be put.
+   * @param password Pointer to the QString where the retreived password should be put.
+   */
   static void getSavedCredentials(QString* username, QString* password);
 
+  /**
+   * \brief Deletes all the saved credentials.
+   */
   static void clearSavedCredentials();
 
   //@}
@@ -230,6 +277,8 @@ public:
 
   /**
    * \brief When a song title can't be found, this title should be used instead.
+   *
+   * @return The song title to be used when no title is known.
    */
   static const QString& unknownSongTitle(){
     static const QString unknownSongTitle = tr("Unknown");
@@ -238,6 +287,8 @@ public:
 
   /**
    * \brief When a song artist can't be found, this artist should be used instead.
+   *
+   * @return The song artist to be used when no artist is known.
    */
   static const QString& unknownSongArtist(){
     static const QString unknownSongArtist = tr("Unknown");
@@ -246,23 +297,30 @@ public:
 
   /**
    * \brief When a song album can't be found, this album should be used instead.
+   *
+   * @return The song album to be used when no album is known.
    */
   static const QString& unknownSongAlbum(){
     static const QString unknownSongAlbum = tr("Unknown");
     return unknownSongAlbum;
   }
 
+  /**
+   * \brief When a song genre can't be found, this genre should be used instead.
+   *
+   * @return The song genre to be used when no genre is known.
+   */
   static const QString& unknownGenre(){
     static const QString unknownGenre = tr("Unknown");
     return unknownGenre;
   }
 
   /**
-   * \brief Gets the name of the table in the musicdb that contains information
-   * about the music library associated with the server conneciton.
+   * \brief Gets the name of the table in the playerdb that contains information
+   * about the music library.
    *
-   * @return The name of the table in the musicdb that contains information
-   * about the music library associated with the server connection.
+   * @return The name of the table in the playerdb that contains information
+   * about the music library.
    */
   static const QString& getLibraryTableName(){
     static const QString libraryTableName = "library";
@@ -294,7 +352,7 @@ public:
   /**
    * \brief Gets the name of the id column in the active playlist table.
    *
-   * @return The name of the id colum in the active playlist table.
+   * @return The name of the id column in the active playlist table.
    */
   static const QString& getActivePlaylistIdColName(){
     static const QString activePlaylistIdColName = "id";
@@ -306,7 +364,7 @@ public:
    * which library entry this playlist entry corresponds with) in the active
    * playlist table.
    *
-   * @return The name of the library id column  in the active playlist table.
+   * @return The name of the library id column in the active playlist table.
    */
   static const QString& getActivePlaylistLibIdColName(){
     static const QString activePlaylistLibIdColName = "lib_id";
@@ -314,10 +372,10 @@ public:
   }
 
   /** 
-   * \brief Gets the name of the column in the active playlist view that 
+   * \brief Gets the name of the column in the active playlist view that
    * contains the vote count.
    *
-   * @return The name of the column in the active playlist view that 
+   * @return The name of the column in the active playlist view that
    * contains the vote count.
    */
   static const QString& getVoteCountColName(){
@@ -355,6 +413,11 @@ public:
     return adderIdColName;
   }
 
+  /** 
+   * \brief Gets the name of the adder username column in the active playlist table.
+   *
+   * @return The name of the adder username column in the active playlist table.
+   */
   static const QString& getAdderUsernameColName(){
     static const QString adderUsernameColName = "adder_username";
     return adderUsernameColName;
@@ -440,11 +503,21 @@ public:
     return libDurationColName;
   }
 
+  /** 
+   * \brief Gets the genre column in the library table table.
+   *
+   * @return The name of the genre column in the library table.
+   */
   static const QString& getLibGenreColName(){
     static const QString libGenreColName = "Genre";
     return libGenreColName;
   }
 
+  /** 
+   * \brief Gets the track column in the library table table.
+   *
+   * @return The name of the track column in the library table.
+   */
   static const QString& getLibTrackColName(){
     static const QString libTrackColName = "Track";
     return libTrackColName;
@@ -460,6 +533,11 @@ public:
     return libIsDeletedColName;
   }
 
+  /** 
+   * \brief Gets the is banned column in the library table table.
+   *
+   * @return The name of the is banned column in the library table.
+   */
   static const QString& getLibIsBannedColName(){
     static const QString libIsBannedColName = "is_banned";
     return libIsBannedColName;
@@ -499,6 +577,13 @@ public:
     return libNeedsDeleteSyncStatus;
   }
 
+  /** 
+   * \brief Gets the value for the "needs ban" sync status used in the 
+   * library table.
+   *
+   * @return The value for the "needs ban" sync status used in the library
+   * table.
+   */
   static const lib_sync_status_t& getLibNeedsBanSyncStatus(){
     static const lib_sync_status_t libNeedsBanStatus = 3;
     return libNeedsBanStatus;
@@ -516,71 +601,141 @@ public:
     return libIsSyncedStatus;
   }
 
+  /**
+   * \brief Gets the name of the LibIdAlias column for the playlist view.
+   *
+   * @return The name of the LibIdAlias column for the playlist view.
+   */
   static const QString& getLibIdAlias(){
     static const QString libIdAlias = "libIdAlias";
     return libIdAlias;
   }
 
+  /**
+   * \brief Gets the name of the player id setting.
+   *
+   * @return The name of the player id setting.
+   */
   static const QString& getPlayerIdSettingName(){
     static const QString playerIdSetting = "playerId";
     return playerIdSetting;
   }
 
+  /**
+   * \brief Gets the name of the player volume setting.
+   *
+   * @return The name of the player volume setting.
+   */
   static const QString& getPlayerVolumeSettingName(){
     static const QString playerVolumeSettingName = "volume";
     return playerVolumeSettingName;
   }
 
+  /**
+   * \brief Gets the name of the player name setting.
+   *
+   * @return The name of the player name setting.
+   */
   static const QString& getPlayerNameSettingName(){
     static const QString playerIdSetting = "playerName";
     return playerIdSetting;
   }
 
+  /**
+   * \brief Gets the name of the player state setting.
+   *
+   * @return The name of the player state setting.
+   */
   static const QString& getPlayerStateSettingName(){
     static const QString playerStateSettingName = "playerState";
     return playerStateSettingName;
   }
 
+  /**
+   * \brief Gets the name of the player address setting.
+   *
+   * @return The name of the player address setting.
+   */
   static const QString& getAddressSettingName(){
     static const QString addressSettingName = "address";
     return addressSettingName;
   }
 
+  /**
+   * \brief Gets the name of the player city setting.
+   *
+   * @return The name of the player city setting.
+   */
   static const QString& getCitySettingName(){
     static const QString citySettingName = "city";
     return citySettingName;
   }
 
+  /**
+   * \brief Gets the name of the player state setting.
+   *
+   * @return The name of the player state setting.
+   */
   static const QString& getStateSettingName(){
     static const QString stateSettingName = "state";
     return stateSettingName;
   }
 
+  /**
+   * \brief Gets the name of the player zip code setting.
+   *
+   * @return The name of the player zip code setting.
+   */
   static const QString& getZipCodeSettingName(){
     static const QString zipCodeSettingName = "zipCode";
     return zipCodeSettingName;
   }
 
+  /**
+   * \brief Gets the value corresponding to no player state.
+   *
+   * @return The value corresponding to no player state.
+   */
   static const QString& getNoPlayerState(){
     static const QString noPlayerState = "noPlayer";
     return noPlayerState;
   }
 
+  /**
+   * \brief Gets the value corresponding to an active player state.
+   *
+   * @return The value corresponding to an active player state.
+   */
   static const QString& getPlayerActiveState(){
     static const QString playerActiveState = "playerActive";
     return playerActiveState;
   }
 
+  /**
+   * \brief Gets the value corresponding to an inactive player state.
+   *
+   * @return The value corresponding to an inactive player state.
+   */
   static const QString& getPlayerInactiveState(){
     static const QString playerInactiveState = "playerInactive";
     return playerInactiveState;
   }
 
+  /**
+   * \brief Gets the value used for the Settings Organization.
+   *
+   * @return The value of the settings organization.
+   */
   static const QString& getSettingsOrg(){
     static const QString settingsOrg = "Bazaar Solutions";
     return settingsOrg;
   }
 
+  /**
+   * \brief Gets the value used for the Settings App.
+   *
+   * @return The value of the settings app.
+   */
   static const QString& getSettingsApp(){
     static const QString settingsApp = "UDJ";
     return settingsApp;
@@ -597,22 +752,47 @@ public slots:
    */
   void refreshActivePlaylist();
 
+  /**
+   * \brief Adds the given song to the active playlist.
+   *
+   * @param libraryId The song to add to the active playlist.
+   */
   void addSongToActivePlaylist(library_song_id_t libraryId);
 
+  /**
+   * \brief Adds the given songs to the active playlist.
+   *
+   * @param libIds The songs to add to the active playlist.
+   */
   void addSongsToActivePlaylist(const QSet<library_song_id_t>& libIds);
 
+  /**
+   * \brief Removes the given songs to the active playlist.
+   *
+   * @param libraryIds The songs to remove to the active playlist.
+   */
   void removeSongsFromActivePlaylist(const QSet<library_song_id_t>& libraryIds);
 
   /** 
    * \brief Creates a new player with the given name and password.
    *
    * @param name The name of the player.
-   * @param password The password for the event (maybe empty).
+   * @param password The password for the event (is allowed to be empty, thus setting no password).
    */
   void createNewPlayer(
     const QString& name,
     const QString& password);
 
+  /** 
+   * \brief Creates a new player with the given name, password, and location.
+   *
+   * @param name The name of the player.
+   * @param password The password for the event (is allowed to be empty, thus setting no password).
+   * @param streetAddress The street address of the player.
+   * @param city The city of the player.
+   * @param state The state of the player.
+   * @param zipcode The zipcode of the player.
+   */
   void createNewPlayer(
     const QString& name,
     const QString& password,
@@ -628,7 +808,13 @@ public slots:
    */
   void setCurrentSong(const library_song_id_t& songToPlay);
 
+  /** 
+   * \brief Changes the volume without emtting a signal noting that the volume has changed.
+   *
+   * @param newVolume The new player volume.
+   */
   void changeVolumeSilently(qreal newVolume);
+
   //@}
 
 signals:
@@ -671,10 +857,21 @@ signals:
    */
   void manualSongChange(DataStore::song_info_t newSong);
 
+  /**
+   * \brief Emitted when the player is activated.
+   */
   void playerActive();
 
+  /**
+   * \brief Emitted when the player is deactivated.
+   */
   void playerDeactivated();
 
+  /**
+   * \brief Emitted when the volume of the player is changed.
+   *
+   * @param newVolume The new volume of the player.
+   */
   void volumeChanged(qreal newVolume);
 
 //@}
@@ -693,18 +890,25 @@ private:
   /** \brief Timer used to refresh the active playlist. */
   QTimer *activePlaylistRefreshTimer;
 
+  /** \brief Current username being used by the client */
   QString username;
 
+  /** \brief Current password being used by the client */
   QString password;
 
+  /** \brief A set of actions to be performed once the client has succesfully reauthenticated. */
   QSet<ReauthAction> reauthActions;
 
+  /** \brief Whether or not the client is currently reauthenticating. */
   bool isReauthing;
 
+  /** \brief The current song being played. */
   library_song_id_t currentSongId;
 
+  /** \brief The set of songs that still need to be added to the active playlist. */
   QSet<library_song_id_t> playlistIdsToAdd;
 
+  /** \brief The set of songs that still need to be removed from the active playlist. */
   QSet<library_song_id_t> playlistIdsToRemove;
 
   //@}
@@ -720,8 +924,16 @@ private:
    */
   void clearActivePlaylist();
 
+  /**
+   * \brief Initiates reauthentication if it hasn't already been initiated.
+   */
   void initReauth();
 
+  /**
+   * \brief Performs the specified ReauthAction.
+   *
+   * @param action The ReauthAction to preform.
+   */
   void doReauthAction(const ReauthAction& action);
 
   /**
@@ -731,6 +943,30 @@ private:
    */
   void addSongToLibrary(const Phonon::MediaSource& song);
 
+  /**
+   * \brief Gets the value of a header.
+   *
+   * @param headerName The name of the desired header.
+   * @param headers The given headers.
+   * @return The value of the header. If the header is not located in the given headers a blank
+   * string is returned.
+   */
+  static QByteArray getHeaderValue(
+    const QByteArray& headerName, const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Determines whether or not an error is a ticket auth error.
+   * 
+   * \param errorCode The given error code from the server.
+   * \param headers The given headers from the server.
+   * \return True if the error is a ticket auth error, false otherwise.
+   */
+  static inline bool isTicketAuthError(
+      int errorCode,
+      const QList<QNetworkReply::RawHeaderPair>& headers)
+  {
+    return errorCode==401 && getHeaderValue("WWW-Authenticate", headers) == "ticket-hash";
+  }
 
   //@}
 
@@ -857,26 +1093,36 @@ private:
     return clearActivePlaylistQuery;
   }
 
+  /**
+   * \brief Name of the setting used to store the username being used by the client.
+   *
+   * @return Name of the setting used to store the username being used by the client.
+   */
   static const QString& getUsernameSettingName(){
     static const QString usernameSettingName = "username";
     return usernameSettingName;
   }
 
+  /**
+   * \brief Name of the setting used to store the password being used by the client.
+   *
+   * @return Name of the setting used to store the password being used by the client.
+   */
   static const QString& getPasswordSettingName(){
     static const QString passwordSettingName = "password";
     return passwordSettingName;
   }
 
 
+  /**
+   * \brief Name of the setting used to store whether or not the current credentials are valid.
+   *
+   * @return Name of the setting used to store whether or not the current credentials are valid.
+   */
   static const QString& getHasValidCredsSettingName(){
     static const QString hasValidSavedCredentialsSettingName = 
       "has_valid_creds";
     return hasValidSavedCredentialsSettingName;
-  }
-
-  static const QString& getMachineUUIDSettingName(){
-    static const QString machineUUIDSettingName = "machine_uuid";
-    return machineUUIDSettingName;
   }
 
  //@}
@@ -912,66 +1158,136 @@ private slots:
     const lib_sync_status_t syncStatus);
 
 
-  void addSong2ActivePlaylistFromQVariant(const QVariantMap &songToAdd, int priority);
   /**
-   * \brief Sets the active playlist to the given songs.
+   * \brief Adds the given song to the active playlist in the database.
    *
-   * @param newSongs The new songs which should populate the active playlist.
+   * @param songToAdd A QVariantMap representing the song that should be added to the active
+   * playlist in the database.
+   * @param priority The priority of the song to be added.
    */
-  void setActivePlaylist(const QVariantMap& newSongs);
+  void addSong2ActivePlaylistFromQVariant(const QVariantMap &songToAdd, int priority);
 
+  /**
+   * \brief Sets the active playlist to the given playlist.
+   *
+   * @param newPlaylist The new playlist to be set in the database.
+   */
+  void setActivePlaylist(const QVariantMap& playlist);
+
+  /**
+   * \brief Takes appropriate action when retreiving the active playlist fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
   void onGetActivePlaylistFail(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
 
+  /**
+   * \brief Takes the appropriate action when a player is succesfully created.
+   *
+   * @param issuedId The id the server issued to the player that was created.
+   */
   void onPlayerCreate(const player_id_t& issuedId);
 
+  /**
+   * \brief Takes appropriate action when creating a player fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
   void onPlayerCreationFailed(const QString& errMessage, int errorCode,
           const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  /**
+   * \brief Takes appropriate action when the player is set to active on the server.
+   */
   void onPlayerSetActive();
 
+  /**
+   * \brief Takes appropriate action when the player is deactivated on the server.
+   */
   void onPlayerDeactivated();
 
+  /**
+   * \brief Takes appropriate action when modifiying the library on the server fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
   void onLibModError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  /**
+   * \brief Takes appropriate action when retreiving setting the current song on the server fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
   void onSetCurrentSongFailed(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  /**
+   * \brief Takes appropriate action when the client succesfully reauthenticates.
+   *
+   * \param ticketHash The ticket hash that was recieved from the server.
+   * \param userId The userId that was recieved from the server.
+   */
   void onReauth(const QByteArray& ticketHash, const user_id_t& userId);
 
+  /**
+   * \brief Takes appropriate action when reauthentication fails.
+   *
+   * \param errMessage Error message given by the server.
+   */
   void onAuthFail(const QString& errMessage);
 
+  /**
+   * \brief Takes appropriate action when the active playlist is succesfully modified on the server.
+   *
+   * \param added The songs that were added to the active playlist on the server.
+   * \param removed The songs that were removed from the active playlist on the server.
+   */
   void onActivePlaylistModified(
     const QSet<library_song_id_t>& added,
     const QSet<library_song_id_t>& removed);
 
+  /**
+   * \brief Takes appropriate action when modifiying the active playlist on the server fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
   void onActivePlaylistModFailed(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  /**
+   * \brief Takes appropriate action when setting the volume fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
   void onSetVolumeFailed(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
-
-  static QByteArray getHeaderValue(const QByteArray& headerName, const QList<QNetworkReply::RawHeaderPair>& headers);
-
-  static inline bool isTicketAuthError(
-      int errorCode,
-      const QList<QNetworkReply::RawHeaderPair>& headers)
-  {
-    return errorCode==401 && getHeaderValue("WWW-Authenticate", headers) == "ticket-hash";
-  }
+  //@}
 
 
 //@}
