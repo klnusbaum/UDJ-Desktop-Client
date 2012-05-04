@@ -230,9 +230,9 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     QVariant songsAdded = reply->property(getSongsAddedPropertyName());
     QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
-    std::vector<library_song_id_t> addedIds = JSONHelper::getAddedLibIds(songsAdded.toByteArray());
+    std::vector<library_song_id_t> addedIds = JSONHelper::getLibIds(songsAdded.toByteArray());
     std::vector<library_song_id_t> deletedIds =
-      JSONHelper::getDeletedLibIds(songsDeleted.toByteArray());
+      JSONHelper::getLibIds(songsDeleted.toByteArray());
     addedIds.insert(addedIds.begin(), deletedIds.begin(), deletedIds.end());
 
     emit libSongsSyncedToServer(addedIds);

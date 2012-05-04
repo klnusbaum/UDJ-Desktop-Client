@@ -26,14 +26,6 @@ class QNetworkReply;
 
 namespace UDJ{
 
-typedef struct {
-  library_song_id_t id;
-  QString songName;
-  QString artistName;
-  QString albumName;
-  int duration;
-} lib_song_t;
-
 /** \brief Class used to help serialize and deserialize JSON messages */
 class JSONHelper{
 
@@ -42,52 +34,95 @@ public:
   /** @name Converter Functions */
   //@{
 
+  /**
+   * \brief Given a set of library ids, gets a QByteArray JSON representation of the
+   * library ids.
+   *
+   * @param libIds Ids to convert to JSON.
+   * @return A QByteArray JSON representation of the given library ids.
+   */
   static QByteArray getJSONLibIds(const QSet<library_song_id_t>& libIds);
 
+  /**
+   * \brief Extracts a set of library song ids from a QByteArray JSON repsenation.
+   *
+   * @param idsString A QByteArray of JSON with the song ids to be extracted.
+   * \return A set of library song ids in the given idsString.
+   */
   static QSet<library_song_id_t> extractSongLibIds(const QByteArray& idsString);
 
-
   /**
-   * \brief Creates the JSON necessary for doing a request to add a song
-   * to the library.
+   * \brief Gets the json needed for adding the given songs to add to the library.
    *
-   * @param song The id of the song to be added
-   * @return A bytearray contianing the JSON for the song add request.
+   * @param songsToAdd Songs that should be converted to JSON.
+   * @return A JSON representation of the songs to be added.
    */
-  static const QByteArray getJSONForLibAdd(const lib_song_t &song);
-
-
-  /**
-   * \brief Creates the JSON necessary for doing a request to add a song
-   * to the library.
-   *
-   * @param song The id of the song to be added.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray contianing the JSON for the song add request.
-   */
-  static const QByteArray getJSONForLibAdd(
-    const lib_song_t &song,
-    bool &success);
-
-
   static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd);
 
+  /**
+   * \brief Gets the json needed for adding the given songs to add to the library.
+   *
+   * @param songsToAdd Songs that should be converted to JSON.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the songs to be added.
+   */
   static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd, bool &success);
 
+  /**
+   * \brief Gets the json needed for deleting the given songs from a library.
+   *
+   * @param songsToDelete Songs that should be converted to JSON.
+   * @return A JSON representation of the songs to be removed.
+   */
   static QByteArray getJSONForLibDelete(const QVariantList& songsToDelete);
 
+  /**
+   * \brief Gets the json needed for deleting the given songs from a library.
+   *
+   * @param songsToDelete Songs that should be converted to JSON.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the songs to be removed.
+   */
   static QByteArray getJSONForLibDelete(const QVariantList& songsToDelete, bool &success);
 
+  /**
+   * \brief Gets the json needed for creating a player.
+   *
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @return A JSON representation of the player to be created.
+   */
   static const QByteArray getCreatePlayerJSON(
     const QString& playerName,
     const QString& password);
 
+  /**
+   * \brief Gets the json needed for creating a player.
+   *
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the player to be created.
+   */
   static const QByteArray getCreatePlayerJSON(
     const QString& playerName,
     const QString& password, 
     bool &success);
 
+  /**
+   * \brief Gets the json needed for creating a player.
+   *
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @param streetAddress Address of the player to be created.
+   * @param city City of the player to be created.
+   * @param state State of the player to be created.
+   * @param zipcode Zip code of the player to be created.
+   * @return A JSON representation of the player to be created.
+   */
   static const QByteArray getCreatePlayerJSON(
     const QString& playerName,
     const QString& password,
@@ -96,6 +131,19 @@ public:
     const QString& state,
     const int& zipcode);
 
+  /**
+   * \brief Gets the json needed for creating a player.
+   *
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @param streetAddress Address of the player to be created.
+   * @param city City of the player to be created.
+   * @param state State of the player to be created.
+   * @param zipcode Zip code of the player to be created.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the player to be created.
+   */
   static const QByteArray getCreatePlayerJSON(
     const QString& playerName,
     const QString& password,
@@ -105,20 +153,40 @@ public:
     const int& zipcode,
     bool &success);
 
-  static std::vector<library_song_id_t> getAddedLibIds(const QByteArray& payload);
+  /**
+   * \brief Given JSON, this functions extracts a vector containing all of the
+   * library ids that are in it.
+   *
+   * @param payload The JSON from which the library ids should be extracted.
+   * @return A vector containing the extracted library ids.
+   */
+  static std::vector<library_song_id_t> getLibIds(const QByteArray& payload);
 
-  static std::vector<library_song_id_t> getDeletedLibIds(const QByteArray& payload);
 
   /**
    * \brief Get's the id of a player from the given server reply.
-   * 
+   *
    * @param reply The reply from the server.
    * @return The player id in the servers response.
    */
   static player_id_t getPlayerId(QNetworkReply *reply);
 
+  /**
+   * \brief Gets the active playlist from the JSON given in the server reply.
+   *
+   * \param reply The reply from the server.
+   * \return A QVariantMap representing the playlist given in the server reply.
+   */
   static QVariantMap getActivePlaylistFromJSON(QNetworkReply *reply);
 
+  /**
+   * \brief Gets the auth data from a server authentication reply.
+   *
+   * \param reply The reply from the server.
+   * \param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * \return A QVariantMap representing the auth data retreived from the server.
+   */
   static const QVariantMap getAuthReplyFromJSON(QNetworkReply *reply, bool &success);
 
   //@}
