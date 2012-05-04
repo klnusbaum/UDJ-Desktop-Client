@@ -29,7 +29,7 @@ namespace UDJ{
 class LoginWidget;
 
 
-/** \brief Widget used to login to the UDJ server */
+/** \brief Dialog used to login to the UDJ server */
 class LoginDialog : public QDialog{
 Q_OBJECT
 public:
@@ -38,19 +38,33 @@ public:
 
   /**
    * \brief Constructs a Login Widget
+   *
+   * \brief parent Parent widget.
+   * \brief f Window flags.
    */
   LoginDialog(QWidget *parent=0, Qt::WindowFlags f=0);
 
   //@}
 
 public slots:
+
+  /** @name Overridden slots */
+  //@{
+
+  /** \brief . */
   virtual void accept();
+
+  /** \brief . */
   virtual void reject();
 
+  //@}
+
 private:
-  
+
   /** @name Private Memeber */
   //@{
+
+  /** \brief Widget used for logging in. */
   LoginWidget *loginWidget;
 
   /** \brief button used for initiating the login procedure. */
@@ -72,6 +86,7 @@ private slots:
   /** @name Private Slots */
   //@{
 
+  /** \brief Closes the dialog. */
   void closeDialog();
 
   //@}
