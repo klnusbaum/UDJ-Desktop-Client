@@ -118,26 +118,7 @@ void PlaybackWidget::sourceChanged(const Phonon::MediaSource &source){
 }
 
 void PlaybackWidget::metaDataChanged(){
-/*  QStringList titleInfo = mediaObject->metaData(Phonon::TitleMetaData);
-  QStringList artistInfo = mediaObject->metaData(Phonon::ArtistMetaData);
 
-  QString infoString = "";
-  if(titleInfo.size() > 0){
-    infoString = titleInfo.at(0);
-  }
-  else{
-    infoString = tr("Unknown");
-  }
-
-  if(artistInfo.size() > 0 && artistInfo.at(0) != ""){
-    infoString += " - " + artistInfo.at(0);
-  }
-  else{
-    infoString += " - Unknown";
-  }
-
-
-  songInfo->setText(infoString);*/
 }
 
 void PlaybackWidget::stateChanged(

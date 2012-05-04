@@ -433,7 +433,10 @@ void DataStore::createNewPlayer(
 
 void DataStore::changeVolumeSilently(qreal newVolume){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  if(settings.value(getPlayerVolumeSettingName()).toReal() == newVolume){
+  DEBUG_MESSAGE("Current volume " << settings.value(getPlayerVolumeSettingName()).toReal())
+  DEBUG_MESSAGE("New volume " << newVolume)
+  if((int)(settings.value(getPlayerVolumeSettingName()).toReal()*10) != (int)(newVolume*10)){
+    DEBUG_MESSAGE("Volume was different than current volume, now setting")
     settings.setValue(getPlayerVolumeSettingName(), newVolume);
     serverConnection->setVolume((int)(newVolume * 10));
   }
@@ -563,11 +566,11 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
 void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
   DEBUG_MESSAGE("Setting active playlist")
 
-  qreal retrievedVolume = newPlaylist["volume"].toReal()/10;
-  if(retrievedVolume != getPlayerVolume()){
+  int retrievedVolume = newPlaylist["volume"].toInt();
+  if(retrievedVolume != (int)(getPlayerVolume()*10)){
     QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    settings.setValue(getPlayerVolumeSettingName(), retrievedVolume);
-    emit volumeChanged(retrievedVolume);
+    settings.setValue(getPlayerVolumeSettingName(), retrievedVolume/10.0);
+    emit volumeChanged(retrievedVolume/10.0);
   }
 
   library_song_id_t retrievedCurrentId =
