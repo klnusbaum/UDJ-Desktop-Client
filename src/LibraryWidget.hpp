@@ -31,7 +31,7 @@ class LibraryView;
 
 
 /**
- * \brief Displays the various activities that can be done in UDJ.
+ * \brief Displays the Library and other widgets associated with the library.
  */
 class LibraryWidget : public QWidget{
 Q_OBJECT
@@ -50,9 +50,19 @@ public:
   //@}
 
 private:
+  /** @name Private Members */
+  //@{
+
+  /** \brief The datastore backing the client. */
   DataStore *dataStore;
+
+  /** \brief The view used to display the library. */
   LibraryView *libraryView;
+
+  /** \brief A line edit used to search the library. */
   QLineEdit *searchEdit;
+
+  //@}
 
 };
 
