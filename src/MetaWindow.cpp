@@ -17,7 +17,6 @@
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MetaWindow.hpp"
-#include "SettingsWidget.hpp"
 #include "MusicFinder.hpp"
 #include "DataStore.hpp"
 #include "LibraryWidget.hpp"

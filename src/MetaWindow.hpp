@@ -37,7 +37,6 @@ class QProgressDialog;
 
 namespace UDJ{
 
-class SettingsWidget;
 class ActivePlaylistView;
 class LibraryWidget;
 class ActivityList;
@@ -135,9 +134,6 @@ private:
 
   /** \brief The users media library */
   DataStore* dataStore;
-
-  /** \brief A widget used for displaying and modifying settings */
-  SettingsWidget* settingsWidget;
 
   /** \brief Triggers selection of music directory. */
   QAction *addMusicAction;
