@@ -24,25 +24,65 @@ namespace UDJ{
 
 class DataStore;
 
+/**
+ * \brief An abstract class representing a model that contains music.
+ */
 class MusicModel : public QSqlQueryModel{
 Q_OBJECT
 public:
 
+  /** @name Constructors */
+  //@{
+
+  /**
+   * \brief Constructs a Music Model
+   *
+   * \param query Query used to obtain the actual data in the model.
+   * \param dataStore The datastore backing the client.
+   * \param parent The parent object.
+   */
   MusicModel(const QString& query, DataStore *dataStore, QObject *parent);
 
+  //@}
+
+  /** @name Overridden from QSqlQueryModel */
+  //@{
+
+  /** \brief . */
   virtual QVariant data(const QModelIndex& item, int role) const;
 
+  //@}
+  
 public slots:
+  /** @name Public Slots */
+  //@{
 
+  /**
+   * \brief Refreshes the data in the model
+   */
   void refresh();
 
+  /**
+   * \brief Refreshes the data in the model with a new query.
+   *
+   * \param query New query which should back the model.
+   */
   void refresh(QString query);
+
+  //@}
 
 private:
 
+  /** @name Private Memebers */
+  //@{
+
+  /** \brief DataStore backing the client */
   DataStore *dataStore;
 
+  /** \brief Query used to populate the model with data. */
   QString query;
+
+  //@}
 
 };
 
