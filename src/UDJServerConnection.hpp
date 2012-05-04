@@ -123,7 +123,7 @@ public slots:
    *
    * @param currentSong Id The current song that the host is playing.
    */
-  void setCurrentSong(playlist_song_id_t currentSong);
+  void setCurrentSong(library_song_id_t currentSong);
 
   void setVolume(int newVolume);
 

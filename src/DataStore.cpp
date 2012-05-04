@@ -18,7 +18,6 @@
  */
 #include "DataStore.hpp"
 #include "UDJServerConnection.hpp"
-#include "CommErrorHandler.hpp"
 #include "simpleCrypt/simplecrypt.h"
 #include <QDir>
 #include <QDesktopServices>
