@@ -49,8 +49,17 @@ public:
 
   //@}
 
+  /** @name Public Slots */
+  //@{
+
 public slots:
+
+  /**
+   * \brief Switches the selected activity to Library.
+   */
   void switchToLibrary();
+
+  //@}
 
 signals:
   /** @name Signals */
@@ -62,7 +71,7 @@ signals:
   void libraryClicked();
 
   /**
-   * \brief emited when the event activity is clicked.
+   * \brief emited when the playlist activity is clicked.
    */
   void playlistClicked();
   //@}
@@ -88,9 +97,9 @@ private:
   }
 
   /** 
-   * \brief Gets the name of the event activity.
+   * \brief Gets the name of the Playlist activity.
    *
-   * @return The name of the event activity.
+   * @return The name of the Playlist activity.
    */
   static const QString& getPlaylistTitle(){
     static const QString playlistTitle(tr("Playlist"));
@@ -109,7 +118,10 @@ private:
   /** \brief Model used to list the activities. */
   QStandardItemModel *model;
 
+  /** \brief The item representing the library activity. */
   QStandardItem *libraryItem;
+
+  /** \brief The item representing the playlist activity. */
   QStandardItem *playlistItem;
 
   //@}
@@ -120,8 +132,7 @@ private slots:
   //@{
 
   /**
-   * \brief Makes appropriate ui changes when the activity at the given index
-   * is clicked.
+   * \brief Emits the appropriate signals when an activity is clicked.
    *
    * @param index The index of the activity that was clicked.
    */
