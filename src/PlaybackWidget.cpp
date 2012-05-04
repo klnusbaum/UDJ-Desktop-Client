@@ -78,17 +78,12 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
     this,
     SLOT(handlePlaylistChange()));
 
-  connect(
-    dataStore,
-    SIGNAL(playerActive()),
-    this,
-    SLOT(onPlayerActivated()));
 
   connect(
     dataStore,
-    SIGNAL(playerDeactivated()),
+    SIGNAL(playerStateChanged(const QString&)),
     this,
-    SLOT(onPlayerDeactivated()));
+    SLOT(onPlayerStateChanged(const QString&)));
 
 
 }
@@ -181,6 +176,15 @@ void PlaybackWidget::pause(){
   pauseAction->setEnabled(false);
 }
 
+void PlaybackWidget::onPlayerStateChanged(const QString& newState){
+  if(newState == DataStore::getPlayingState()){
+    play();
+  }
+  else if(newState == DataStore::getPausedState()){
+    pause();
+  }
+}
+
 
 void PlaybackWidget::createActions(){
   playAction = new QAction(style()->standardIcon(QStyle::SP_MediaPlay),
@@ -191,8 +195,8 @@ void PlaybackWidget::createActions(){
     tr("Pause"), this);
   pauseAction->setShortcut(tr("Ctrl+A"));
 
-  connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
-  connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
+  connect(playAction, SIGNAL(triggered()), dataStore, SLOT(playPlayer()));
+  connect(pauseAction, SIGNAL(triggered()), dataStore, SLOT(pausePlayer()));
 }
 
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
@@ -208,6 +212,8 @@ void PlaybackWidget::clearWidget(){
   songInfo->setText("");
   timeLabel->setText("--:--");
 }
+
+
 
 
 } //end namespace UDJ

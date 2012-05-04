@@ -100,14 +100,11 @@ public:
     QProgressDialog* progress=0);
 
   /**
-   * \brief Puts the player in an active mode.
+   * \brief Set player state.
+   *
+   * \param State to which the player should be set.
    */
-  void activatePlayer();
-
-  /**
-   * \brief Deactivates the player.
-   */
-  void deactivatePlayer();
+  void setPlayerState(const QString& newState);
 
   /**
    * \brief Removes the given songs from the music library. 
@@ -123,11 +120,6 @@ public:
    * @return The connection to the database backing the DataStore.
    */
   QSqlDatabase getDatabaseConnection();
-
-  /**
-   * \brief Syncs the current state of the library with the server.
-   */
-  void syncLibrary();
 
   /**
    * \brief Gets the name of the player.
@@ -234,6 +226,17 @@ public:
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getPlayerStateSettingName()).toString();
+  }
+
+  /**
+   * \brief Determines whether or not this player has a player id.
+   *
+   * \return True if the player has an id, false otherwise.
+   */
+  bool hasPlayerId() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return -1 != settings.value(getPlayerIdSettingName(), -1);
   }
 
   /**
@@ -692,23 +695,13 @@ public:
   }
 
   /**
-   * \brief Gets the value corresponding to no player state.
+   * \brief Gets the value corresponding to an playling player state.
    *
-   * @return The value corresponding to no player state.
+   * @return The value corresponding to an playling player state.
    */
-  static const QString& getNoPlayerState(){
-    static const QString noPlayerState = "noPlayer";
-    return noPlayerState;
-  }
-
-  /**
-   * \brief Gets the value corresponding to an active player state.
-   *
-   * @return The value corresponding to an active player state.
-   */
-  static const QString& getPlayerActiveState(){
-    static const QString playerActiveState = "playerActive";
-    return playerActiveState;
+  static const QString& getPlayingState(){
+    static const QString playingState = "playing";
+    return playingState;
   }
 
   /**
@@ -716,9 +709,19 @@ public:
    *
    * @return The value corresponding to an inactive player state.
    */
-  static const QString& getPlayerInactiveState(){
-    static const QString playerInactiveState = "playerInactive";
-    return playerInactiveState;
+  static const QString& getPausedState(){
+    static const QString pausedState = "paused";
+    return pausedState;
+  }
+
+  /**
+   * \brief Gets the value corresponding to an inactive player state.
+   *
+   * @return The value corresponding to an inactive player state.
+   */
+  static const QString& getInactiveState(){
+    static const QString inactiveState = "inactive";
+    return inactiveState;
   }
 
   /**
@@ -746,6 +749,10 @@ public:
 /** @name Public slots */
 //@{
 public slots:
+
+  void pausePlayer();
+
+  void playPlayer();
 
   /**
    * \brief Refresh the active playlist table.
@@ -823,11 +830,6 @@ signals:
 //@{
 
   /**
-   * \brief Emitted when no player exists and needs to be created
-   */
-  void needPlayerCreate();
-
-  /**
    * \brief Emitted when the library table is modified.
    */
   void libSongsModified();
@@ -858,14 +860,11 @@ signals:
   void manualSongChange(DataStore::song_info_t newSong);
 
   /**
-   * \brief Emitted when the player is activated.
+   * \brief Emitted when the players state is changed.
+   *
+   * \param newState The new state of the player.
    */
-  void playerActive();
-
-  /**
-   * \brief Emitted when the player is deactivated.
-   */
-  void playerDeactivated();
+  void playerStateChanged(const QString& newState);
 
   /**
    * \brief Emitted when the volume of the player is changed.
@@ -1132,6 +1131,11 @@ private:
 private slots:
 
   /**
+   * \brief Syncs the current state of the library with the server.
+   */
+  void syncLibrary();
+
+  /**
    * \brief Sets the sync status of a library song to synced.
    *
    * @param song The id of the song whose sync status should be set to synced.
@@ -1205,14 +1209,10 @@ private slots:
           const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief Takes appropriate action when the player is set to active on the server.
+   * \brief Takes appropriate action when the player state is changed.
    */
-  void onPlayerSetActive();
+  void onPlayerStateChanged(const QString& newState);
 
-  /**
-   * \brief Takes appropriate action when the player is deactivated on the server.
-   */
-  void onPlayerDeactivated();
 
   /**
    * \brief Takes appropriate action when modifiying the library on the server fails.

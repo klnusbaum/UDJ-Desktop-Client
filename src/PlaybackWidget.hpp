@@ -107,11 +107,8 @@ private slots:
    /** \brief Takes appropriate action when the playlist is changed. */
    void handlePlaylistChange();
 
-   /** \brief Enables playback. */
-   void play();
-
-   /** \brief Pauses playback. */
-   void pause();
+   /** \brief Takes appropriate action when the player state is changed. */
+   void onPlayerStateChanged(const QString& newState);
 
   //@}
 
@@ -119,6 +116,12 @@ private:
 
   /** @name Private Functions */
   //@{
+
+   /** \brief Enables playback. */
+   void play();
+
+   /** \brief Pauses playback. */
+   void pause();
 
   /** \brief Sets up all the actions used by the MetaWindow. */
   void createActions();

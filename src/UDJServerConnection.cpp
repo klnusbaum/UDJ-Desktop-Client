@@ -144,34 +144,22 @@ void UDJServerConnection::setVolume(int volume){
     netAccessManager->post(setCurrentVolumeRequest,  params.encodedQuery());
 }
 
-void UDJServerConnection::setPlayerActive(){
-  DEBUG_MESSAGE("Setting player active")
-  QString params("state=playing");
+void UDJServerConnection::setPlayerState(const QString& newState){
+  DEBUG_MESSAGE("Setting player state to " << newState.toStdString())
+  QString params("state="+newState);
   QByteArray payload = params.toUtf8();
   QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
   setPlayerActiveRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   QNetworkReply *reply = netAccessManager->post(setPlayerActiveRequest, payload);
-  reply->setProperty(getPayloadPropertyName(), payload);
-}
-
-void UDJServerConnection::setPlayerInactive(){
-  QString params("state=inactive");
-  QByteArray payload = params.toUtf8();
-  QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
-  setPlayerActiveRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
-  QNetworkReply *reply = netAccessManager->post(setPlayerActiveRequest, payload);
-  reply->setProperty(getPayloadPropertyName(), payload);
+  reply->setProperty(getStatePropertyName(), newState);
 }
 
 void UDJServerConnection::recievedReply(QNetworkReply *reply){
   if(reply->request().url().path() == getAuthUrl().path()){
     handleAuthReply(reply);
   }
-  else if(isSetActiveReply(reply)){
-    handleSetActiveReply(reply);
-  }
-  else if(isSetInactiveReply(reply)){
-    handleSetInactiveReply(reply);
+  else if(reply->request().url().path() == getPlayerStateUrl().path()){
+    handleSetStateReply(reply);
   }
   else if(isPlayerCreateUrl(reply->request().url().path())){
     handleCreatePlayerReply(reply);
@@ -218,13 +206,15 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   }
 }
 
-void UDJServerConnection::handleSetActiveReply(QNetworkReply *reply){
-    emit playerSetActive();
+void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit playerStateSet(reply->property(getStatePropertyName()).toString());
+  }
+  else{
+    //TODO handle error
+  }
 }
 
-void UDJServerConnection::handleSetInactiveReply(QNetworkReply *reply){
-  emit playerSetInactive();
-}
 
 void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
@@ -362,18 +352,6 @@ QUrl UDJServerConnection::getVolumeUrl() const{
 
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{
   return (path == "/udj/users/" + QString::number(user_id) + "/players/player");
-}
-
-bool UDJServerConnection::isSetActiveReply(const QNetworkReply *reply) const{
-  return
-    (reply->request().url().path() == getPlayerStateUrl().path()) &&
-    (reply->property(getPayloadPropertyName()).toString() == "state=playing");
-}
-
-bool UDJServerConnection::isSetInactiveReply(const QNetworkReply *reply) const{
-  return
-    reply->request().url().path() == getPlayerStateUrl().path() &&
-    reply->property(getPayloadPropertyName()).toString() == "state=inactive";
 }
 
 bool UDJServerConnection::isResponseType(QNetworkReply *reply, int code){

@@ -99,15 +99,13 @@ public slots:
   /** @name Slots */
   //@{
 
-  /**
-   * \brief Sets the player to an active state on the server.
-   */
-  void setPlayerActive();
 
   /**
-   * \brief Sets the player to an inactive state on the server.
+   * \brief Sets the player state.
+   *
+   * \param newState State to which the player should be set.
    */
-  void setPlayerInactive();
+  void setPlayerState(const QString& newState);
 
   /**
    * \brief Modifies the conents of the library on the server.
@@ -201,14 +199,11 @@ signals:
   void authFailed(const QString errMessage);
 
   /**
-   * \brief Emitted when setting the player active on the server was succefull.
+   * \brief Emitted when the state on the player was changed.
+   *
+   * @param newState The new state.
    */
-  void playerSetActive();
-
-  /**
-   * \brief Emitted when setting the player as inactive on the server was succefull.
-   */
-  void playerSetInactive();
+  void playerStateSet(const QString& newState);
 
   /**
    * \brief Emitted when a set of songs was succesfully synced on the server.
@@ -365,10 +360,18 @@ private:
    */
   void handleAuthReply(QNetworkReply* reply);
 
-  void handleSetActiveReply(QNetworkReply* reply);
+  /**
+   * \brief Handles a state set reply.
+   *
+   * \param the response from the server.
+   */
+  void handleSetStateReply(QNetworkReply* reply);
 
-  void handleSetInactiveReply(QNetworkReply* reply);
-
+  /**
+   * \brief Handles a lib modificaiton reply.
+   *
+   * \param the response from the server.
+   */
   void handleRecievedLibMod(QNetworkReply *reply);
 
   /**
@@ -616,6 +619,16 @@ private:
   static const char* getPayloadPropertyName(){
     static const char* payloadPropertyName = "payload";
     return payloadPropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a state property.
+   *
+   * \return The property name for a state property.
+   */
+  static const char* getStatePropertyName(){
+    static const char* statePropertyName = "state";
+    return statePropertyName;
   }
 
   /**

@@ -54,8 +54,7 @@ MetaWindow::MetaWindow(
   isQuiting(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
-  createActions();
-  setupUi();
+  createActions(); setupUi();
   setupMenus();
   QSettings settings(
     QSettings::UserScope,
@@ -63,7 +62,13 @@ MetaWindow::MetaWindow(
     DataStore::getSettingsApp());
   restoreGeometry(settings.value("metaWindowGeometry").toByteArray());
   restoreState(settings.value("metaWindowState").toByteArray());
-  dataStore->activatePlayer();
+  if(dataStore->hasPlayerId()){
+    dataStore->setPlayerState(DataStore::getPlayingState());
+  }
+  else{
+    PlayerCreateDialog *createDialog = new PlayerCreateDialog(dataStore, this);
+    createDialog->show();
+  }
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -71,12 +76,12 @@ void MetaWindow::closeEvent(QCloseEvent *event){
     isQuiting = true;
     connect(
       dataStore,
-      SIGNAL(playerDeactivated()),
+      SIGNAL(playerStateChanged(const QString&)),
       this,
       SLOT(close()));
     quittingProgress = new QProgressDialog("Disconnecting...", "Cancel", 0, 0, this);
     quittingProgress->setWindowModality(Qt::WindowModal);
-    dataStore->deactivatePlayer();
+    dataStore->setPlayerState(DataStore::getInactiveState());
     event->ignore();
   }
   else{
@@ -212,11 +217,6 @@ void MetaWindow::setupUi(){
     this,
     SLOT(displayPlaylist()));
 
-  connect(
-    dataStore,
-    SIGNAL(needPlayerCreate()),
-    this,
-    SLOT(createNewPlayer()));
 }
 
 void MetaWindow::createActions(){
@@ -247,12 +247,6 @@ void MetaWindow::displayLibrary(){
 void MetaWindow::displayPlaylist(){
   contentStack->setCurrentWidget(playlistView);
 }
-
-void MetaWindow::createNewPlayer(){
-  PlayerCreateDialog *createDialog = new PlayerCreateDialog(dataStore, this);
-  createDialog->show();
-}
-
 
 
 } //end namespace

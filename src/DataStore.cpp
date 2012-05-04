@@ -50,6 +50,10 @@ DataStore::DataStore(
   serverConnection = new UDJServerConnection(this);
   serverConnection->setTicket(ticket);
   serverConnection->setUserId(userId);
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  if(settings.contains(getPlayerIdSettingName())){
+    serverConnection->setPlayerId(settings.value(getPlayerIdSettingName()).value<player_id_t>());
+  }
   activePlaylistRefreshTimer = new QTimer(this);
   activePlaylistRefreshTimer->setInterval(5000);
   setupDB();
@@ -97,15 +101,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerSetActive()),
+    SIGNAL(playerStateSet(const QString&)),
     this,
-    SLOT(onPlayerSetActive()));
-
-  connect(
-    serverConnection,
-    SIGNAL(playerSetInactive()),
-    this,
-    SLOT(onPlayerDeactivated()));
+    SLOT(onPlayerStateChanged(const QString&)));
 
   connect(
     serverConnection,
@@ -182,21 +180,18 @@ void DataStore::setupDB(){
 
 }
 
-void DataStore::activatePlayer(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  if(settings.contains(getPlayerIdSettingName())){
-    serverConnection->setPlayerId(getPlayerId());
-    serverConnection->setPlayerActive();
-    activePlaylistRefreshTimer->start();
-  }
-  else{
-    emit needPlayerCreate();
-  }
+void DataStore::pausePlayer(){
+  setPlayerState(getPausedState());
 }
 
-void DataStore::deactivatePlayer(){
-  serverConnection->setPlayerInactive();
+void DataStore::playPlayer(){
+  setPlayerState(getPlayingState());
 }
+
+void DataStore::setPlayerState(const QString& newState){
+  serverConnection->setPlayerState(newState);
+}
+
 
 void DataStore::addMusicToLibrary(
   const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
@@ -446,9 +441,6 @@ void DataStore::changeVolumeSilently(qreal newVolume){
 
 
 
-
-
-
 void DataStore::syncLibrary(){
 
   QSqlQuery needAddSongs(database);
@@ -572,6 +564,8 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     emit volumeChanged(retrievedVolume/10.0);
   }
 
+  onPlayerStateChanged(newPlaylist["state"].toString());
+
   library_song_id_t retrievedCurrentId =
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
   if(retrievedCurrentId != currentSongId){
@@ -653,9 +647,8 @@ void DataStore::refreshActivePlaylist(){
 void DataStore::onPlayerCreate(const player_id_t& issuedId){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerIdSettingName(), QVariant::fromValue(issuedId));
-  settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
   serverConnection->setPlayerId(issuedId);
-  activatePlayer();
+  setPlayerState(getPlayingState());
   emit playerCreated();
 }
 
@@ -667,19 +660,22 @@ void DataStore::onPlayerCreationFailed(const QString& errMessage, int errorCode,
 }
 
 
-void DataStore::onPlayerSetActive(){
+void DataStore::onPlayerStateChanged(const QString& newState){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerStateSettingName(), getPlayerActiveState());
-  syncLibrary();
-  refreshActivePlaylist();
-  emit playerActive();
+  if(newState != settings.value(getPlayerStateSettingName())){
+    settings.setValue(getPlayerStateSettingName(), newState);
+    emit playerStateChanged(newState);
+  }
+
+  //If this player state change is the result of starting up the player for the first time
+  //we need to do a few things
+  if(!activePlaylistRefreshTimer->isActive()){
+    refreshActivePlaylist();
+    activePlaylistRefreshTimer->start();
+    syncLibrary();
+  }
 }
 
-void DataStore::onPlayerDeactivated(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerStateSettingName(), getPlayerInactiveState());
-  emit playerDeactivated();
-}
 
 void DataStore::onLibModError(
     const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)

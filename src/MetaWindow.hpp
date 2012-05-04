@@ -93,11 +93,6 @@ private slots:
   //@{
 
   /**
-   * \brief Initiates setup for creating a player.
-   */
-  void createNewPlayer();
-
-  /**
    * \brief Displays stuff for adding songs to a library.
    */
   void addMusicToLibrary();
