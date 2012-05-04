@@ -29,7 +29,7 @@ namespace UDJ{
 class PlayerCreationWidget;
 class DataStore;
 
-/** \brief Widget used to login to the UDJ server */
+/** \brief Dialog for creating a player. */
 class PlayerCreateDialog : public QDialog{
 Q_OBJECT
 public:
@@ -38,24 +38,40 @@ public:
 
   /**
    * \brief Constructs a PlayerCreateDialog
+   *
+   * \param dataStore The DataStore backing the client.
+   * \param parent The parent widget.
+   * \param f Window flags.
    */
   PlayerCreateDialog(DataStore *dataStore, QWidget *parent=0, Qt::WindowFlags f=0);
 
   //@}
 
 public slots:
+  
+  /** @name Overridden slots from QDialog */
+  //@{
+
+  /** \brief . */
   virtual void accept();
+
+  /** \brief . */
   virtual void reject();
 
+  //@}
+
 private:
-  
+
   /** @name Private Memeber */
   //@{
+
+  /** \brief Widget used for actual creation of player */
   PlayerCreationWidget *createWidget;
 
   /** \brief button used for initiating the login procedure. */
   QPushButton *createButton;
 
+  /** \brief DataStore backing the client */
   DataStore *dataStore;
 
 
@@ -74,6 +90,7 @@ private slots:
   /** @name Private Slots */
   //@{
 
+  /** \brief Closes the dialog */
   void closeDialog();
 
   //@}
