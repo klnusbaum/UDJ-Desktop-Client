@@ -91,6 +91,7 @@ void UDJServerConnection::createPlayer(
 {
   const QByteArray playerJSON = JSONHelper::getCreatePlayerJSON(playerName, password,
       streetAddress, city, state, zipcode);
+  DEBUG_MESSAGE("Sending player json to server for creation: " << QString(playerJSON).toStdString())
   createPlayer(playerJSON);
 }
 
@@ -98,7 +99,6 @@ void UDJServerConnection::createPlayer(const QByteArray& payload){
   QNetworkRequest createPlayerRequest(getCreatePlayerUrl());
   prepareJSONRequest(createPlayerRequest);
   QNetworkReply *reply = netAccessManager->put(createPlayerRequest, payload);
-  reply->setProperty(getPayloadPropertyName(), payload);
 }
 
 void UDJServerConnection::getActivePlaylist(){

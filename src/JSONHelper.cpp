@@ -107,10 +107,12 @@ const QByteArray JSONHelper::getCreatePlayerJSON(
     playerToCreate["password"] = password;
   }
 
-  playerToCreate["address"] = streetAddress;
-  playerToCreate["city"] = city;
-  playerToCreate["state"] = state;
-  playerToCreate["zipcode"] = zipcode;
+  QVariantMap location;
+  location["address"] = streetAddress;
+  location["city"] = city;
+  location["state"] = state;
+  location["zipcode"] = zipcode;
+  playerToCreate["location"] = location;
 
   return QtJson::Json::serialize(QVariant(playerToCreate),success);
 }

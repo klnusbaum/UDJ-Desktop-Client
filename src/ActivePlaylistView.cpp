@@ -109,6 +109,7 @@ void ActivePlaylistView::removeSongs(){
       this,
       model,
       DataStore::getActivePlaylistLibIdColName()));
+  selectionModel()->clearSelection();
 }
 
 void ActivePlaylistView::handleSelectionChange(
