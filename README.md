@@ -49,6 +49,10 @@ I really like computers and programming.
 ## License
 UDJ is licensed under the [GPLv2][gpl].
 
+## Questions/Comments?
+
+If you have any questions or comments, feel free to post them to
+the [UDJ mailing list][mailing].
 
 [home]:https://www.udjplayer.com
 [server]:https://github.com/klnusbaum/UDJ
