@@ -51,7 +51,7 @@ UDJ is licensed under the [GPLv2][gpl].
 
 
 [home]:https://www.udjplayer.com
-[server]:https://www.udjplayer.com
+[server]:https://github.com/klnusbaum/UDJ
 [kln]:https://github.com/klnusbaum/
 [gpl]:https://github.com/klnusbaum/UDJ-Desktop-Client/blob/master/LICENSE
 [cmake]:http://www.cmake.org/cmake/resources/software.html
