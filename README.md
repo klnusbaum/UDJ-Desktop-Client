@@ -62,3 +62,4 @@ the [UDJ mailing list][mailing].
 [qt]:http://qt.nokia.com/downloads
 [taglib]:http://developer.kde.org/~wheeler/taglib.html
 [brew]:http://mxcl.github.com/homebrew/
+[mailing]:mailto:udjdev@bazaarsolutions.com
