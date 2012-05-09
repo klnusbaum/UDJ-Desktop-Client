@@ -9,6 +9,37 @@ UDJ, see the [UDJ Server Repository][server].
 
 ## Building The Desktop Client
 
+### Requirements
+
+The UDJ Desktop Client requires a couple external libraries and an exteral build tool called
+CMake. That said, UDJ is cross-platform and can be built on Windows, Mac OSX, and most 
+distributions of Linux.
+
+1. CMake is the build system used by Desktop Client. Precompiled binaries for both OSX and
+Windows can be found on the [CMake Website][cmake]. Most linux distributions have CMake in their
+package repositories. Iit can also be built from source which is also located on the CMake website.
+
+2. Qt is the cross-platform GUI framework used by the UDJ Desktop Client. The SDK and libraries
+for all platforms can be downloaded from [Qt's website][qt]. Most linux distributions also
+have Qt in their package repository. Note that the Qt phonon library is also required.
+
+3. Taglib is used by the UDJ Desktop Client for identifying song information. The source
+can be downloaded from the [taglib website][taglib]. On OSX, taglib can easily be installed
+via homebrew. On linux, most distributions have the taglib library in their repository. On Windows,
+shit is tough. I'll try to add some instructions on that later.
+
+### Configuring
+If you've installed all of your libraries and cmake in default locations, configuring should
+be very straight forward. Simply use cmake to configure the project (we recommend an out of 
+source build). The only variable you have to define is `SETTING_CRYPTO_KEY` which should be a
+16 digit hex value you (e.g. `"0x39485C3A0D33ACDE"`). You can also turn on debug messages
+by setting the `UDJ_DEBUG_BUILD` variable to `ON`.
+
+### Building
+CMake will generate different projects base on your host system. On OSX and linux, a simple issue
+of the `make` command will build the project (unless you've configured cmake to generate some
+other type of project). On Windows, CMake generates a Visual Studio solution file that can then
+be used to build UDJ.
 
 ## Who Are You?
 
@@ -23,3 +54,6 @@ UDJ is licensed under the [GPLv2][gpl].
 [server]:https://www.udjplayer.com
 [kln]:https://github.com/klnusbaum/
 [gpl]:https://github.com/klnusbaum/UDJ-Desktop-Client/blob/master/LICENSE
+[cmake]:http://www.cmake.org/cmake/resources/software.html
+[qt]:http://qt.nokia.com/downloads
+[taglib]:http://developer.kde.org/~wheeler/taglib.html
