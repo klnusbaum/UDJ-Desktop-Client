@@ -202,8 +202,13 @@ void PlaybackWidget::createActions(){
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   DEBUG_MESSAGE("in set new source")
   mediaObject->setCurrentSource(newSong.source);
-  mediaObject->play();
   songInfo->setText(newSong.title + " - " + newSong.artist);
+  if(dataStore->getPlayingState() == DataStore::getPausedState()){
+    dataStore->playPlayer();
+  }
+  else{
+    mediaObject->play();
+  }
 }
 
 void PlaybackWidget::clearWidget(){
