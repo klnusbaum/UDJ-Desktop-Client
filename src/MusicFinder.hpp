@@ -26,7 +26,7 @@
 namespace UDJ{
 
 /**
- * \brief A class used to find music on a Host's computer.
+ * \brief A class used to find music on a machine.
  */
 class MusicFinder{
 public:
@@ -36,7 +36,7 @@ public:
   /**
    * \brief Finds all the music in a given directory.
    *
-   * Recusrively searchs this directory and all subdirectories looking
+   * Recusrively searchs the given directory and all subdirectories looking
    * for any music files to be added to the users music library. It then
    * returns a list of MediaSources representing all of the found songs.
    *
@@ -45,9 +45,29 @@ public:
    */
   static QList<Phonon::MediaSource> findMusicInDir(const QString& musicDir);
 
+  /**
+   * \brief Finds all the music in a given directory which matches certain criteria.
+   *
+   * Recusrively searchs the given directory and all subdirectories looking
+   * for any music files to be added to the users music library. It then
+   * returns a list of MediaSources representing all of the found songs. All the file
+   * names of the found songs must match the QRegExp that is provided.
+   *
+   * @param musicDir The directory in which to search for music.
+   * @param fileMatcher QRegExp used to determine if a file is a valid song.
+   * @return A list of MediaSources corresponding to each found song.
+   */
   static QList<Phonon::MediaSource> findMusicInDirWithMatcher(
       const QString& musicDir, const QRegExp& fileMatcher);
+
+  /**
+   * Examines the system on whitch the client is running, determines what types of music
+   * can be played, and returns a filter for just those file types.
+   *
+   * @return A filter representing the file types of songs that can be played by the client.
+   */
   static QString getMusicFileExtFilter();
+
   //@}
 private:
   /** @name Private Function(s) */
@@ -55,13 +75,18 @@ private:
 
   /**
    * Retrieves the regular expression used to help determine if a file
-   * constains music.
+   * constains music that can be played by the client.
    *
    * @return The regular expression user to help determine if a file
-   * constains music.
+   * constains music that can be played by the client.
    */
   static QRegExp getMusicFileMatcher();
 
+  /**
+   * Retrieves a list of all file extensions that can be played by the client.
+   *
+   * @return A list of all file extensions that can be played by the client.
+   */
   static QStringList availableMusicTypes();
 
   //@}

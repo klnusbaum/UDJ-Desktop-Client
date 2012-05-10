@@ -21,21 +21,23 @@
 #include "ConfigDefs.hpp"
 #include "DataStore.hpp"
 #include <QTableView>
+#include <QModelIndex>
 
 class QContextMenuEvent;
 class QSortFilterProxyModel;
+class QProgressDialog;
 
 namespace UDJ{
 
 class MusicModel;
 
-/** 
+/**
  *\brief A class for viewing the current contents of the users music library.
  */
 class LibraryView : public QTableView{
 Q_OBJECT
 public:
-	/** @name Constructors */
+  /** @name Constructors */
   //@{
 
   /** \brief Constructs a LibraryView
@@ -45,14 +47,13 @@ public:
    */
   LibraryView(DataStore *dataStore, QWidget* parent=0);
 
-
   //@}
 
 public slots:
   /** @name Slots */
   //@{
 
-  /** \brief . */
+  /** \brief Filters the contents of the library to be displayed. */
   void filterContents(const QString& filter);
 
   //@}
@@ -67,6 +68,18 @@ private slots:
    */
   void handleContextMenuRequest(const QPoint &pos);
 
+  /**
+   * \brief Takes appropriate action when the deleting of songs from the library has finished.
+   */
+  void deletingDone();
+
+  /**
+   * \brief Takes appropriate action when the deleting of songs from the library has an error.
+   *
+   * @param errMessage A message describing the error that occured.
+   */
+  void deletingError(const QString& errMessage);
+
 private:
 
   /** @name Private Memeber */
@@ -80,13 +93,17 @@ private:
   /** \brief The model backing LibraryView.  */
   MusicModel *libraryModel;
 
+  /** \brief The proxymodel backing LibraryView.  */
   QSortFilterProxyModel *proxyModel;
 
   /** \brief Action used for deleting songs from the library. */
   QAction *deleteSongAction;
- 
-  /** \brief Actions used for adding songs to the list of available songs. */
-  QAction *addToAvailableMusicAction;
+
+  /** \brief Action used for adding songs to the player. */
+  QAction *addToPlaylistAction;
+
+  /** \brief Dialog representing the progress of the current deletion from the library. */
+  QProgressDialog *deletingProgress;
 
   //@}
 
@@ -96,6 +113,9 @@ private:
   /** \brief Initilaizes actions.  */
   void createActions();
 
+  /**
+   * \brief Configures the look of the headers in the view.
+   */
   void configureColumns();
 
   /**
@@ -109,15 +129,13 @@ private:
   }
 
   /**
-   * \brief Gets the name used for the add to available music
-   *  context menu item.
+   * \brief Gets the name used for the add context menu item.
    *
-   * @return The name for the add to available music  context menu item.
+   * @return The name for the add context menu item.
    */
-  static const QString& getAddToAvailableContextMenuItemName(){
-    static const QString addToAvailableContextMenuItemName = 
-      tr("Add to Available Music");
-    return addToAvailableContextMenuItemName;
+  static const QString& getAddToPlaylistContextMenuItemName(){
+    static const QString addToPlaylistContextMenuItemName = tr("Add To Playlist");
+    return addToPlaylistContextMenuItemName;
   }
 
   //@}
@@ -126,18 +144,29 @@ private slots:
   /** @name Private Slots */
   //@{
 
-  /** 
-   * \brief Adds the currently selected songs to the list of available music.
-   */
-  void addSongToAvailableMusic();
-
-  /** 
+  /**
    * \brief Deletes the currently selected songs from the library.
    */
   void deleteSongs();
 
-  void addSongsToSongList(song_list_id_t songListId);
+  /**
+   * \brief Adds the song located at the given index to the active playlist.
+   *
+   * \param The index of the song to be added to the active playlist.
+   */
+  void addSongToPlaylist(const QModelIndex& index);
 
+  /**
+   *
+   * \brief Adds the selected songs to the active playlist.
+   */
+  void addSongsToActivePlaylist();
+
+  /**
+   * \brief Gets the query that should be used to obtain the data to display.
+   *
+   * @return The query that should be used to obtain the data to display.
+   */
   static const QString& getDataQuery(){
     static const QString dataQuery = 
       "SELECT " +

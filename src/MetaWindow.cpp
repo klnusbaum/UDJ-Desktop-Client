@@ -1,30 +1,30 @@
 /**
  * Copyright 2011 Kurtis L. Nusbaum
- * 
+ *
  * This file is part of UDJ.
- * 
+ *
  * UDJ is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * UDJ is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MetaWindow.hpp"
-#include "SongListView.hpp"
-#include "SettingsWidget.hpp"
 #include "MusicFinder.hpp"
 #include "DataStore.hpp"
 #include "LibraryWidget.hpp"
 #include "ActivityList.hpp"
-#include "EventWidget.hpp"
-#include <QSqlQuery>
+#include "ActivePlaylistView.hpp"
+#include "PlayerCreateDialog.hpp"
+#include "PlayerDashboard.hpp"
+#include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QAction>
@@ -36,6 +36,7 @@
 #include <QLabel>
 #include <QStackedWidget>
 #include <QSplitter>
+#include <QMessageBox>
 
 
 namespace UDJ{
@@ -48,11 +49,11 @@ MetaWindow::MetaWindow(
   const user_id_t& userId,
   QWidget *parent,
   Qt::WindowFlags flags)
-  :QMainWindow(parent,flags)
+  :QMainWindow(parent,flags),
+  isQuiting(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
-  createActions();
-  setupUi();
+  createActions(); setupUi();
   setupMenus();
   QSettings settings(
     QSettings::UserScope,
@@ -60,19 +61,38 @@ MetaWindow::MetaWindow(
     DataStore::getSettingsApp());
   restoreGeometry(settings.value("metaWindowGeometry").toByteArray());
   restoreState(settings.value("metaWindowState").toByteArray());
+  if(dataStore->hasPlayerId()){
+    dataStore->setPlayerState(DataStore::getPlayingState());
+  }
+  else{
+    PlayerCreateDialog *createDialog = new PlayerCreateDialog(dataStore, this);
+    createDialog->show();
+  }
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
-  QSettings settings(
-    QSettings::UserScope,
-    DataStore::getSettingsOrg(),
-    DataStore::getSettingsApp());
-  settings.setValue("metaWindowGeometry", saveGeometry());
-  settings.setValue("metaWindowState", saveState());
-  QMainWindow::closeEvent(event);
+  if(!isQuiting){
+    isQuiting = true;
+    connect(
+      dataStore,
+      SIGNAL(playerStateChanged(const QString&)),
+      this,
+      SLOT(close()));
+    quittingProgress = new QProgressDialog("Disconnecting...", "Cancel", 0, 0, this);
+    quittingProgress->setWindowModality(Qt::WindowModal);
+    dataStore->setPlayerState(DataStore::getInactiveState());
+    event->ignore();
+  }
+  else{
+    QSettings settings(
+      QSettings::UserScope,
+      DataStore::getSettingsOrg(),
+      DataStore::getSettingsApp());
+    settings.setValue("metaWindowGeometry", saveGeometry());
+    settings.setValue("metaWindowState", saveState());
+    QMainWindow::closeEvent(event);
+  }
 }
-
-
 
 void MetaWindow::addMusicToLibrary(){
   //TODO: Check to see if musicDir is different than then current music dir
@@ -80,18 +100,60 @@ void MetaWindow::addMusicToLibrary(){
     tr("Pick folder to add"),
     QDir::homePath(),
     QFileDialog::ShowDirsOnly);
-  QList<Phonon::MediaSource> musicToAdd = 
-    MusicFinder::findMusicInDir(musicDir.absolutePath());   
+  QList<Phonon::MediaSource> musicToAdd =
+    MusicFinder::findMusicInDir(musicDir.absolutePath());
   if(musicToAdd.isEmpty()){
     return;
   }
   int numNewFiles = musicToAdd.size();
-  QProgressDialog progress(
-    "Loading Library...", "Cancel", 0, numNewFiles, this); 
-  progress.setWindowModality(Qt::WindowModal);
-  dataStore->addMusicToLibrary(musicToAdd, progress);
-  progress.setValue(numNewFiles);
+  addingProgress = new QProgressDialog(
+    "Loading Library...", "Cancel", 0, numNewFiles+1, this);
+  addingProgress->setWindowModality(Qt::WindowModal);
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(doneAdding()));
+
+  connect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
+
+  dataStore->addMusicToLibrary(musicToAdd, addingProgress);
+  addingProgress->setLabelText(tr("Syncing With Server"));
 }
+
+void MetaWindow::doneAdding(){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(doneAdding()));
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
+  addingProgress->close();
+}
+
+void MetaWindow::errorAdding(const QString& errMessage){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(doneAdding()));
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
+  addingProgress->close();
+  QMessageBox::critical(this, "Error", "Error adding songs. Try again in a little bit.");
+}
+
 
 void MetaWindow::addSongToLibrary(){
   QString fileName = QFileDialog::getOpenFileName(
@@ -99,7 +161,9 @@ void MetaWindow::addSongToLibrary(){
       tr("Pick song to add"),
       QDir::homePath(),
       tr("Audio Files ") + MusicFinder::getMusicFileExtFilter());
-  dataStore->addSongToLibrary(Phonon::MediaSource(fileName));
+  QList<Phonon::MediaSource> songList;
+  songList.append(Phonon::MediaSource(fileName));
+  dataStore->addMusicToLibrary(songList);
 }
 
 void MetaWindow::setupUi(){
@@ -108,17 +172,14 @@ void MetaWindow::setupUi(){
 
   libraryWidget = new LibraryWidget(dataStore, this);
 
-  eventWidget = new EventWidget(dataStore, this);
-
-  songListView = new SongListView(dataStore, this);
-
   activityList = new ActivityList(dataStore);
+
+  playlistView = new ActivePlaylistView(dataStore, this);
 
   QWidget* contentStackContainer = new QWidget(this);
   contentStack = new QStackedWidget(this);
   contentStack->addWidget(libraryWidget);
-  contentStack->addWidget(eventWidget);
-  contentStack->addWidget(songListView);
+  contentStack->addWidget(playlistView);
   contentStack->setCurrentWidget(libraryWidget);
   QVBoxLayout *contentStackLayout = new QVBoxLayout;
   contentStackLayout->addWidget(contentStack, Qt::AlignCenter);
@@ -129,7 +190,11 @@ void MetaWindow::setupUi(){
   content->addWidget(contentStackContainer);
   content->setStretchFactor(1, 10);
 
+  dashboard = new PlayerDashboard(dataStore, this);
+
+
   QVBoxLayout *mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(dashboard);
   mainLayout->addWidget(content,6);
   mainLayout->addWidget(playbackWidget);
 
@@ -147,25 +212,9 @@ void MetaWindow::setupUi(){
 
   connect(
     activityList,
-    SIGNAL(eventClicked()),
+    SIGNAL(playlistClicked()),
     this,
-    SLOT(displayEventWidget()));
-
-  connect(
-    activityList,
-    SIGNAL(songListClicked(song_list_id_t)),
-    this,
-    SLOT(displaySongList(song_list_id_t)));
-
-  connect(
-    songListView,
-    SIGNAL(canNoLongerDisplay()),
-    activityList,
-    SLOT(switchToLibrary()));
-
-  if(dataStore->isCurrentlyHosting()){
-    displayEventWidget();
-  }
+    SLOT(displayPlaylist()));
 
 }
 
@@ -194,16 +243,9 @@ void MetaWindow::displayLibrary(){
   contentStack->setCurrentWidget(libraryWidget);
 }
 
-void MetaWindow::displayEventWidget(){
-  contentStack->setCurrentWidget(eventWidget);
+void MetaWindow::displayPlaylist(){
+  contentStack->setCurrentWidget(playlistView);
 }
-
-
-void MetaWindow::displaySongList(song_list_id_t songListId){
-  songListView->setSongListId(songListId);
-  contentStack->setCurrentWidget(songListView);
-}
-
 
 
 } //end namespace

@@ -20,7 +20,6 @@
 #ifndef CONFIG_DEFS_HPP
 #define CONFIG_DEFS_HPP
 
-#define UDJ_GEOCODER_API_KEY "@GEOCODER_API_KEY@"
 #define UDJ_GET_CRYPTO_OBJECT SimpleCrypt(Q_UINT64_C(@SETTINGS_CRYPTO_KEY@))
 
 
@@ -28,18 +27,10 @@
 
 namespace UDJ{
 
-typedef long playlist_song_id_t;
 typedef long library_song_id_t;
-typedef long playlist_id_t;
-typedef long event_id_t;
+typedef long player_id_t;
 typedef long user_id_t;
 typedef int lib_sync_status_t;
-typedef int avail_music_sync_status_t;
-typedef int playlist_add_sync_status_t;
-typedef int playlist_remove_sync_status_t;
-typedef long client_request_id_t;
-typedef long song_list_id_t;
-typedef long song_list_entry_id_t;
 
 } //end namespace
 
@@ -48,26 +39,26 @@ typedef long song_list_entry_id_t;
 #include <QSqlError>
 
 #define EXEC_SQL( MESSAGE , STMT, QSQLOBJECT ) \
-	if(!( STMT )){ \
-		std::cerr << MESSAGE << " IN FILE " << __FILE__ << " AT LINE " \
+  if(!( STMT )){ \
+    std::cerr << MESSAGE << " IN FILE " << __FILE__ << " AT LINE " \
       << __LINE__ <<  std::endl; \
-		std::cerr << "SQL ERROR MESSAGE: '" << \
+    std::cerr << "SQL ERROR MESSAGE: '" << \
       QSQLOBJECT.lastError().text().toStdString() << "'" << std::endl; \
     std::cerr << "QUERY WAS: '" << QSQLOBJECT.lastQuery().toStdString() \
       << "'" <<std::endl; \
-		std::cerr << std::endl; \
-	} \
+    std::cerr << std::endl; \
+  } \
 
 #define EXEC_INSERT( MESSAGE, QSQLOBJECT, RESULT_VAR, RESULT_VAR_TYPE) \
   QSQLOBJECT.exec(); \
   if( QSQLOBJECT.lastError().type() != QSqlError::NoError ){ \
-		std::cerr << MESSAGE << " IN FILE " << __FILE__ << " AT LINE " \
+    std::cerr << MESSAGE << " IN FILE " << __FILE__ << " AT LINE " \
       << __LINE__ <<  std::endl; \
-		std::cerr << "SQL ERROR MESSAGE: '" << \
+    std::cerr << "SQL ERROR MESSAGE: '" << \
     QSQLOBJECT.lastError().text().toStdString() << "'" << std::endl; \
     std::cerr << "QUERY WAS: '" << QSQLOBJECT.lastQuery().toStdString() \
       << "'" <<std::endl; \
-		std::cerr << std::endl; \
+    std::cerr << std::endl; \
   } \
   else{ \
     RESULT_VAR = QSQLOBJECT.lastInsertId().value< RESULT_VAR_TYPE >(); \
@@ -75,13 +66,13 @@ typedef long song_list_entry_id_t;
 
 #define EXEC_BULK_QUERY( MESSAGE, QSQLOBJECT) \
   if(!QSQLOBJECT.execBatch()){ \
-		std::cerr << MESSAGE << " IN FILE " << __FILE__ << " AT LINE " \
+    std::cerr << MESSAGE << " IN FILE " << __FILE__ << " AT LINE " \
       << __LINE__ <<  std::endl; \
-		std::cerr << "SQL ERROR MESSAGE: '" << \
+    std::cerr << "SQL ERROR MESSAGE: '" << \
     QSQLOBJECT.lastError().text().toStdString() << "'" << std::endl; \
     std::cerr << "QUERY WAS: '" << QSQLOBJECT.lastQuery().toStdString() \
       << "'" <<std::endl; \
-		std::cerr << std::endl; \
+    std::cerr << std::endl; \
   } \
 
 #define DEBUG_MESSAGE( MESSAGE ) \
@@ -90,7 +81,7 @@ typedef long song_list_entry_id_t;
 #else
 
 #define EXEC_SQL( MESSAGE, STMT, QSQLOBJECT) \
-	STMT;
+  STMT;
 
 #define EXEC_INSERT( MESSAGE, QSQLOBJECT, RESULT_VAR) \
   QSQLOBJECT.exec(); \

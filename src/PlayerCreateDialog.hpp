@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef LOGIN_DIALOG_HPP
-#define LOGIN_DIALOG_HPP
+#ifndef PLAYER_CREATE_DIALOG_HPP
+#define PLAYER_CREATE_DIALOG_HPP
 
 #include <QDialog>
 
@@ -26,29 +26,30 @@ class QCheckBox;
 
 namespace UDJ{
 
-class LoginWidget;
+class PlayerCreationWidget;
+class DataStore;
 
-
-/** \brief Dialog used to login to the UDJ server */
-class LoginDialog : public QDialog{
+/** \brief Dialog for creating a player. */
+class PlayerCreateDialog : public QDialog{
 Q_OBJECT
 public:
   /** @name Constructors */
   //@{
 
   /**
-   * \brief Constructs a Login Widget
+   * \brief Constructs a PlayerCreateDialog
    *
-   * \brief parent Parent widget.
-   * \brief f Window flags.
+   * \param dataStore The DataStore backing the client.
+   * \param parent The parent widget.
+   * \param f Window flags.
    */
-  LoginDialog(QWidget *parent=0, Qt::WindowFlags f=0);
+  PlayerCreateDialog(DataStore *dataStore, QWidget *parent=0, Qt::WindowFlags f=0);
 
   //@}
 
 public slots:
-
-  /** @name Overridden slots */
+  
+  /** @name Overridden slots from QDialog */
   //@{
 
   /** \brief . */
@@ -64,11 +65,14 @@ private:
   /** @name Private Memeber */
   //@{
 
-  /** \brief Widget used for logging in. */
-  LoginWidget *loginWidget;
+  /** \brief Widget used for actual creation of player */
+  PlayerCreationWidget *createWidget;
 
   /** \brief button used for initiating the login procedure. */
-  QPushButton *loginButton;
+  QPushButton *createButton;
+
+  /** \brief DataStore backing the client */
+  DataStore *dataStore;
 
 
   //@}
@@ -86,7 +90,7 @@ private slots:
   /** @name Private Slots */
   //@{
 
-  /** \brief Closes the dialog. */
+  /** \brief Closes the dialog */
   void closeDialog();
 
   //@}
@@ -96,7 +100,8 @@ private slots:
 } //end namespace UDJ
 
 
-#endif //LOGIN_DIALOG_HPP
+#endif //PLAYER_CREATE_DIALOG_HPP
+
 
 
 

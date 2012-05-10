@@ -23,22 +23,29 @@
 #include <QSqlRecord>
 #include <QSortFilterProxyModel>
 #include <set>
-#include <vector>
 
 namespace UDJ{
 
 
 namespace Utils{
 
-
-template<class T> std::vector<T> getSelectedIds(
+/**
+ * Get's the ids currently selected in a view by 
+ * getting them from the model (and or proxy model) backing the view.
+ *
+ * \param view The view whose selected ids are in question.
+ * \param model The model contaning the ids.
+ * \param colName The name of the id column in the model.
+ * \param proxyModel A proxy model being used by the view.
+ */
+template<class T> QSet<T> getSelectedIds(
   const QTableView* view,
   const QSqlQueryModel* model,
   const QString& colName,
   const QSortFilterProxyModel *proxyModel=0)
 {
   QModelIndexList selected = view->selectionModel()->selectedIndexes();
-  std::vector<T> selectedIds;
+  QSet<T> selectedIds;
   std::set<int> rows;
   for(
     QModelIndexList::const_iterator it = selected.begin();
@@ -57,8 +64,8 @@ template<class T> std::vector<T> getSelectedIds(
   )
   {
     QSqlRecord selectedRecord = model->record(*it);
-    selectedIds.push_back(
-      selectedRecord.value(colName).value<library_song_id_t>());
+    selectedIds.insert(
+      selectedRecord.value(colName).value<T>());
   }
   return selectedIds;
 }

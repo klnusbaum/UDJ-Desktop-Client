@@ -29,7 +29,7 @@ namespace UDJ{
 class ActivePlaylistModel;
 
 /**
- * \brief Used to dislay the active playlist.
+ * \brief A class used to dislay the active playlist.
  */
 class ActivePlaylistView : public QTableView{
 Q_OBJECT
@@ -68,7 +68,7 @@ private:
   DataStore* dataStore;
 
   /**
-   * \brief The model backing the view
+   * \brief The ActivePlaylistModel backing the view.
    */
   ActivePlaylistModel *model;
 
@@ -93,12 +93,17 @@ private slots:
   void setCurrentSong(const QModelIndex& index);
 
   /**
-   * \brief .
+   * \brief Displays a context menu at the specified point.
+   *
+   * @param pos The position on the screen where the context menu should be shown.
    */
   void handleContextMenuRequest(const QPoint& pos);
 
   /**
-   * \brief .
+   * \brief Performs appropriate actions when the selection of the view has changed.
+   *
+   * @param selected Items that became selected.
+   * @param deslsected Items that became deselected.
    */
   void handleSelectionChange(
     const QItemSelection &selected, const QItemSelection &deselected);
@@ -107,14 +112,26 @@ private slots:
    * \brief Removes all the currently selected songs from the active playlist.
    */
   void removeSongs();
-  
+
+  //@}
+
+  /** @name Private Functions */
+  //@{
+
+  /**
+   * \brief Configures how the headers in the view should look.
+   */
   void configureHeaders();
 
+  /**
+   * \brief Gets the query that should be used to obtain the data to display.
+   *
+   * @return The query that should be used to obtain the data to display.
+   */
   static const QString& getDataQuery(){
     static const QString dataQuery = 
       "SELECT " +
-      DataStore::getActivePlaylistViewName() 
-        + "." + DataStore::getActivePlaylistIdColName() + ", " +
+      DataStore::getActivePlaylistLibIdColName() + ", " +
       DataStore::getLibSongColName() + ", " +
       DataStore::getLibArtistColName() + ", " +
       DataStore::getLibAlbumColName() + ", " +
@@ -123,15 +140,7 @@ private slots:
       DataStore::getLibDurationColName() + ", " +
       DataStore::getAdderUsernameColName() + ", " +
       DataStore::getTimeAddedColName() + 
-      " FROM " + DataStore::getActivePlaylistViewName() + 
-      " LEFT JOIN " + DataStore::getPlaylistRemoveRequestsTableName() + 
-      " ON " + DataStore::getActivePlaylistViewName() + "." + 
-        DataStore::getActivePlaylistIdColName() +
-      "=" + DataStore::getPlaylistRemoveRequestsTableName() + "." +
-        DataStore::getPlaylistRemoveEntryIdColName() + ";";
-      " WHERE " + DataStore::getPlaylistRemoveRequestsTableName() + "." +
-        DataStore::getPlaylistRemoveEntryIdColName() + 
-      " is null;";
+      " FROM " + DataStore::getActivePlaylistViewName() + ";";
     return dataQuery;
   }
 

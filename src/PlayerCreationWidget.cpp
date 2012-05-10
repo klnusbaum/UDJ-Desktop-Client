@@ -16,12 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "CreateEventWidget.hpp"
+#include "PlayerCreationWidget.hpp"
 #include "DataStore.hpp"
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
-#include <QProgressDialog>
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QFormLayout>
@@ -32,34 +31,29 @@
 namespace UDJ{
 
 
-CreateEventWidget::CreateEventWidget(
+PlayerCreationWidget::PlayerCreationWidget(
   DataStore *dataStore, 
   QWidget *parent):
-  WidgetWithLoader(tr("Creating Event..."), parent),
+  WidgetWithLoader(tr("Creating Player..."), parent),
   dataStore(dataStore)
 {
   setupUi();
   connect(
-    createEventButton,
-    SIGNAL(clicked(bool)),
+    dataStore,
+    SIGNAL(playerCreated()),
     this,
-    SLOT(doCreation()));
+    SLOT(playerCreateSuccess()));
   connect(
     dataStore,
-    SIGNAL(eventCreated()),
+    SIGNAL(playerCreationFailed(const QString&)),
     this,
-    SLOT(eventCreateSuccess()));
-  connect(
-    dataStore,
-    SIGNAL(eventCreationFailed(const QString&)),
-    this,
-    SLOT(eventCreateFail(const QString&)));
+    SLOT(playerCreateFail(const QString&)));
 }
 
 
-void CreateEventWidget::setupUi(){
+void PlayerCreationWidget::setupUi(){
   QWidget *formContainer = new QWidget(this);
-  eventForm = new QWidget(formContainer);
+  playerForm = new QWidget(formContainer);
 
   nameEdit = new QLineEdit();
   passwordEdit = new QLineEdit();
@@ -68,10 +62,9 @@ void CreateEventWidget::setupUi(){
   setupStateCombo();
   zipcode = new QLineEdit();
   useAddress = new QCheckBox(tr("Provide Address")); 
-  createEventButton = new QPushButton(tr("Create Event"));
 
   QFormLayout *formLayout = new QFormLayout;
-  formLayout->addRow(tr("Name of event"), nameEdit);
+  formLayout->addRow(tr("Name of player"), nameEdit);
   formLayout->addRow(tr("Password (optional)"), passwordEdit);
   formLayout->addRow(useAddress);
   formLayout->addRow(tr("Address:"), streetAddress);
@@ -81,8 +74,7 @@ void CreateEventWidget::setupUi(){
 
   QGridLayout *layout = new QGridLayout;
   layout->addLayout(formLayout,0,0, Qt::AlignHCenter);
-  layout->addWidget(createEventButton, 1,0, Qt::AlignRight | Qt::AlignTop);
-  
+
   connect(
     useAddress,
     SIGNAL(toggled(bool)),
@@ -90,51 +82,51 @@ void CreateEventWidget::setupUi(){
     SLOT(enableAddressInputs(bool)));
   enableAddressInputs(false);
 
-  eventForm->setLayout(layout);
+  playerForm->setLayout(layout);
 
   QGridLayout *formContainerLayout = new QGridLayout;
-  formContainerLayout->addWidget(eventForm, 0,0,Qt::AlignCenter);
+  formContainerLayout->addWidget(playerForm, 0,0,Qt::AlignCenter);
   formContainer->setLayout(formContainerLayout);
   setMainWidget(formContainer);
   showMainWidget();
 }
 
-void CreateEventWidget::enableAddressInputs(bool enable){
+void PlayerCreationWidget::enableAddressInputs(bool enable){
   streetAddress->setEnabled(enable);
   city->setEnabled(enable);
   state->setEnabled(enable);
   zipcode->setEnabled(enable);
 }
 
-void CreateEventWidget::doCreation(){
+void PlayerCreationWidget::doCreation(){
   showLoadingText();
   if(nameEdit->text() == ""){
-    eventCreateFail("You must provide a name for your event." );
+    playerCreateFail("You must provide a name for your player." );
     return;
   }
-    
+
   if(useAddress->isChecked()){
     QString badInputs = getAddressBadInputs();
     if(badInputs == ""){
-      dataStore->createNewEvent(
+      dataStore->createNewPlayer(
         nameEdit->text(),
         passwordEdit->text(),
         streetAddress->text(),
         city->text(),
         state->currentText(),
-        zipcode->text());
+        zipcode->text().toInt());
     }
     else{
-      eventCreateFail("The address you supplied is invalid. Please correct " 
+      playerCreateFail("The address you supplied is invalid. Please correct " 
         "the following errors:\n\n" + badInputs);
     }
   }
   else{
-    dataStore->createNewEvent(nameEdit->text(), passwordEdit->text());
+    dataStore->createNewPlayer(nameEdit->text(), passwordEdit->text());
   }
 }
 
-QString CreateEventWidget::getAddressBadInputs() const{
+QString PlayerCreationWidget::getAddressBadInputs() const{
   QString toReturn ="";
   int errorCounter = 1;
   if(streetAddress->text() == ""){
@@ -149,21 +141,22 @@ QString CreateEventWidget::getAddressBadInputs() const{
 }
 
 
-void CreateEventWidget::eventCreateSuccess(){
+void PlayerCreationWidget::playerCreateSuccess(){
   showMainWidget();
-  emit eventCreated();
+  emit playerCreated();
 }
 
-void CreateEventWidget::eventCreateFail(const QString& errMessage){
+void PlayerCreationWidget::playerCreateFail(const QString& errMessage){
   showMainWidget();
   QMessageBox::critical(
     this,
-    tr("Event Creation Failed"),
+    tr("Player Creation Failed"),
     errMessage);
+  emit playerCreateFailed();
 }
 
 
-void CreateEventWidget::setupStateCombo(){
+void PlayerCreationWidget::setupStateCombo(){
   state = new QComboBox();
   state->addItem("AL");
   state->addItem("AK");
@@ -219,3 +212,4 @@ void CreateEventWidget::setupStateCombo(){
 }
 
 }//end namespace UDJ
+

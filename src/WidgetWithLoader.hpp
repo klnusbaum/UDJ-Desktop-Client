@@ -36,7 +36,7 @@ public:
   /**
    * \brief Constructs a WidgetWithLoader.
    *
-   * @param dataStore The DataStore backing this instance of UDJ.
+   * @param The text to display when the widget is in a loading state.
    * @param parent The parent widget.
    */
   WidgetWithLoader(QString loadingText, QWidget *parent=0);

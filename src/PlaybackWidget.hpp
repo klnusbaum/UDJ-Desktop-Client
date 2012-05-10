@@ -18,6 +18,7 @@
  */
 #ifndef PLAYBACK_WIDGET_HPP
 #define PLAYBACK_WIDGET_HPP
+#include "DataStore.hpp"
 #include <QWidget>
 #include <phonon/audiooutput.h>
 #include <phonon/seekslider.h>
@@ -31,15 +32,13 @@ class QLabel;
 
 namespace UDJ{
 
-class DataStore;
-
 /** \brief Widget used for controlling music playback. */
 class PlaybackWidget : public QWidget{
 
 Q_OBJECT
 
 public:
-  /** @name Enums */
+  /** @name Public Enums */
   //@{
 
   /** \brief The various states of playback that the widget can be in. */
@@ -61,6 +60,10 @@ public:
   //@}
 
 private slots:
+
+  /** @name Private Slots */
+  //@{
+
   /**
    * \brief Handles whenever the state of the primary
    * MediaObject is changed. 
@@ -96,26 +99,29 @@ private slots:
     *
     * @param newSong The new song that should be playing.
     */
-   void setNewSource(Phonon::MediaSource newSong);
+   void setNewSource(DataStore::song_info_t newSong);
 
+   /** \brief Clears the data on the playback widget. */
    void clearWidget();
 
-   void enablePlayback();
-
-   void disablePlayback();
-
+   /** \brief Takes appropriate action when the playlist is changed. */
    void handlePlaylistChange();
 
-   void play();
-
-   void pause();
+   /** \brief Takes appropriate action when the player state is changed. */
+   void onPlayerStateChanged(const QString& newState);
 
   //@}
 
 private:
-  
+
   /** @name Private Functions */
   //@{
+
+   /** \brief Enables playback. */
+   void play();
+
+   /** \brief Pauses playback. */
+   void pause();
 
   /** \brief Sets up all the actions used by the MetaWindow. */
   void createActions();
@@ -138,8 +144,8 @@ private:
   /** \brief Pauses playback */
   QAction *pauseAction;
 
-  /** \brief Used to display the name of the currently playing song. */
-  QLabel *songTitle;
+  /** \brief Used to display info of the currently playing song. */
+  QLabel *songInfo;
 
   /** \bried Used to display the time played of the current song. */
   QLabel *timeLabel;

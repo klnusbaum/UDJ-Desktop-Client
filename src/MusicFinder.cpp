@@ -83,7 +83,7 @@ QString MusicFinder::getMusicFileExtFilter(){
 QStringList MusicFinder::availableMusicTypes(){
   QStringList mimes = Phonon::BackendCapabilities::availableMimeTypes();
   for(int i=0; i< mimes.size(); ++i){
-    DEBUG_MESSAGE("Mime: " << mimes.at(i).toStdString())
+    //DEBUG_MESSAGE("Mime: " << mimes.at(i).toStdString())
   }
   QStringList toReturn;
   if(mimes.contains("audio/flac") || mimes.contains("audio/x-flac")){

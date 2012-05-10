@@ -60,7 +60,7 @@ ActivePlaylistView::ActivePlaylistView(DataStore* dataStore, QWidget* parent):
 
 void ActivePlaylistView::configureHeaders(){
   QSqlRecord record = model->record();
-  int idIndex = record.indexOf(DataStore::getActivePlaylistIdColName());
+  int idIndex = record.indexOf(DataStore::getActivePlaylistLibIdColName());
   int downVoteIndex = record.indexOf(DataStore::getDownVoteColName());
   int upVoteIndex = record.indexOf(DataStore::getUpVoteColName());
   int adderNameIndex = record.indexOf(DataStore::getAdderUsernameColName());
@@ -75,12 +75,14 @@ void ActivePlaylistView::configureHeaders(){
   model->setHeaderData(
     timeAddedIndex, Qt::Horizontal, tr("Time Added"), Qt::DisplayRole);
 }
-  
+
 void ActivePlaylistView::setCurrentSong(const QModelIndex& index){
+  DEBUG_MESSAGE("Manual setting of current song")
   QSqlRecord songToPlayRecord = model->record(index.row());
   QVariant data = 
-    songToPlayRecord.value(DataStore::getActivePlaylistIdColName());
-  dataStore->setCurrentSong(data.value<playlist_song_id_t>());
+    songToPlayRecord.value(DataStore::getActivePlaylistLibIdColName());
+  selectionModel()->clearSelection();
+  dataStore->setCurrentSong(data.value<library_song_id_t>());
 }
 
 void ActivePlaylistView::createActions(){
@@ -99,15 +101,15 @@ void ActivePlaylistView::handleContextMenuRequest(const QPoint& pos){
   if(selected==NULL){
     selectionModel()->clear();
   }
-  
 }
 
 void ActivePlaylistView::removeSongs(){
   dataStore->removeSongsFromActivePlaylist(
-    Utils::getSelectedIds<playlist_song_id_t>(
+    Utils::getSelectedIds<library_song_id_t>(
       this,
       model,
-      DataStore::getActivePlaylistIdColName()));
+      DataStore::getActivePlaylistLibIdColName()));
+  selectionModel()->clearSelection();
 }
 
 void ActivePlaylistView::handleSelectionChange(
@@ -115,10 +117,18 @@ void ActivePlaylistView::handleSelectionChange(
   const QItemSelection& deselected)
 {
   if(selected.indexes().size() == 0){
-    dataStore->resumePlaylistUpdates();
+    connect(
+      dataStore,
+      SIGNAL(activePlaylistModified()),
+      model, 
+      SLOT(refresh()));
   }
   else{
-    dataStore->pausePlaylistUpdates();
+    disconnect(
+      dataStore,
+      SIGNAL(activePlaylistModified()),
+      model, 
+      SLOT(refresh()));
   }
 }
 

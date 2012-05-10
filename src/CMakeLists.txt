@@ -26,28 +26,23 @@ SET(UDJ_SRCS
   PlaybackWidget.cpp
   MetaWindow.cpp 
   MusicFinder.cpp 
-  SettingsWidget.cpp 
   DataStore.cpp
   ActivePlaylistView.cpp
   LibraryView.cpp
-	UDJServerConnection.cpp
+  UDJServerConnection.cpp
   JSONHelper.cpp
   qt-json/json.cpp
   LoginWidget.cpp
   ActivityList.cpp
-  EventWidget.cpp
-  CreateEventWidget.cpp
-  EventDashboard.cpp
+  PlayerCreationWidget.cpp
   WidgetWithLoader.cpp
-  AvailableMusicView.cpp
-  EventGoersView.cpp
-  SongListView.cpp
   MusicModel.cpp
   LoginDialog.cpp
+  PlayerCreateDialog.cpp
   simpleCrypt/simplecrypt.cpp
-  CommErrorHandler.cpp
   LibraryWidget.cpp
   ActivePlaylistModel.cpp
+  PlayerDashboard.cpp
 )
 
 SET(UDJ_HDRS 
@@ -61,27 +56,21 @@ SET(UDJ_HDRS
 
 SET(UDJ_MOC_HDRS 
   MetaWindow.hpp 
-  SettingsWidget.hpp
   DataStore.hpp
   ActivePlaylistView.hpp
   LibraryView.hpp
-	DifferenceSpinner.hpp
-	UDJServerConnection.hpp
+  UDJServerConnection.hpp
   LoginWidget.hpp
   ActivityList.hpp
   PlaybackWidget.hpp
-  EventWidget.hpp
-  CreateEventWidget.hpp
-  EventDashboard.hpp
+  PlayerCreationWidget.hpp
+  PlayerCreateDialog.hpp
   WidgetWithLoader.hpp
-  AvailableMusicView.hpp
-  EventGoersView.hpp
-  SongListView.hpp
   MusicModel.hpp
   LoginDialog.hpp
-  CommErrorHandler.hpp
   LibraryWidget.hpp
   ActivePlaylistModel.hpp
+  PlayerDashboard.hpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/src")

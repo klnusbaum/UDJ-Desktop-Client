@@ -26,14 +26,6 @@ class QNetworkReply;
 
 namespace UDJ{
 
-typedef struct {
-  library_song_id_t id;
-  QString songName;
-  QString artistName;
-  QString albumName;
-  int duration;
-} lib_song_t;
-
 /** \brief Class used to help serialize and deserialize JSON messages */
 class JSONHelper{
 
@@ -42,233 +34,160 @@ public:
   /** @name Converter Functions */
   //@{
 
-  
   /**
-   * \brief Creates the JSON necessary for doing a request to add a song
-   * to the library.
+   * \brief Given a set of library ids, gets a QByteArray JSON representation of the
+   * library ids.
    *
-   * @param song The id of the song to be added
-   * @return A bytearray contianing the JSON for the song add request.
+   * @param libIds Ids to convert to JSON.
+   * @return A QByteArray JSON representation of the given library ids.
    */
-  static const QByteArray getJSONForLibAdd(const lib_song_t &song);
-  
-  /**
-   * \brief Creates the JSON necessary for doing a request to add a song
-   * to the library.
-   *
-   * @param song The id of the song to be added.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray contianing the JSON for the song add request.
-   */
-  static const QByteArray getJSONForLibAdd(
-    const lib_song_t &song,
-    bool &success);
+  static QByteArray getJSONLibIds(const QSet<library_song_id_t>& libIds);
 
   /**
-   * \brief Creates the JSON necessary for doing a request to add the given
-   * songs to the library.
+   * \brief Extracts a set of library song ids from a QByteArray JSON repsenation.
    *
-   * @param songs The ids of the songs to be added.
-   * @return A bytearray contianing the JSON for the song add request.
+   * @param idsString A QByteArray of JSON with the song ids to be extracted.
+   * \return A set of library song ids in the given idsString.
    */
-  static const QByteArray getJSONForLibAdd(
-    const std::vector<lib_song_t> &songs);
+  static QSet<library_song_id_t> extractSongLibIds(const QByteArray& idsString);
 
   /**
-   * \brief Creates the JSON necessary for doing a request to add the given
-   * songs to the library.
+   * \brief Gets the json needed for adding the given songs to add to the library.
    *
-   * @param songs The ids of the songs to be added.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray contianing the JSON for the song add request.
+   * @param songsToAdd Songs that should be converted to JSON.
+   * @return A JSON representation of the songs to be added.
    */
-  static const QByteArray getJSONForLibAdd(
-    const std::vector<lib_song_t>& songs,
-    bool &success);
+  static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd);
 
   /**
-   * \brief Gets the JSON necesary for creating an event.
+   * \brief Gets the json needed for adding the given songs to add to the library.
    *
-   * @param eventName The name of the event.
-   * @param password The password for the event.
-   * @param latitude The latitude of the event. 
-   * @param longitude The longitude of the event.
-   * @return A bytearray containing the generated JSON.
+   * @param songsToAdd Songs that should be converted to JSON.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the songs to be added.
    */
-  static const QByteArray getCreateEventJSON(
-    const QString& eventName,
-    const QString& password="", 
-    double latitude=getInvalidLat(),
-    double longitude=getInvalidLong());
+  static QByteArray getJSONForLibAdd(const QVariantList& songsToAdd, bool &success);
 
   /**
-   * \brief Gets the JSON necesary for creating an event.
+   * \brief Gets the json needed for deleting the given songs from a library.
    *
-   * @param eventName The name of the event.
-   * @param password The password for the event.
-   * @param latitude The latitude of the event. 
-   * @param longitude The longitude of the event.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the generated JSON.
+   * @param songsToDelete Songs that should be converted to JSON.
+   * @return A JSON representation of the songs to be removed.
    */
-  static const QByteArray getCreateEventJSON(
-    const QString& eventName,
+  static QByteArray getJSONForLibDelete(const QVariantList& songsToDelete);
+
+  /**
+   * \brief Gets the json needed for deleting the given songs from a library.
+   *
+   * @param songsToDelete Songs that should be converted to JSON.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the songs to be removed.
+   */
+  static QByteArray getJSONForLibDelete(const QVariantList& songsToDelete, bool &success);
+
+  /**
+   * \brief Gets the json needed for creating a player.
+   *
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @return A JSON representation of the player to be created.
+   */
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
+    const QString& password);
+
+  /**
+   * \brief Gets the json needed for creating a player.
+   *
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the player to be created.
+   */
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
     const QString& password, 
-    double latitude,
-    double longitude,
     bool &success);
 
   /**
-   * \brief Gets the JSON needed for adding a song to the list of available 
-   * songs.
+   * \brief Gets the json needed for creating a player.
    *
-   * @param toAdd The id of the song to be added to the list of available songs.
-   * @return A bytearray containing the JSON needed to add the given song
-   * to the list of available music.
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @param streetAddress Address of the player to be created.
+   * @param city City of the player to be created.
+   * @param state State of the player to be created.
+   * @param zipcode Zip code of the player to be created.
+   * @return A JSON representation of the player to be created.
    */
-  static const QByteArray getAddToAvailableJSON(const library_song_id_t& toAdd);
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
+    const QString& password,
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    const int& zipcode);
 
   /**
-   * \brief Gets the JSON needed for adding a song to the list of available 
-   * songs.
+   * \brief Gets the json needed for creating a player.
    *
-   * @param toAdd The id of the song to be added to the list of available songs.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the JSON needed to add the given song
-   * to the list of available music.
+   * @param playerName Name of the player to be created.
+   * @param password Password of the player to be created.
+   * @param streetAddress Address of the player to be created.
+   * @param city City of the player to be created.
+   * @param state State of the player to be created.
+   * @param zipcode Zip code of the player to be created.
+   * @param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * @return A JSON representation of the player to be created.
    */
-  static const QByteArray getAddToAvailableJSON(
-    const library_song_id_t& toAdd, 
+  static const QByteArray getCreatePlayerJSON(
+    const QString& playerName,
+    const QString& password,
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    const int& zipcode,
     bool &success);
 
   /**
-   * \brief Gets the JSON needed for adding the given songs
-   *  to the list of available songs.
+   * \brief Given JSON, this functions extracts a vector containing all of the
+   * library ids that are in it.
    *
-   * @param toAdd The ids of the songs to be added to the list of available 
-   * songs.
-   * @return A bytearray containing the JSON needed to add the given songs
-   * to the list of available music.
+   * @param payload The JSON from which the library ids should be extracted.
+   * @return A vector containing the extracted library ids.
    */
-  static const QByteArray getAddToAvailableJSON(
-    const std::vector<library_song_id_t>& toAdd);
+  static std::vector<library_song_id_t> getLibIds(const QByteArray& payload);
+
 
   /**
-   * \brief Gets the JSON needed for adding the given songs
-   *  to the list of available songs.
-   *
-   * @param toAdd The ids of the songs to be added to the list of available 
-   * songs.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the JSON needed to add the given songs
-   * to the list of available music.
-   */
-  static const QByteArray getAddToAvailableJSON(
-    const std::vector<library_song_id_t>& toAdd, 
-    bool &success);
-
-  /**
-   * \brief Gets the json needed to add the given songs to the active playlist. 
-   *
-   * @param requestIds The request ids for each request in the libIds vector.
-   * @param libIds The ids of the songs to be added to the active playlist.
-   * @return A bytearray containing the JSON needed for adding the given songs
-   * to the active playlist.
-   */
-  static const QByteArray getAddToActiveJSON(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& libIds);
-
-  /**
-   * \brief Gets the json needed to add the given songs to the active playlist. 
-   *
-   * @param requestIds The request ids for each request in the libIds vector.
-   * @param libIds The ids of the songs to be added to the active playlist.
-   * @param success A boolean whose value will be set to true if the JSON
-   * was able to be successfully generated and false otherwise.
-   * @return A bytearray containing the JSON needed for adding the given songs
-   * to the active playlist.
-   */
-  static const QByteArray getAddToActiveJSON(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& libIds,
-    bool &success);
-
-  /**
-   * \brief Given a server reply, get's the library Ids that were successuflly
-   * updated on the server.
+   * \brief Get's the id of a player from the given server reply.
    *
    * @param reply The reply from the server.
-   * @return A vector containing all the library id's of the songs that were 
-   * updated on the server.
+   * @return The player id in the servers response.
    */
-  static const std::vector<library_song_id_t>
-    getUpdatedLibIds(QNetworkReply *reply);
+  static player_id_t getPlayerId(QNetworkReply *reply);
 
   /**
-   * \brief Get's the id of an event from the given server reply.
-   * 
-   * @param reply The reply from the server.
-   * @return The event id in the servers response.
-   */
-  static event_id_t getEventId(QNetworkReply *reply);
-
-  /**
-   * \brief Gets the songs that were added to the list of available songs
-   * on the server.
+   * \brief Gets the active playlist from the JSON given in the server reply.
    *
-   * @param reply The servers response.
-   * @return A vector containing all the library ids that were added to the
-   * list of available songs.
+   * \param reply The reply from the server.
+   * \return A QVariantMap representing the playlist given in the server reply.
    */
-  static const std::vector<library_song_id_t> getAddedAvailableSongs(
-    QNetworkReply *reply);
+  static QVariantMap getActivePlaylistFromJSON(QNetworkReply *reply);
 
   /**
-   * \brief Gets the active playlist from the servers reply.
+   * \brief Gets the auth data from a server authentication reply.
    *
-   * @param reply The servers response.
-   * @return A QVariantList containing all the songs in the active playlist in
-   * their approriate order.
+   * \param reply The reply from the server.
+   * \param success A boolean that will be set to true or false depending on wether or not the 
+   * JSON was succesfully created.
+   * \return A QVariantMap representing the auth data retreived from the server.
    */
-  static const QVariantList getActivePlaylistFromJSON(QNetworkReply *reply);
-
-  static const QVariantList getEventGoersJSON(QNetworkReply *reply);
-
-  static const QVariantMap getSingleEventInfo(QNetworkReply *reply);
-
-  static std::vector<client_request_id_t> extractAddRequestIds(
-    const QByteArray& payload);
-
-  //@}
-
-  /** @name Constants */
-  //@{
-
-  /**
-   * \brief Gets the value indicating and invalid latitude value.
-   *
-   * @return The value indicating and invalid latitude value.
-   */
-  static const double& getInvalidLat(){
-    static const double invalidLat = 100;
-    return invalidLat;
-  }
-
-  /**
-   * \brief Gets the value indicating and invalid longitude value.
-   *
-   * @return The value indicating and invalid longitude value.
-   */
-  static const double& getInvalidLong(){
-    static const double invalidLong = 200;
-    return invalidLong;
-  }
+  static const QVariantMap getAuthReplyFromJSON(QNetworkReply *reply, bool &success);
 
   //@}
 

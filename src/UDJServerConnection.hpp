@@ -20,33 +20,33 @@
 #define UDJ_SERVER_CONNECTION_HPP
 
 #include "ConfigDefs.hpp"
-#include "CommErrorHandler.hpp"
 #include <QSqlDatabase>
 #include <QDateTime>
 #include <QObject>
 #include <vector>
 #include <QNetworkRequest>
+#include <QNetworkReply>
 
 class QNetworkAccessManager;
-class QNetworkReply;
 class QNetworkCookieJar;
 
 namespace UDJ{
 
 
 /**
- * Set's up a connection to the UDJ server and facilitates all communication.
- * with the server.
+ * \brief Represents a connection to the UDJ server.
  */
 class UDJServerConnection : public QObject{
 Q_OBJECT
 public:
 
-  /** @name Constructor(s) and Destructor */
+  /** @name Constructor */
   //@{
 
   /**
    * \brief Constructs a UDJServerConnection.
+   *
+   * \param parent The parent object.
    */
   UDJServerConnection(QObject *parent=NULL);
 
@@ -64,20 +64,31 @@ public:
    */
   void authenticate(const QString& username, const QString& password);
 
+  /**
+   * \brief Sets the ticket to be used when communicating with the server.
+   *
+   * \param ticket The ticket to be used when communicating with the server.
+   */
   inline void setTicket(const QByteArray& ticket){
     ticket_hash = ticket;
   }
 
-  inline void setMachineUUID(const QString& uuid){
-    machineUUID = uuid;
-  }
-
+  /**
+   * \brief Sets the user id to be used when communicating with the server.
+   *
+   * \param ticket The user id to be used when communicating with the server.
+   */
   inline void setUserId(const user_id_t& userId){
     user_id = userId;
   }
 
-  inline void setEventId(const event_id_t& newEventId){
-    eventId = newEventId;
+  /**
+   * \brief Sets the player id to be used when communicating with the server.
+   *
+   * \param ticket The player id to be used when communicating with the server.
+   */
+  inline void setPlayerId(const player_id_t& newPlayerId){
+    playerId = newPlayerId;
   }
 
   //@}
@@ -88,89 +99,52 @@ public slots:
   /** @name Slots */
   //@{
 
-  /**
-   * \brief Adds a song to the library on the server.
-   *
-   * @param songName The name of the song.
-   * @param artistName The name of the artist.
-   * @param albumName The name of the album.
-   * @param duration The length of the song in seconds.
-   * @param hostid The id of the song on the host.
-   */
-  void addLibSongOnServer(
-    const QString& songName,
-    const QString& artistName,
-    const QString& albumName,
-    const int duration,
-    const library_song_id_t hostid);
 
   /**
-   * \brief Deletes a song from the library on the server.
+   * \brief Sets the player state.
    *
-   * @param toDeleteId The host id of the song to delete from the library on the
-   * server.
+   * \param newState State to which the player should be set.
    */
-  void deleteLibSongOnServer(library_song_id_t toDeleteId);
+  void setPlayerState(const QString& newState);
 
   /**
-   * \brief Adds a given song to the list of available songs for an event on the
-   * server.
+   * \brief Modifies the conents of the library on the server.
    *
-   * @param songToAdd Song to add to the list of available songs for an event
-   * on the server.
+   * @param songsToAdd A list of song that should be added to the server.
+   * @param songsToDelete A list of song ids that should be removed from the server.
    */
-  void addSongToAvailableSongs(library_song_id_t songToAdd);
+  void modLibContents(const QVariantList& songsToAdd, const QVariantList& songsToDelete);
 
   /**
-   * \brief Adds the given songs to the list of available songs for an event 
-   * on the server.
+   * \brief Creates a player on the server.
    *
-   * @param songsToAdd The songs to add to the list of available songs for an 
-   * event on the server.
+   * @param playerName The name of the player.
+   * @param password The password of the player (may be empty thus indicating now password).
    */
-  void addSongsToAvailableSongs(
-    const std::vector<library_song_id_t>& songsToAdd);
-
-  /**
-   * \brief Remove the given songs from the list of available songs for an event
-   * on the server.
-   *
-   * @param songsToRemove The songs to remove from the list of available 
-   * songs for an event on the server.
-   */
-  void removeSongsFromAvailableMusic(
-    const std::vector<library_song_id_t>& songsToRemove);
-
-  /**
-   * \brief Creates an event on the server.
-   *
-   * @param eventName The name of the event.
-   * @param password The password of the event.
-   */
-  void createEvent(
-    const QString& eventName,
+  void createPlayer(
+    const QString& playerName,
     const QString& password);
 
-  void createEvent(
-    const QString& eventName,
+  /**
+   * \brief Creates a player on the server.
+   *
+   * @param playerName The name of the player.
+   * @param password The password of the player (may be empty thus indicating now password).
+   */
+  void createPlayer(
+    const QString& playerName,
     const QString& password,
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const QString& zipcode);
-
-  void createEvent(
-    const QString& eventName,
-    const QString& password,
-    const double &latitude,
-    const double &longitude);
-
-  void createEvent(const QByteArray& payload);
+    const int& zipcode);
 
   /**
-   * \brief Ends the current event.
+   * \brief Creates a player on the server using the given JSON payload.
+   *
+   * @param payload JSON representing the player to be created.
    */
-  void endEvent();
+  void createPlayer(const QByteArray& payload);
 
   /**
    * \brief Retrieves the latest version of the active playlist from the server.
@@ -178,43 +152,28 @@ public slots:
   void getActivePlaylist();
 
   /**
-   * \brief Adds the given song to the active playlist on the server.
+   * \brief Modifies the active playlist on the server.
    *
-   * @param requestId The request id of this add request.
-   * @param songId Id of the song to be added to the active playlist.
+   * \param toAdd A list of library songs that should be added to the playlist.
+   * \param toRemove A list of library songs that should be removed from the playlist.
    */
-  void addSongToActivePlaylist(
-    client_request_id_t requestId,
-    library_song_id_t songId);
+  void modActivePlaylist(
+    const QSet<library_song_id_t>& toAdd,
+    const QSet<library_song_id_t>& toRemove);
 
   /**
-   * \brief Adds the given songs to the active playlist on the server.
+   * \brief Set's the current song that the player is playing on the server.
    *
-   * @param requestIds The request ids of this add request.
-   * @param songIds Ids of the songs to be added to the active playlist.
+   * @param currentSong Id The current song that the client is playing.
    */
-  void addSongsToActivePlaylist(
-    const std::vector<client_request_id_t>& requestIds,
-    const std::vector<library_song_id_t>& songIds);
+  void setCurrentSong(library_song_id_t currentSong);
 
   /**
-   * \brief Removes the given songs from the active playlist on the server.
+   * \brief Sets the volume of the player on the server.
    *
-   * @param playlistIds The ids of the playlist entries that should be remove.
+   * @param newVolume The volume to which the player should be set.
    */
-  void removeSongsFromActivePlaylist(
-    const std::vector<playlist_song_id_t>& playlistIds);
-
-  /**
-   * \brief Set's the current song that the host is playing on the server.
-   *
-   * @param currentSong Id The current song that the host is playing.
-   */
-  void setCurrentSong(playlist_song_id_t currentSong);
-
-  void setCurrentSong(const QByteArray& payload);
-
-  void getEventGoers();
+  void setVolume(int newVolume);
 
   //@}
 
@@ -225,6 +184,9 @@ signals:
 
   /**
    * \brief Emitted when a connection with the server has been established.
+   *
+   * \param ticketHash The ticket hash that was given by the server as a result of the authentication.
+   * \param userId The userId assignd to ther user that was used to authenticate with the server.
    */
   void authenticated(const QByteArray& ticketHash, const user_id_t& userId);
 
@@ -236,94 +198,120 @@ signals:
    */
   void authFailed(const QString errMessage);
 
-  void commError(
-    CommErrorHandler::OperationType opType,
-    CommErrorHandler::CommErrorType error,
-    const QByteArray &payload);
-
   /**
-   * \brief Emitted when songs are added to the library on the server.
+   * \brief Emitted when the state on the player was changed.
    *
-   * @param addedIds Ids of the songs that were added to the library on the
-   * server.
+   * @param newState The new state.
    */
-  void songsAddedToLibOnServer(const std::vector<library_song_id_t> addedIds);
+  void playerStateSet(const QString& newState);
 
   /**
-   * \brief Emitted when a song is deleted from the library on the server.
+   * \brief Emitted when a set of songs was succesfully synced on the server.
    *
-   * @param deletedId Id of the song that was deleted from the library on the
-   * server.
+   * \param syncedIds The set of ids that were succesfully synced to the server.
    */
-  void songDeletedFromLibOnServer(
-    const library_song_id_t deletedId);
+  void libSongsSyncedToServer(const std::vector<library_song_id_t>& syncedIds);
 
   /**
-   * \brief Emitted when an event is succesfully created.
-   */
-  void eventCreated(const event_id_t& issuedId);
-
-  /**
-   * \brief Emitted when an event is succesfully ended.
-   */
-  void eventEnded();
-
-  /**
-   * \brief Emitted when songs are succesfully added to the list of available
-   * music for the event on the server.
+   * \brief Emitted when there was an error syncing certains library songs with the server.
    *
-   * @param songsAdded The id's of the songs that were succesfully added to the
-   * list of available music for the even on the server.
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
    */
-  void songsAddedToAvailableMusic(
-    const std::vector<library_song_id_t> songsAdded);
+  void libModError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief Emitted when a song is removed from the list of available songs
-   * for an event on the server.
-   *
-   * @param deletedId Id of the song that was deleted from the available music
-   * for an event on the server.
+   * \brief Emitted when an player is succesfully created.
    */
-  void songRemovedFromAvailableMusicOnServer(const library_song_id_t deletedId);
+  void playerCreated(const player_id_t& issuedId);
+
+  /**
+   * \brief Emitted when there was an error creating a player on the server.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerCreationFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Emitted when a new version of the active playlist is retrieved from
    * the server.
    */
-  void newActivePlaylist(const QVariantList newPlaylist);
+  void newActivePlaylist(const QVariantMap& newPlaylist);
 
   /**
-   * \brief emitted when songs are succesfully added to the active playlist 
-   * for an event on the server.
+   * \brief Emitted when there was an error getting the active playlist from the server.
    *
-   * @param ids the client request ids of the songs that were succesfully added
-   * to the active playlist for an event on the server.
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
    */
-  void songsAddedToActivePlaylist(const std::vector<client_request_id_t> ids);
+  void getActivePlaylistFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief emitted when a song is succesfully remove from the active playlist 
-   * for an event on the server.
-   *
-   * @param songId Playlist id of song that was succesfully removed
-   * from the active playlist for an event on the server.
-   */
-  void songRemovedFromActivePlaylist(const playlist_song_id_t songId);
-
-  /**
-   * \brief Emitted when the current song that the host is playing is
+   * \brief Emitted when the current song that the player is playing is
    * succesfully set on the server.
    */
   void currentSongSet();
 
   /**
-   * \brief Emitted when there in a error setting host is playing on the server.
+   * \brief Emitted when there in a error setting the current song to be played on the server.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
    */
-  void currentSongSetError();
+  void setCurrentSongFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  /**
+   * \brief Emitted when the active playlist was successfully modified on the server.
+   *
+   * @param added The set of songs that were succesfully added to the playlist on the server.
+   * @param removed The set of songs that were succesfully removed from the playlist on the server.
+   */
+  void activePlaylistModified(
+    const QSet<library_song_id_t>& added,
+    const QSet<library_song_id_t>& removed);
 
-  void newEventGoers(QVariantList eventGoers);
+  /**
+   * \brief Emitted when there in a error modifying the playlist on the server.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void activePlaylistModFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  void volumeSetOnServer();
+
+  /**
+   * \brief Emitted when there in an error setting the song on the server.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void setVolumeFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   //@}
 
@@ -347,8 +335,8 @@ private:
   /** @name Private Members */
   //@{
 
-  /** \brief Id of the event associated with this conneciton */
-  event_id_t eventId;
+  /** \brief Id of the player associated with this conneciton */
+  player_id_t playerId;
 
   /** \brief Ticket hash that should be used for all requests. */
   QByteArray ticket_hash;
@@ -356,278 +344,14 @@ private:
   /** \brief Id of the user that is currently logged in. */
   user_id_t  user_id;
 
-  /** \brief Machine UUID used for library interaction. */
-  QString machineUUID;
-
   /** \brief Manager for access to the network. */
   QNetworkAccessManager *netAccessManager;
-
-  /**
-   * \brief Time at which the current ticket has being used was issued by the
-   * server.
-   */
-  QDateTime timeTicketIssued;
-
-  /**
-   * \brief Prepares a network request that is going to include JSON.
-   *
-   * @param request Request to prepare.
-   */
-  void prepareJSONRequest(QNetworkRequest &request);
 
 
   //@}
 
   /** @name Private Function */
   //@{
-
-  /**
-   * \brief Get the url to be used for adding songs to the library on the 
-   * server.
-   *
-   * @return The url to be used for adding songs to the library on the 
-   * server.
-   */
-  QUrl getLibAddSongUrl() const;
-
-  /**
-   * \brief Get the url to be used for removing a song from the library on the
-   * server.
-   *
-   * @param toDelete The id of the song to delete from the library on the
-   * server.
-   * @return The url to be used for adding songs to the library on the
-   * server.
-   */
-  QUrl getLibDeleteSongUrl(library_song_id_t toDelete) const;
-
-  /**
-   * \brief Get the url to be used for adding songs to the list of available
-   * music for an event on the server.
-   *
-   * @return The url to be used for adding songs to the list of available
-   * music for an event on the server.
-   */
-  QUrl getAddSongToAvailableUrl() const;
-
-  /**
-   * \brief Get the url to be used for removing a song from the list of
-   * available music for an event on the server.
-   *
-   * @param toDelete The id of the song to be deleted from the list of
-   * availabe music for an event on the server.
-   * @return The url to be used for removing a song from the list of
-   * available music for an event on the server.
-   */
-  QUrl getAvailableMusicRemoveUrl(library_song_id_t toDelete) const;
-
-  /**
-   * \brief Get the url to be used for ending an event.
-   *
-   * @return The url to be used for ending an event.
-   */
-  QUrl getEndEventUrl() const;
-
-  /**
-   * \brief Get the url for retreiving the active playlist from the server.
-   *
-   * @return The for retreiving the active playlist from the server.
-   */
-  QUrl getActivePlaylistUrl() const;
-
-  /**
-   * \brief Get the url for adding songs to the active playlist on the server.
-   *
-   * @return The url for adding songs to the active playlist on the server.
-   */
-  QUrl getActivePlaylistAddUrl() const;
-
-  /**
-   * \brief Get the url for removing a song from the active playlist on the 
-   * server.
-   *
-   * @return The url for removing a song from the active playlist on the 
-   * server.
-   */
-  QUrl getActivePlaylistRemoveUrl(playlist_song_id_t toDelete) const;
-
-  /**
-   * \brief Get the url to be used for setting the current song on the server.
-   *
-   * @return The url to be used for setting the current song on the server.
-   */
-  QUrl getCurrentSongUrl() const;
-
-  QUrl getUsersUrl() const;
-
-  QUrl getLocationUrl(
-    const QString& streetAddress,
-    const QString& city,
-    const QString& state,
-    const QString& zipcode) const;
-
-  /**
-   * \brief Determines whether or not a url path is a path which can be used
-   * for deleting a song from the library on the server.
-   *
-   * @param path The path whose identity is in question.
-   * @return True if the url path is one which can be used for deleting a song
-   * from the libray on the server. False otherwise.
-   */
-  bool isLibDeleteUrl(const QString& path) const;
- 
-  /**
-   * \brief Determines whether or not a url path is a path which can be used
-   * for deleting a song from the list of available music on the server.
-   *
-   * @param path The path whose identity is in question.
-   * @return True if the url path is one which can be used for deleting a song
-   * from the list of available music on the server. False otherwise.
-   */
-  bool isAvailableMusicDeleteUrl(const QString& path) const;
-
-  /**
-   * \brief Determines whether or not a url path is a path which can be used
-   * for deleting a song from the active playlist on the server.
-   *
-   * @param path The path whose identity is in question.
-   * @return True if the url path is one which can be used for deleting a song
-   * from the acitve playlist on the server. False otherwise.
-   */
-  bool isActivePlaylistRemoveUrl(const QString& path) const;
-
-  inline bool isLocationUrl(const QUrl& url) const{
-    return url.authority() == "webgis.usc.edu";
-  }
-
-  /**
-   * \brief Get the port number to be used when communicating with the server.
-   *
-   * This port number is a memorial to Keith Nusbaum, my father. I loved him
-   * deeply and he was taken from this world far too soon. Never-the-less
-   * we all continue to benefit from his good deeds. Without him, I wouldn't
-   * be here, and there would be no UDJ. Please, don't change this port
-   * number. Keep the memory of my father alive.
-   * K = 10 % 10 = 0
-   * e = 4  % 10 = 4
-   * i = 8  % 10 = 8
-   * t = 19 % 10 = 9
-   * h = 7  % 10 = 7
-   * Port 4897, the Keith Nusbaum Memorial Port
-   *
-   * @return The port number to be used for communicating with the server.
-   */
-  static const QString & getServerPortNumber(){
-    static const QString serverPortNumber = "4897";
-    return serverPortNumber;
-  }
-
-  /**
-   * \brief Gets the url path to the server in string form.
-   *
-   * @return The url path to the server in string form.
-   */
-  static const QString& getServerUrlPath(){
-    static const QString SERVER_URL_PATH= 
-      "https://udjevents.com:" + getServerPortNumber() + "/udj/";
-    return SERVER_URL_PATH;
-  }
-
-  /**
-   * \brief Gets the url path to the server in URL form.
-   *
-   * @return The url path to the server in URL form.
-   */
-  static const QUrl& getServerUrl(){
-    static const QUrl SERVER_URL(getServerUrlPath());
-    return SERVER_URL;
-  }
-
-  /**
-   * \brief Gets the url for authenticating with the server.
-   *
-   * @return The url for authenticating with the server.
-   */
-  static const QUrl& getAuthUrl(){
-    static const QUrl AUTH_URL(getServerUrlPath() + "auth");
-    return AUTH_URL;
-  }
-
-  /**
-   * \brief Gets the url for creating an event on the server.
-   *
-   * @return The url for creating an event on the server.
-   */
-  static const QUrl& getCreateEventUrl(){
-    static const QUrl CREAT_EVENT_URL(getServerUrlPath() + "events/event");
-    return CREAT_EVENT_URL;
-  }
-
-  /**
-   * \brief Get the header used for identifying the api version number.
-   *
-   * @return The header used for identifying the api version number.
-   */
-  static const QByteArray& getAPIVersionHeaderName(){
-    static const QByteArray API_VERSION_HEAER_NAME = "X-Udj-Api-Version";
-    return API_VERSION_HEAER_NAME;
-  }
-
-  static const QByteArray& getMachineUUIDHeaderName(){
-    static const QByteArray MACHINE_UUID_HEADER_NAME = "X-Udj-Machine-UUID";
-    return MACHINE_UUID_HEADER_NAME;
-  }
-
-  /**
-   * \brief Get the api version number to which this client is conforming.
-   *
-   * @return The api version number to which this client is conforming.
-   */
-  static const QByteArray& getAPIVersion(){
-    static const QByteArray API_VERSION = "0.2";
-    return API_VERSION;
-  }
-
-  /**
-   * \brief Get the header used for identifying the ticket hash header.
-   *
-   * @return The header used for identifying the ticket hash header.
-   */
-  static const QByteArray& getTicketHeaderName(){
-    static const QByteArray ticketHeaderName = "X-Udj-Ticket-Hash";
-    return ticketHeaderName;
-  }
-
-  /**
-   * \brief Get the header used for identifying the user id.
-   *
-   * @return The header used for identifying the user id.
-   */
-  static const QByteArray& getUserIdHeaderName(){
-    static const QByteArray userIdHeaderName = "X-Udj-User-Id";
-    return userIdHeaderName;
-  }
-
-  static const QByteArray& getGoneResourceHeaderName(){
-    static const QByteArray goneResourceHeaderName = "X-Udj-Gone-Resource";
-    return goneResourceHeaderName;
-  }
-
-  static const char* getEventNameProperty(){
-    static const char* eventNameProperty = "event_name";
-    return eventNameProperty;
-  }
-
-  static const char* getEventPasswordProperty(){
-    static const char* eventPasswordProperty = "event_password";
-    return eventPasswordProperty;
-  }
-
-  static const char* getPayloadPropertyName(){
-    static const char* payloadPropertyName = "payload";
-    return payloadPropertyName;
-  }
-
 
   /**
    * \brief Handle a response from the server regarding authentication.
@@ -637,50 +361,25 @@ private:
   void handleAuthReply(QNetworkReply* reply);
 
   /**
-   * \brief Handle a response from the server regarding adding songs to the
-   * library.
+   * \brief Handles a state set reply.
    *
-   * @param reply Response from the server.
+   * \param the response from the server.
    */
-  void handleAddLibSongsReply(QNetworkReply *reply);
+  void handleSetStateReply(QNetworkReply* reply);
 
   /**
-   * \brief Handle a response from the server regarding deleiting songs from the
-   * library.
+   * \brief Handles a lib modificaiton reply.
    *
-   * @param reply Response from the server.
+   * \param the response from the server.
    */
-  void handleDeleteLibSongsReply(QNetworkReply *reply);
+  void handleRecievedLibMod(QNetworkReply *reply);
 
   /**
-   * \brief Handle a response from the server regarding event creation.
+   * \brief Handle a response from the server regarding player creation.
    *
    * @param reply Response from the server.
    */
-  void handleCreateEventReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding ending an event.
-   *
-   * @param reply Response from the server.
-   */
-  void handleEndEventReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding adding songs to the
-   * list of avaialble songs for an event.
-   *
-   * @param reply Response from the server.
-   */
-  void handleAddAvailableSongReply(QNetworkReply *reply);
-
-  /**
-   * \brief Handle a response from the server regarding removing songs from the
-   * the list of available songs for an event.
-   *
-   * @param reply Response from the server.
-   */
-  void handleDeleteAvailableMusicReply(QNetworkReply *reply);
+  void handleCreatePlayerReply(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding a new active playlist.
@@ -713,15 +412,227 @@ private:
    */
   void handleRecievedCurrentSongSet(QNetworkReply *reply);
 
-  void handleRecievedNewEventGoers(QNetworkReply *reply);
+  /**
+   * \brief Handle a response from the server regarding a modification of the playlist.
+   *
+   * @param reply Response from the server.
+   */
+  void handleRecievedPlaylistMod(QNetworkReply *reply);
 
-  void handleLocaitonResponse(QNetworkReply *reply);
+  /**
+   * \brief Handle a response from the server regarding the setting of the player volume.
+   *
+   * @param reply Response from the server.
+   */
+  void handleRecievedVolumeSet(QNetworkReply *reply);
 
-  void parseLocationResponse(QNetworkReply *reply);
+  /**
+   * \brief Prepares a network request that is going to include JSON.
+   *
+   * @param request Request to prepare.
+   */
+  void prepareJSONRequest(QNetworkRequest &request);
 
-  bool checkReplyAndFireErrors(
-    QNetworkReply *reply,
-    CommErrorHandler::OperationType opType);
+  /**
+   * \brief Gets the url that should be used for modifying the library.
+   *
+   * \return The url that sholud be used for modifying the library.
+   */
+  QUrl getLibModUrl() const;
+
+  /**
+   * \brief Get the url for interacting with the active playlist from the server.
+   *
+   * @return The for interacting with the active playlist from the server.
+   */
+  QUrl getActivePlaylistUrl() const;
+
+  /**
+   * \brief Get the url to be used for setting the current song on the server.
+   *
+   * @return The url to be used for setting the current song on the server.
+   */
+  QUrl getCurrentSongUrl() const;
+
+  /**
+   * \brief Gets the url that should be used for creating a player on the server.
+   *
+   * \return The url that sholud be used for creating a player on the server.
+   */
+  QUrl getCreatePlayerUrl() const;
+
+  /**
+   * \brief Gets the url that should be used for modifying or getting 
+   * the player state from the server.
+   *
+   * \return The url that sholud be used for modifying or getting 
+   * the player state from the server.
+   */
+  QUrl getPlayerStateUrl() const;
+
+  /**
+   * \brief Gets the url that should be used for setting the volume on the server.
+   *
+   * \return The url that sholud be used for setting the volume on the server.
+   */
+  QUrl getVolumeUrl() const;
+
+  /**
+   * \brief Determines whether or not the given path is the same one used by the
+   * player creation url.
+   *
+   * \param path The path in question.
+   * \return True if the path is the same as the path used by the player creation url,
+   * false otherwise.
+   */
+  bool isPlayerCreateUrl(const QString& path) const;
+
+  /**
+   * \brief Determines if the given network reply is in response to a request to 
+   * obtain the active playlist.
+   *
+   * \param reply The network reply in question.
+   * \return True if the reply is a response to getting the active playlist. False otherwise.
+   */
+  bool isGetActivePlaylistReply(const QNetworkReply *reply) const;
+
+  /**
+   * \brief Determines if the given network reply is in response to a request to 
+   * modify the active playlist.
+   *
+   * \param reply The network reply in question.
+   * \return True if the reply is a response to modifying the active playlist. False otherwise.
+   */
+  bool isModActivePlaylistReply(const QNetworkReply *reply) const;
+
+  /**
+   * \brief Determines if a given reply has the same Http Status code as the one specified.
+   *
+   * \param reply QNetworkReply in question.
+   * \param code The status code to be checked.
+   * \return True if the reply if has the status code provided, false otherwise.
+   */
+  static bool isResponseType(QNetworkReply *reply, int code);
+
+
+  //@}
+
+
+  /** @name Private Constants */
+  //@{
+
+  /**
+   * \brief Get the port number to be used when communicating with the server.
+   *
+   * This port number is a memorial to Keith Nusbaum, my father. I loved him
+   * deeply and he was taken from this world far too soon. Never-the-less
+   * we all continue to benefit from his good deeds. Without him, I wouldn't
+   * be here, and there would be no UDJ. Please, don't change this port
+   * number. Keep the memory of my father alive.
+   * K = 10 % 10 = 0
+   * e = 4  % 10 = 4
+   * i = 8  % 10 = 8
+   * t = 19 % 10 = 9
+   * h = 7  % 10 = 7
+   * Port 4897, the Keith Nusbaum Memorial Port
+   *
+   * @return The port number to be used for communicating with the server.
+   */
+  static const QString & getServerPortNumber(){
+    static const QString serverPortNumber = "4898";
+    return serverPortNumber;
+  }
+
+  /**
+   * \brief Gets the url path to the server in string form.
+   *
+   * @return The url path to the server in string form.
+   */
+  static const QString& getServerUrlPath(){
+    static const QString SERVER_URL_PATH= 
+      "https://udjplayer.com:" + getServerPortNumber() + "/udj/";
+    return SERVER_URL_PATH;
+  }
+
+  /**
+   * \brief Gets the url path to the server in URL form.
+   *
+   * @return The url path to the server in URL form.
+   */
+  static const QUrl& getServerUrl(){
+    static const QUrl SERVER_URL(getServerUrlPath());
+    return SERVER_URL;
+  }
+
+  /**
+   * \brief Gets the url for authenticating with the server.
+   *
+   * @return The url for authenticating with the server.
+   */
+  static const QUrl& getAuthUrl(){
+    static const QUrl AUTH_URL(getServerUrlPath() + "auth");
+    return AUTH_URL;
+  }
+
+  /**
+   * \brief Get the header used for identifying the ticket hash header.
+   *
+   * @return The header used for identifying the ticket hash header.
+   */
+  static const QByteArray& getTicketHeaderName(){
+    static const QByteArray ticketHeaderName = "X-Udj-Ticket-Hash";
+    return ticketHeaderName;
+  }
+
+  /**
+   * \brief Get the header used for identifying the Missing Resource header.
+   *
+   * @return The header used for identifying the Missing Resource header.
+   */
+  static const QByteArray& getMissingResourceHeader(){
+    static const QByteArray missingResourceHeader = "X-Udj-Missing-Resource";
+    return missingResourceHeader;
+  }
+
+  /**
+   * \brief Gets the property name for a state property.
+   *
+   * \return The property name for a state property.
+   */
+  static const char* getStatePropertyName(){
+    static const char* statePropertyName = "state";
+    return statePropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a songs_added property.
+   *
+   * \return The property name for a songs_added property.
+   */
+  static const char* getSongsAddedPropertyName(){
+    static const char* songsAddedPropertyName = "songs_added";
+    return songsAddedPropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a songs_deleted property.
+   *
+   * \return The property name for a songs_deleted property.
+   */
+  static const char* getSongsDeletedPropertyName(){
+    static const char* songsDeletedPropertyName = "songs_deleted";
+    return songsDeletedPropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a songs_removed property.
+   *
+   * \return The property name for a songs_removed property.
+   */
+  static const char* getSongsRemovedPropertyName(){
+    static const char* songsRemovedPropertyName = "songs_removed";
+    return songsRemovedPropertyName;
+  }
 
   //@}
 

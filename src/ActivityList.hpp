@@ -49,8 +49,17 @@ public:
 
   //@}
 
+  /** @name Public Slots */
+  //@{
+
 public slots:
+
+  /**
+   * \brief Switches the selected activity to Library.
+   */
   void switchToLibrary();
+
+  //@}
 
 signals:
   /** @name Signals */
@@ -61,33 +70,23 @@ signals:
    */
   void libraryClicked();
 
-  /** 
-   * \brief emited when the event activity is clicked.
-   */
-  void eventClicked();
-
   /**
-   * \brief emitted whenever a song list is clicked.
-   *
-   * @param songListId The id of the songList that was clicked.
+   * \brief emited when the playlist activity is clicked.
    */
-  void songListClicked(song_list_id_t songListId);
-
+  void playlistClicked();
   //@}
 
 private:
-  
+
   /** @name Private Functions */
   //@{
 
-  /** 
+  /**
    * \brief Does UI initialization.
    */
   void setupUi();
 
-  void createActions();
-  
-  /** 
+  /**
    * \brief Gets the name of the library activity.
    *
    * @return The name of the library activity.
@@ -98,26 +97,15 @@ private:
   }
 
   /** 
-   * \brief Gets the name of the event activity.
+   * \brief Gets the name of the Playlist activity.
    *
-   * @return The name of the event activity.
+   * @return The name of the Playlist activity.
    */
-  static const QString& getEventTitle(){
-    static const QString eventTitle(tr("Event"));
-    return eventTitle;
+  static const QString& getPlaylistTitle(){
+    static const QString playlistTitle(tr("Playlist"));
+    return playlistTitle;
   }
 
-  static const QString& getSongListTitle(){
-    static const QString songListTitle(tr("Song Lists"));
-    return songListTitle;
-  }
-
-  static const QString& getNewSongListTitle(){
-    static const QString newSongListTitle(tr("Add New Song List"));
-    return newSongListTitle;
-  }
-
-  
 
   //@}
 
@@ -130,12 +118,11 @@ private:
   /** \brief Model used to list the activities. */
   QStandardItemModel *model;
 
-  QStandardItem *songListRoot;
+  /** \brief The item representing the library activity. */
   QStandardItem *libraryItem;
-  QStandardItem *eventItem;
-  QStandardItem *newSongListItem;
-  QAction *deleteSongListAction;
-  QAction *addSongListAction;
+
+  /** \brief The item representing the playlist activity. */
+  QStandardItem *playlistItem;
 
   //@}
 
@@ -145,22 +132,11 @@ private slots:
   //@{
 
   /**
-   * \brief Makes appropriate ui changes when the activity at the given index
-   * is clicked.
+   * \brief Emits the appropriate signals when an activity is clicked.
    *
    * @param index The index of the activity that was clicked.
    */
   void itemClicked(const QModelIndex& index);
-
-  void addNewSongList();
-
-  void saveSongListToDb(QStandardItem *toSave);
-
-  void handleContextMenuRequest(const QPoint& point);
-
-  void deleteSelectedSongList();
-
-  void addSongListToAvailableMusic();
 
   //@}
 };

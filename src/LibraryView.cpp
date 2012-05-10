@@ -25,6 +25,8 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSortFilterProxyModel>
+#include <QProgressDialog>
+#include <QMessageBox>
 
 namespace UDJ{
 
@@ -51,6 +53,11 @@ LibraryView::LibraryView(DataStore *dataStore, QWidget* parent):
   connect(dataStore, SIGNAL(libSongsModified()), libraryModel, SLOT(refresh()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
     this, SLOT(handleContextMenuRequest(const QPoint&)));
+  connect(
+    this,
+    SIGNAL(activated(const QModelIndex&)),
+    this,
+    SLOT(addSongToPlaylist(const QModelIndex&)));
 }
 
 void LibraryView::configureColumns(){
@@ -68,60 +75,45 @@ void LibraryView::configureColumns(){
 
 void LibraryView::createActions(){
   deleteSongAction = new QAction(getDeleteContextMenuItemName(), this);
-  addToAvailableMusicAction = new QAction(
-    getAddToAvailableContextMenuItemName(), this);
+  addToPlaylistAction = new QAction(getAddToPlaylistContextMenuItemName(), this);
   connect(
-    deleteSongAction, 
-    SIGNAL(triggered()), 
-    this, 
+    deleteSongAction,
+    SIGNAL(triggered()),
+    this,
     SLOT(deleteSongs()));
   connect(
-    addToAvailableMusicAction, 
-    SIGNAL(triggered()), 
-    this, 
-    SLOT(addSongToAvailableMusic()));
+    addToPlaylistAction,
+    SIGNAL(triggered()),
+    this,
+    SLOT(addSongsToActivePlaylist()));
 }
-  
+
 
 void LibraryView::handleContextMenuRequest(const QPoint &pos){
   QMenu contextMenu(this);
-  
-  if(dataStore->isCurrentlyHosting()){
-    contextMenu.addAction(addToAvailableMusicAction);
-  }
-  QSqlQuery songLists = dataStore->getSongLists();
-  if(songLists.next()){
-    QMenu *songListsMenu = new QMenu(tr("Add To Song Lists"), this);
-    contextMenu.addMenu(songListsMenu);
-    QSqlRecord currentRecord;
-    do{
-      currentRecord = songLists.record();
-      QAction *addedAction = songListsMenu->addAction(
-        currentRecord.value(DataStore::getSongListNameColName()).toString());
-      addedAction->setData(
-        currentRecord.value(DataStore::getSongListIdColName()));
-    }while(songLists.next());
-  }
   contextMenu.addAction(deleteSongAction);
-  QAction *selected = contextMenu.exec(QCursor::pos());
-  if(selected != NULL){
-    QVariant data = selected->data();
-    if(data.isValid()){
-      addSongsToSongList(data.value<song_list_id_t>()); 
-    }
-  }
+  contextMenu.addAction(addToPlaylistAction);
+  contextMenu.exec(QCursor::pos());
 }
 
-void LibraryView::addSongToAvailableMusic(){
-  dataStore->addSongsToAvailableSongs(
-    Utils::getSelectedIds<library_song_id_t>(
-      this,
-      libraryModel,
-      DataStore::getLibIdColName(),
-      proxyModel));
-}
 
 void LibraryView::deleteSongs(){
+  deletingProgress = new QProgressDialog(tr("Deleting Songs..."), tr("Cancel"), 0,0, this);
+  deletingProgress->setWindowModality(Qt::WindowModal);
+
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(deletingDone()));
+
+
+  connect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
   dataStore->removeSongsFromLibrary(
     Utils::getSelectedIds<library_song_id_t>(
       this,
@@ -130,18 +122,62 @@ void LibraryView::deleteSongs(){
       proxyModel));
 }
 
-void LibraryView::addSongsToSongList(song_list_id_t songListId){
-  dataStore->addSongsToSongList(
-    songListId,
+void LibraryView::deletingDone(){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(deletingDone()));
+
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
+  deletingProgress->close();
+}
+
+void LibraryView::deletingError(const QString& errMessage){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified()),
+    this,
+    SLOT(deletingDone()));
+
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
+  deletingProgress->close();
+
+  QMessageBox::critical(
+    this,
+    tr("Error"),
+    tr("Error deleting songs from library. Try again in a little bit"));
+}
+
+
+void LibraryView::filterContents(const QString& filter){
+  proxyModel->setFilterFixedString(filter);
+}
+
+void LibraryView::addSongToPlaylist(const QModelIndex& index){
+  QModelIndex realIndex = proxyModel->mapToSource(index);
+  QSqlRecord selectedRecord = libraryModel->record(realIndex.row());
+  dataStore->addSongToActivePlaylist(
+    selectedRecord.value(DataStore::getLibIdColName()).value<library_song_id_t>());
+}
+
+void LibraryView::addSongsToActivePlaylist(){
+  dataStore->addSongsToActivePlaylist(
     Utils::getSelectedIds<library_song_id_t>(
       this,
       libraryModel,
       DataStore::getLibIdColName(),
       proxyModel));
-}
-
-void LibraryView::filterContents(const QString& filter){
-  proxyModel->setFilterFixedString(filter);
 }
 
 

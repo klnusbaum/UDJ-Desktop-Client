@@ -24,69 +24,94 @@
 #include <QProgressDialog>
 #include <QSettings>
 #include "ConfigDefs.hpp"
+#include <QNetworkReply>
 
 class QTimer;
 
 namespace UDJ{
 
 class UDJServerConnection;
-class CommErrorHandler;
 
 /** 
- * \brief A class that provides access to all persisten storage used by UDJ.
+ * \brief A class that provides access to all persistent/semi-persistent storage used by UDJ.
  */
 class DataStore : public QObject{
 Q_OBJECT
 public:
+
+  /** @name Public Typedefs and Enums */
+  //@{
+
+  /**
+   * \brief Actions that can be preformed once the client has reauthenticated.
+   */
+  enum ReauthAction{
+    SYNC_LIB,
+    GET_ACTIVE_PLAYLIST,
+    SET_CURRENT_SONG,
+    MOD_PLAYLIST,
+    SET_CURRENT_VOLUME
+  };
+
+  /**
+   * \brief A minimal set of info describing a song in the database.
+   */
+  typedef struct {
+    Phonon::MediaSource source;
+    QString title;
+    QString artist;
+  } song_info_t;
+
+  //@}
+
 
   /** @name Constructor(s) and Destructor */
   //@{
 
   /** \brief Constructs a DataStore
    *
-   * @param serverConnection Connection to the UDJ server.
-   * @param parent The parent widget.
+   * @param username The username being used by the client.
+   * @param password The password being used by the client.
+   * @param ticketHash The tickethash being used for communication with the server.
+   * @param userId Id of the user using this client.
+   * @param parent The parent object.
    */
   DataStore(
     const QString& username,
     const QString& password,
-    const QByteArray& ticketHash, 
-    const event_id_t& userId, 
+    const QByteArray& ticketHash,
+    const user_id_t& userId,
     QObject *parent=0);
 
   //@}
 
-  /** @name Getters and Setters */
+  /** @name Modifiers */
   //@{
 
+  /**
+   * \brief Adds a list of songs to the music library.
+   *
+   * @param songs The list of songs to be added to the library.
+   * @param progress A progress dialog representing the progress of the 
+   * of adding the songs to the library.
+   */
   void addMusicToLibrary(
-    QList<Phonon::MediaSource> songs, 
-    QProgressDialog& progress);
+    const QList<Phonon::MediaSource>& songs, 
+    QProgressDialog* progress=0);
 
   /**
-   * \brief Adds a single song to the music library.
+   * \brief Set player state.
    *
-   * @param song Song to be added to the library.
+   * \param State to which the player should be set.
    */
-  void addSongToLibrary(Phonon::MediaSource song);
+  void setPlayerState(const QString& newState);
 
   /**
    * \brief Removes the given songs from the music library. 
    *
-   * @param toRemove The list of songs to be removed from the library.
+   * @param toRemove A set of song ids to remove from the library.
    */
-  void removeSongsFromLibrary(std::vector<library_song_id_t> toRemove);
-
-  /**
-   * \brief Given a media source, determines the song name from the current
-   * model data.
-   *
-   * @param source Source whose song name is desired.
-   * @return The name of the song contained in the given source according
-   * to current model data. If the source could not be found in the model
-   * and emptry string is returned.
-   */
-  QString getSongNameFromSource(const Phonon::MediaSource &source) const;
+  void removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove);
 
   /**
    * \brief Gets the raw connection to the actual database that the DataStore
@@ -96,113 +121,167 @@ public:
    */
   QSqlDatabase getDatabaseConnection();
 
-  QSqlQuery getSongLists() const;
-
-  void setSongListName(song_list_id_t id, const QString& name);
-
-  song_list_id_t insertSongList(const QString& name);
-
   /**
-   * \brief Adds any songs to the server for which the
-   * host client doesn't have valid server_lib_song_id.
-   */
-  void syncLibrary();
-
-  /**
-   * \brief Syncs the available music table with the server.
-   */
-  void syncAvailableMusic();
-
-  /**
-   * \brief Syncs all the requests for additions to the active playlst.
-   */
-  void syncPlaylistAddRequests();
-
-  /**
-   * \brief Syncs all the requests for removals from the active playlst.
-   */
-  void syncPlaylistRemoveRequests();
-
-
-  /**
-   * \brief Gets the name of the current event.
+   * \brief Gets the name of the player.
    *
-   * @return The name of the current event.
+   * @return The name of the player.
    */
-  inline const QString getEventName() const{
+  inline const QString getPlayerName() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getEventNameSettingName()).toString();
+    return settings.value(getPlayerNameSettingName(), tr("Not Set")).toString();
   }
 
   /**
-   * \brief Gets the id of the current event.
+   * \brief Gets the id of the player.
    *
-   * @return The id of the current event.
+   * @return The id of the player.
    */
-  inline const event_id_t getEventId() const{
+  inline const player_id_t getPlayerId() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getEventIdSettingName()).value<event_id_t>();
+    return settings.value(getPlayerIdSettingName()).value<player_id_t>();
   }
 
+  /**
+   * \brief Gets the volume of the player.
+   *
+   * @return The volume of the player.
+   */
+  inline qreal getPlayerVolume() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getPlayerVolumeSettingName()).value<qreal>();
+  }
+
+
+  /**
+   * \brief Gets the username being used by the client
+   *
+   * @return The username being used by the client.
+   */
   inline const QString& getUsername() const{
     return username;
   }
 
+  /**
+   * \brief Gets the password being used by the client
+   *
+   * @return The password being used by the client.
+   */
   inline const QString& getPassword() const{
     return password;
   }
 
-  /** 
+  /**
+   * \brief Determines whether or not the player's location has been set.
+   *
+   * @return True if the player's location is set, false otherwise.
+   */
+  inline bool hasLocation() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.contains(getAddressSettingName());
+  }
+
+
+  /**
+   * \brief Retrieves a string describing the location of the player.
+   *
+   * @return A string describing the locaiton of the player.
+   */
+  inline QString getLocationString() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return 
+      settings.value(getAddressSettingName()).toString() + " " + 
+      settings.value(getCitySettingName()).toString() + " " +
+      settings.value(getStateSettingName()).toString() + ", " +
+      settings.value(getZipCodeSettingName()).toString();
+
+  }
+
+  /**
    * \brief Retrieves the next song should be played but does not
    * remove it from the active playlist.
    *
    * @return The next song that is going to be played.
    */
   Phonon::MediaSource getNextSongToPlay();
-  
-  /** 
+
+  /**
    * \brief Retrieves the next song that should be played and removes it
    * from the active playlist.
    *
    * @return The next song that should be played.
    */
-  Phonon::MediaSource takeNextSongToPlay();
+  song_info_t takeNextSongToPlay();
 
-  const QString getEventState() const{
+  /**
+   * \brief Retrieves the state of the player.
+   *
+   * @return The state of the player.
+   */
+  const QString getPlayerState() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getEventStateSettingName()).toString();
+    return settings.value(getPlayerStateSettingName()).toString();
   }
 
-  const bool isCurrentlyHosting() const{
+  /**
+   * \brief Determines whether or not this player has a player id.
+   *
+   * \return True if the player has an id, false otherwise.
+   */
+  bool hasPlayerId() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return 
-      settings.value(getEventStateSettingName()).toString()
-      ==
-      getHostingEventState();
+    return -1 != settings.value(getPlayerIdSettingName(), -1);
   }
 
+  /**
+   * \brief Saves the given credentials to persistent storage in a secure manner.
+   *
+   * @param username The username to save.
+   * @param password The password to save.
+   */
   static void saveCredentials(const QString& username, const QString& password);
 
+  /**
+   * \brief Marks the current saved credentials as invalid.
+   */
   static void setCredentialsDirty();
 
+  /**
+   * \brief Determines whether or not the currently saved credentials are valid.
+   *
+   * @return True if the currently saved credentials are valide, false otherwise.
+   */
   static bool hasValidSavedCredentials();
 
+  /**
+   * \brief Retrieves the currently saved credentials.
+   *
+   * @param username Pointer to the QString where the retreived username should be put.
+   * @param password Pointer to the QString where the retreived password should be put.
+   */
   static void getSavedCredentials(QString* username, QString* password);
 
+  /**
+   * \brief Deletes all the saved credentials.
+   */
   static void clearSavedCredentials();
 
   //@}
 
-  
+
   /** @name Public Constants */
   //@{
-  
+
   /**
    * \brief When a song title can't be found, this title should be used instead.
+   *
+   * @return The song title to be used when no title is known.
    */
   static const QString& unknownSongTitle(){
     static const QString unknownSongTitle = tr("Unknown");
@@ -211,6 +290,8 @@ public:
 
   /**
    * \brief When a song artist can't be found, this artist should be used instead.
+   *
+   * @return The song artist to be used when no artist is known.
    */
   static const QString& unknownSongArtist(){
     static const QString unknownSongArtist = tr("Unknown");
@@ -219,38 +300,37 @@ public:
 
   /**
    * \brief When a song album can't be found, this album should be used instead.
+   *
+   * @return The song album to be used when no album is known.
    */
   static const QString& unknownSongAlbum(){
     static const QString unknownSongAlbum = tr("Unknown");
     return unknownSongAlbum;
   }
 
+  /**
+   * \brief When a song genre can't be found, this genre should be used instead.
+   *
+   * @return The song genre to be used when no genre is known.
+   */
+  static const QString& unknownGenre(){
+    static const QString unknownGenre = tr("Unknown");
+    return unknownGenre;
+  }
 
   /**
-   * \brief Gets the name of the table in the musicdb that contains information
-   * about the music library associated with the server conneciton.
+   * \brief Gets the name of the table in the playerdb that contains information
+   * about the music library.
    *
-   * @return The name of the table in the musicdb that contains information
-   * about the music library associated with the server connection.
+   * @return The name of the table in the playerdb that contains information
+   * about the music library.
    */
-	static const QString& getLibraryTableName(){
+  static const QString& getLibraryTableName(){
     static const QString libraryTableName = "library";
     return libraryTableName;
-	}
+  }
 
   /**
-   * \brief Gets the name of the table in the musicdb that contains information
-   * about the event goers associated with the server conneciton.
-   *
-   * @return The name of the table in the musicdb that contains information
-   * about the event goesrs associated with the server connection.
-   */
-	static const QString& getEventGoersTableName(){
-		static const QString eventGoersTableName = "event_goers";
-    return eventGoersTableName;
-	}
-  
-  /** 
    * \brief Gets name of the table storing the active playlist.
    *
    * @return The name of the table containing the active playlist.
@@ -260,7 +340,7 @@ public:
     return activePlaylistTableName;
   }
 
-  /** 
+  /**
    * \brief Gets name of the view containing the active playlist joined with
    * the library table.
    *
@@ -275,7 +355,7 @@ public:
   /**
    * \brief Gets the name of the id column in the active playlist table.
    *
-   * @return The name of the id colum in the active playlist table.
+   * @return The name of the id column in the active playlist table.
    */
   static const QString& getActivePlaylistIdColName(){
     static const QString activePlaylistIdColName = "id";
@@ -287,7 +367,7 @@ public:
    * which library entry this playlist entry corresponds with) in the active
    * playlist table.
    *
-   * @return The name of the library id column  in the active playlist table.
+   * @return The name of the library id column in the active playlist table.
    */
   static const QString& getActivePlaylistLibIdColName(){
     static const QString activePlaylistLibIdColName = "lib_id";
@@ -295,10 +375,10 @@ public:
   }
 
   /** 
-   * \brief Gets the name of the column in the active playlist view that 
+   * \brief Gets the name of the column in the active playlist view that
    * contains the vote count.
    *
-   * @return The name of the column in the active playlist view that 
+   * @return The name of the column in the active playlist view that
    * contains the vote count.
    */
   static const QString& getVoteCountColName(){
@@ -336,6 +416,11 @@ public:
     return adderIdColName;
   }
 
+  /** 
+   * \brief Gets the name of the adder username column in the active playlist table.
+   *
+   * @return The name of the adder username column in the active playlist table.
+   */
   static const QString& getAdderUsernameColName(){
     static const QString adderUsernameColName = "adder_username";
     return adderUsernameColName;
@@ -390,8 +475,8 @@ public:
     static const QString libArtistColName = "Artist";
     return libArtistColName;
   }
-  
-  /** 
+
+  /**
    * \brief Gets the album column in the library table table.
    *
    * @return The name of the album column in the library table.
@@ -422,6 +507,26 @@ public:
   }
 
   /** 
+   * \brief Gets the genre column in the library table table.
+   *
+   * @return The name of the genre column in the library table.
+   */
+  static const QString& getLibGenreColName(){
+    static const QString libGenreColName = "Genre";
+    return libGenreColName;
+  }
+
+  /** 
+   * \brief Gets the track column in the library table table.
+   *
+   * @return The name of the track column in the library table.
+   */
+  static const QString& getLibTrackColName(){
+    static const QString libTrackColName = "Track";
+    return libTrackColName;
+  }
+
+  /** 
    * \brief Gets the is deleted column in the library table table.
    *
    * @return The name of the is deleted column in the library table.
@@ -432,6 +537,16 @@ public:
   }
 
   /** 
+   * \brief Gets the is banned column in the library table table.
+   *
+   * @return The name of the is banned column in the library table.
+   */
+  static const QString& getLibIsBannedColName(){
+    static const QString libIsBannedColName = "is_banned";
+    return libIsBannedColName;
+  }
+
+  /**
    * \brief Gets the sycn status column in the library table table.
    *
    * @return The name of the sycn status column in the library table.
@@ -466,6 +581,18 @@ public:
   }
 
   /** 
+   * \brief Gets the value for the "needs ban" sync status used in the 
+   * library table.
+   *
+   * @return The value for the "needs ban" sync status used in the library
+   * table.
+   */
+  static const lib_sync_status_t& getLibNeedsBanSyncStatus(){
+    static const lib_sync_status_t libNeedsBanStatus = 3;
+    return libNeedsBanStatus;
+  }
+
+  /**
    * \brief Gets the value for the "is synced" sync status used in the library
    * table.
    *
@@ -476,315 +603,142 @@ public:
     static const lib_sync_status_t libIsSyncedStatus = 0;
     return libIsSyncedStatus;
   }
-  
-  /** 
-   * \brief Gets the name of the song list table.
-   *
-   * @return The name of the song list table.
-   */
-  static const QString& getSongListTableName(){
-    static const QString songListTableName = "song_list";
-    return songListTableName;
-  }
-
-  /** 
-   * \brief Gets the name of the id column in the song list table.
-   *
-   * @return The name of the id column in the song list table.
-   */
-  static const QString& getSongListIdColName(){
-    static const QString songListIdColName = "id";
-    return songListIdColName;
-  }
-
-  /** 
-   * \brief Gets the name of the name column in the song list table.
-   *
-   * @return The name of the name column in the song list table.
-   */
-  static const QString& getSongListNameColName(){
-    static const QString songListNameColName = "name";
-    return songListNameColName;
-  }
-
-  /** 
-   * \brief Gets the name of the song list entry table.
-   *
-   * @return The name of the song list entry table.
-   */
-  static const QString& getSongListEntryTableName(){
-    static const QString songListEntryTableName = "songlist_entry";
-    return songListEntryTableName;
-  }
-
-  /** 
-   * \brief Gets the name of the id column in the song list entry table.
-   *
-   * @return The name of the id column in the song list entry table.
-   */
-  static const QString& getSongListEntryIdColName(){
-    static const QString songListEntryIdColName = "id";
-    return songListEntryIdColName;
-  }
-
-  /** 
-   * \brief Gets the name of the song id column (the column which refers to the
-   * library entry this song list entry corresponds to) in the song list entry 
-   * table.
-   *
-   * @return The name of the song id column in the song list entry table.
-   */
-  static const QString& getSongListEntrySongIdColName(){
-    static const QString songListEntrySongIdColName = "lib_id";
-    return songListEntrySongIdColName;
-  }
-
-  /** 
-   * \brief Gets the name of the song list id column 
-   * (the column which refers to the song list in which this entry belongs) 
-   * in the song list entry table.
-   *
-   * @return The name of the song list id column in the song list entry table.
-   */
-  static const QString& getSongListEntrySongListIdColName(){
-    static const QString songListEntrySongListIdColName = "songlist_id";
-    return songListEntrySongListIdColName;
-  }
-
-  /** 
-   * \brief Get the name of the available music table.
-   *
-   * \brief The name of the available music table.
-   */
-  static const QString& getAvailableMusicTableName(){
-    static const QString availableMusicTableName = "available_music";
-    return availableMusicTableName;
-  }
-
-  /** 
-   * \brief Get the name of the library id column. This is the column which 
-   * connects * a particular record in the available entry table to the 
-   * corresponding entry in the library table.
-   *
-   * @return The name of the library id column.
-   */
-  static const QString& getAvailableEntryLibIdColName(){
-    static const QString availableEntryLibIdColName = "lib_id";
-    return availableEntryLibIdColName;
-  }
-
-  /** 
-   * \brief Get the name of the "is deleted" column.
-   *
-   * @return The name of the "is deleted" column.
-   */
-  static const QString& getAvailableEntryIsDeletedColName(){
-    static const QString availEntryIsDeletedColName = "is_deleted";
-    return availEntryIsDeletedColName;
-  }
-
-  /** 
-   * \brief Get the name of the sync status column.
-   *
-   * @return The name of the sync status column.
-   */
-  static const QString& getAvailableEntrySyncStatusColName(){
-    static const QString availEntrySyncStatusColName = "sync_status";
-    return availEntrySyncStatusColName;
-  }
 
   /**
-   * \brief Gets the availabe music entry "needs add" sync status.
+   * \brief Gets the name of the LibIdAlias column for the playlist view.
    *
-   * @return The availabe music entry "needs add" sync status.
+   * @return The name of the LibIdAlias column for the playlist view.
    */
-  static const avail_music_sync_status_t& getAvailableEntryNeedsAddSyncStatus(){
-    static const avail_music_sync_status_t availEntryNeedsAddSyncStatus = 1;
-    return availEntryNeedsAddSyncStatus;
-  }
-
-  /**
-   * \brief Gets the availabe music entry "needs delete" sync status.
-   *
-   * @return The availabe music entry "needs delete" sync status.
-   */
-  static const avail_music_sync_status_t& 
-    getAvailableEntryNeedsDeleteSyncStatus()
-  {
-    static const avail_music_sync_status_t availEntryNeedsDeleteSyncStatus = 2;
-    return availEntryNeedsDeleteSyncStatus;
-  }
-
-  /**
-   * \brief Gets the availabe music entry "is sycned" sync status.
-   *
-   * @return The availabe music entry "is sycned" sync status.
-   */
-  static const avail_music_sync_status_t& getAvailableEntryIsSyncedStatus(){
-    static const avail_music_sync_status_t availEntryIsSyncedStatus = 0;
-    return availEntryIsSyncedStatus;
-  }
-
-  /**
-   * \brief Gets the name of the available music view. This is a view which is a
-   * join between the available music table and the library table.
-   *
-   * @return The name of the available music view.
-   */
-  static const QString& getAvailableMusicViewName(){
-    static const QString availableMusicViewName ="available_music_view";
-    return availableMusicViewName;
-  }
-
-  static const QString& getEventGoersIdColName(){
-    static const QString eventGoersIdColName = "id";
-    return eventGoersIdColName;
-  }
-
-  static const QString& getEventGoerUsernameColName(){
-    static const QString eventGoersUsernameColName = "username";
-    return eventGoersUsernameColName;
-  }
-
-  static const QString& getEventGoerFirstNameColName(){
-    static const QString eventGoerFirstNameColName = "first_name";
-    return eventGoerFirstNameColName;
-  }
-
-  static const QString& getEventGoerLastNameColName(){
-    static const QString eventGoerLastNameColName = "last_name";
-    return eventGoerLastNameColName;
-  }
-
-  static const QString& getEventGoerStateColName(){
-    static const QString eventGoerStateColName = "state";
-    return eventGoerStateColName;
-  }
-
-  static const QString& getEventGoerInEventState(){
-    static const QString inEventState = "IE";
-    return inEventState;
-  }
-
-  static const QString& getEventGoerLeftEventState(){
-    static const QString leftEventState = "LE";
-    return leftEventState;
-  }
-
   static const QString& getLibIdAlias(){
     static const QString libIdAlias = "libIdAlias";
     return libIdAlias;
   }
 
   /**
-   * Gets the name of the active playlist remove request table.
+   * \brief Gets the name of the player id setting.
    *
-   * @return the name of the active playlist remove request table.
+   * @return The name of the player id setting.
    */
-  static const QString& getPlaylistRemoveRequestsTableName(){
-    static const QString playlistRemoveRequestsTableName = 
-      "playlist_remove_requests";
-    return playlistRemoveRequestsTableName;
+  static const QString& getPlayerIdSettingName(){
+    static const QString playerIdSetting = "playerId";
+    return playerIdSetting;
   }
- 
-  /** 
-   * \brief Get the name for the lib id column in the playlist remove request 
-   * table.
+
+  /**
+   * \brief Gets the name of the player volume setting.
    *
-   * @return The name fo the lib id column in the playlist remove request table.
+   * @return The name of the player volume setting.
    */
-  static const QString& getPlaylistRemoveIdColName(){
-    static const QString playlistRemoveRequestIdColName = "id";
-    return playlistRemoveRequestIdColName;
+  static const QString& getPlayerVolumeSettingName(){
+    static const QString playerVolumeSettingName = "volume";
+    return playerVolumeSettingName;
   }
-  
-  /** 
-   * \brief Get the name for the lib id column in the playlist remove request 
-   * table.
+
+  /**
+   * \brief Gets the name of the player name setting.
    *
-   * @return The name fo the lib id column in the playlist remove request table.
+   * @return The name of the player name setting.
    */
-  static const QString& getPlaylistRemoveEntryIdColName(){
-    static const QString playlistRemoveLibIdColName = "playlist_id";
-    return playlistRemoveLibIdColName;
+  static const QString& getPlayerNameSettingName(){
+    static const QString playerIdSetting = "playerName";
+    return playerIdSetting;
   }
 
-  /** 
-   * \brief Get the name fo the sync status column in the playlist remove 
-   * request table.
+  /**
+   * \brief Gets the name of the player state setting.
    *
-   * @return The name fo the lib sync status column in the playlist remove 
-   * request table.
+   * @return The name of the player state setting.
    */
-  static const QString& getPlaylistRemoveSycnStatusColName(){
-    static const QString playlistRemoveSycnStatusColName = "sync_status";
-    return playlistRemoveSycnStatusColName;
+  static const QString& getPlayerStateSettingName(){
+    static const QString playerStateSettingName = "playerState";
+    return playerStateSettingName;
   }
 
-  /** 
-   * \brief Gets the sync status used in the playlist edd request table to 
-   * indicate that an remove is synced.
+  /**
+   * \brief Gets the name of the player address setting.
    *
-   * @return The sync status used in the playlist remove request table to 
-   * indicate that an remove is synced.
+   * @return The name of the player address setting.
    */
-  static const playlist_remove_sync_status_t& getPlaylistRemoveNeedsSync(){
-    static const playlist_remove_sync_status_t needs_sync = 1;
-    return needs_sync;
+  static const QString& getAddressSettingName(){
+    static const QString addressSettingName = "address";
+    return addressSettingName;
   }
 
-  /** 
-   * \brief Gets the sync status used in the playlist remove request table to 
-   * indicate that an remove is synced.
+  /**
+   * \brief Gets the name of the player city setting.
    *
-   * @return The sync status used in the playlist remove request table to 
-   * indicate that an remove is synced.
+   * @return The name of the player city setting.
    */
-  static const playlist_remove_sync_status_t& getPlaylistRemoveIsSynced(){
-    static const playlist_remove_sync_status_t isSynced = 0;
-    return isSynced;
+  static const QString& getCitySettingName(){
+    static const QString citySettingName = "city";
+    return citySettingName;
   }
 
-  static const QString& getEventIdSettingName(){
-    static const QString eventIdSetting = "eventId";
-    return eventIdSetting;
+  /**
+   * \brief Gets the name of the player state setting.
+   *
+   * @return The name of the player state setting.
+   */
+  static const QString& getStateSettingName(){
+    static const QString stateSettingName = "state";
+    return stateSettingName;
   }
 
-  static const QString& getEventNameSettingName(){
-    static const QString eventIdSetting = "eventName";
-    return eventIdSetting;
+  /**
+   * \brief Gets the name of the player zip code setting.
+   *
+   * @return The name of the player zip code setting.
+   */
+  static const QString& getZipCodeSettingName(){
+    static const QString zipCodeSettingName = "zipCode";
+    return zipCodeSettingName;
   }
 
-  static const QString& getEventStateSettingName(){
-    static const QString eventStateSettingName = "eventState";
-    return eventStateSettingName;
+  /**
+   * \brief Gets the value corresponding to an playling player state.
+   *
+   * @return The value corresponding to an playling player state.
+   */
+  static const QString& getPlayingState(){
+    static const QString playingState = "playing";
+    return playingState;
   }
 
-  static const QString& getNotHostingEventState(){
-    static const QString notHostingEventState = "notHostingEvent";
-    return notHostingEventState;
+  /**
+   * \brief Gets the value corresponding to an inactive player state.
+   *
+   * @return The value corresponding to an inactive player state.
+   */
+  static const QString& getPausedState(){
+    static const QString pausedState = "paused";
+    return pausedState;
   }
 
-  static const QString& getCreatingEventState(){
-    static const QString creatingEventState = "creatingEventState";
-    return creatingEventState;
+  /**
+   * \brief Gets the value corresponding to an inactive player state.
+   *
+   * @return The value corresponding to an inactive player state.
+   */
+  static const QString& getInactiveState(){
+    static const QString inactiveState = "inactive";
+    return inactiveState;
   }
 
-  static const QString& getHostingEventState(){
-    static const QString eventHostingState = "hostingEvent";
-    return eventHostingState;
-  }
-
-  static const QString& getEndingEventState(){
-    static const QString endingEventState = "endingEventState";
-    return endingEventState;
-  }
-
+  /**
+   * \brief Gets the value used for the Settings Organization.
+   *
+   * @return The value of the settings organization.
+   */
   static const QString& getSettingsOrg(){
     static const QString settingsOrg = "Bazaar Solutions";
     return settingsOrg;
   }
 
+  /**
+   * \brief Gets the value used for the Settings App.
+   *
+   * @return The value of the settings app.
+   */
   static const QString& getSettingsApp(){
     static const QString settingsApp = "UDJ";
     return settingsApp;
@@ -796,113 +750,77 @@ public:
 //@{
 public slots:
 
-  /**
-   * \brief Add the given song to the list of available songs.
-   *
-   * @param song_id The id of the song to be added to the list of available 
-   * songs.
-   */
-  void addSongToAvailableSongs(library_song_id_t song_id);
+  void pausePlayer();
 
-  /**
-   * \brief Add a list of songs to the list of available songs.
-   *
-   * @param song_ids The ids of the songs to be added to the list of available 
-   * songs.
-   */
-  void addSongsToAvailableSongs(const std::vector<library_song_id_t>& song_ids);
+  void playPlayer();
 
   /**
    * \brief Refresh the active playlist table.
    */
   void refreshActivePlaylist();
 
-  void refreshEventGoers();
+  /**
+   * \brief Adds the given song to the active playlist.
+   *
+   * @param libraryId The song to add to the active playlist.
+   */
+  void addSongToActivePlaylist(library_song_id_t libraryId);
 
   /**
-   * \brief Adds the specified song to the playlist.
+   * \brief Adds the given songs to the active playlist.
    *
-   * @param libraryId Id of the song to add to the playlist.
+   * @param libIds The songs to add to the active playlist.
    */
-	void addSongToActivePlaylist(library_song_id_t libraryId);
-
-  /** 
-   * \brief Add the given songs to the active playlist.
-   *
-   * @param libraryIds The ids of the songs to be added to the active playlist.
-   */
-	void addSongsToActivePlaylist(
-    const std::vector<library_song_id_t>& libraryIds);
-
-  /** 
-   * \brief Remove the given songs to the list of available songs.
-   *
-   * @param libraryIds The ids of the songs to be removed to the 
-   * the list of available songs.
-   */
-  void removeSongsFromAvailableMusic(
-    const std::vector<library_song_id_t>& libraryIds);
+  void addSongsToActivePlaylist(const QSet<library_song_id_t>& libIds);
 
   /**
-   * \brief Removes the specified song from the active playlist.
+   * \brief Removes the given songs to the active playlist.
    *
-   * @param plId Id of the song to remove from the active playlist.
+   * @param libraryIds The songs to remove to the active playlist.
    */
-	void removeSongFromActivePlaylist(playlist_song_id_t plId);
-
-  /**
-   * \brief Removes the specified songs from the active playlist.
-   *
-   * @param pl_ids Ids of the songs to be removed from the active playlist.
-   */
-  void removeSongsFromActivePlaylist(
-    const std::vector<playlist_song_id_t>& pl_ids);
+  void removeSongsFromActivePlaylist(const QSet<library_song_id_t>& libraryIds);
 
   /** 
-   * \brief Creates a new event with the given name and password.
+   * \brief Creates a new player with the given name and password.
    *
-   * @param name The name of the event.
-   * @param password The password for the event (maybe empty).
+   * @param name The name of the player.
+   * @param password The password for the event (is allowed to be empty, thus setting no password).
    */
-  void createNewEvent(
-    const QString& name, 
+  void createNewPlayer(
+    const QString& name,
     const QString& password);
 
-  void createNewEvent(
-    const QString& name, 
+  /** 
+   * \brief Creates a new player with the given name, password, and location.
+   *
+   * @param name The name of the player.
+   * @param password The password for the event (is allowed to be empty, thus setting no password).
+   * @param streetAddress The street address of the player.
+   * @param city The city of the player.
+   * @param state The state of the player.
+   * @param zipcode The zipcode of the player.
+   */
+  void createNewPlayer(
+    const QString& name,
     const QString& password,
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const QString& zipcode);
-
-  /** 
-   * \brief Ends the current event.
-   */
-  void endEvent();
+    const int& zipcode);
 
   /** 
    * \brief Sets the current song to the speicified song.
    *
    * @param songToPlay The playlist id of the song to be played.
    */
-  void setCurrentSong(playlist_song_id_t songToPlay);
+  void setCurrentSong(const library_song_id_t& songToPlay);
 
-  void deleteSongList(song_list_id_t songListId);
-
-  void addSongsToSongList(
-    song_list_id_t songListId,
-    const std::vector<library_song_id_t>& songsToAdd);
-
-  void removeSongsFromSongList(
-    const song_list_id_t &songListId,
-    const std::vector<library_song_id_t>& songsToRemove);
-
-  void addSongListToAvailableMusic(song_list_id_t songListId);
-
-  void pausePlaylistUpdates();
-
-  void resumePlaylistUpdates();
+  /** 
+   * \brief Changes the volume without emtting a signal noting that the volume has changed.
+   *
+   * @param newVolume The new player volume.
+   */
+  void changeVolumeSilently(qreal newVolume);
 
   //@}
 
@@ -916,32 +834,18 @@ signals:
    */
   void libSongsModified();
 
-  /**
-   * \brief Emitted when the list of available songs is modified.
-   */
-  void availableSongsModified();
 
   /**
-   * \brief Emitted when an event is created.
+   * \brief Emitted when a player is created.
    */
-  void eventCreated();
+  void playerCreated();
 
   /**
-   * \brief Emitted when the creation of an event fails.
+   * \brief Emitted when the creation of a player fails.
    *
    * @param errMessage Error message describing what happened.
    */
-  void eventCreationFailed(const QString errMessage);
-
-  /**
-   * \brief Emitted when the event ends.
-   */
-  void eventEnded();
-
-  /**
-   * \brief Emitted when ending an event fails.
-   */
-  void eventEndingFailed(const QString errMessage);
+  void playerCreationFailed(const QString errMessage);
 
   /**
    * \brief Emitted when the active playlist is modified.
@@ -953,13 +857,21 @@ signals:
    *
    * @param newSong The song that should be set as the current song.
    */
-  void manualSongChange(Phonon::MediaSource newSong);
+  void manualSongChange(DataStore::song_info_t newSong);
 
-  void eventGoersModified();
+  /**
+   * \brief Emitted when the players state is changed.
+   *
+   * \param newState The new state of the player.
+   */
+  void playerStateChanged(const QString& newState);
 
-  void songListModified(song_list_id_t songListId);
-
-  void songListDeleted(song_list_id_t songListId);
+  /**
+   * \brief Emitted when the volume of the player is changed.
+   *
+   * @param newVolume The new volume of the player.
+   */
+  void volumeChanged(qreal newVolume);
 
 //@}
 
@@ -974,19 +886,30 @@ private:
   /** \brief Actual database connection */
   QSqlDatabase database;
 
-  /** \brief Name of current event being hosted. */
-  QString eventName;
-
   /** \brief Timer used to refresh the active playlist. */
   QTimer *activePlaylistRefreshTimer;
 
-  QTimer *eventGoerRefreshTimer;
-
+  /** \brief Current username being used by the client */
   QString username;
 
+  /** \brief Current password being used by the client */
   QString password;
 
-  CommErrorHandler *errorHandler;
+  /** \brief A set of actions to be performed once the client has succesfully reauthenticated. */
+  QSet<ReauthAction> reauthActions;
+
+  /** \brief Whether or not the client is currently reauthenticating. */
+  bool isReauthing;
+
+  /** \brief The current song being played. */
+  library_song_id_t currentSongId;
+
+  /** \brief The set of songs that still need to be added to the active playlist. */
+  QSet<library_song_id_t> playlistIdsToAdd;
+
+  /** \brief The set of songs that still need to be removed from the active playlist. */
+  QSet<library_song_id_t> playlistIdsToRemove;
+
   //@}
 
   /** @name Private Functions */
@@ -1001,40 +924,71 @@ private:
   void clearActivePlaylist();
 
   /**
-   * \brief Adds a song to the active playlist table.
-   *
-   * @param songToAdd A QVariantMap which represents the song to be added to
-   * the active playlsit table.
-   * @param pritority The priority of the song to be added to the active 
-   * playlist.
+   * \brief Initiates reauthentication if it hasn't already been initiated.
    */
-  void addSong2ActivePlaylistFromQVariant(
-    const QVariantMap &songToAdd, int priority);
+  void initReauth();
 
-  static QString getMachineUUID();
+  /**
+   * \brief Performs the specified ReauthAction.
+   *
+   * @param action The ReauthAction to preform.
+   */
+  void doReauthAction(const ReauthAction& action);
+
+  /**
+   * \brief Adds a single song to the music library.
+   *
+   * @param song Song to be added to the library.
+   */
+  void addSongToLibrary(const Phonon::MediaSource& song);
+
+  /**
+   * \brief Gets the value of a header.
+   *
+   * @param headerName The name of the desired header.
+   * @param headers The given headers.
+   * @return The value of the header. If the header is not located in the given headers a blank
+   * string is returned.
+   */
+  static QByteArray getHeaderValue(
+    const QByteArray& headerName, const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Determines whether or not an error is a ticket auth error.
+   * 
+   * \param errorCode The given error code from the server.
+   * \param headers The given headers from the server.
+   * \return True if the error is a ticket auth error, false otherwise.
+   */
+  static inline bool isTicketAuthError(
+      int errorCode,
+      const QList<QNetworkReply::RawHeaderPair>& headers)
+  {
+    return errorCode==401 && getHeaderValue("WWW-Authenticate", headers) == "ticket-hash";
+  }
 
   //@}
 
   /** @name Private Constants */
   //@{
   /**
-   * \brief Retrieves the name of the connection to the musicdb.
+   * \brief Retrieves the name of the connection to the playerdb.
    *
-   * @return The name of the connection to the musicdb.
+   * @return The name of the connection to the playerdb.
    */
-  static const QString& getMusicDBConnectionName(){
-    static const QString musicDBConnectionName("musicdbConn");
-    return musicDBConnectionName;
+  static const QString& getPlayerDBConnectionName(){
+    static const QString playerDBConnectionName("playerdbConn");
+    return playerDBConnectionName;
   }
 
   /**
-   * \brief Retrieves the name of the music database.
+   * \brief Retrieves the name of the player database.
    *
-   * @return The name of the the music database.
+   * @return The name of the the player database.
    */
-  static const QString& getMusicDBName(){
-    static const QString musicDBName("musicdb");
-    return musicDBName;
+  static const QString& getPlayerDBName(){
+    static const QString playerDBName("playerdb");
+    return playerDBName;
   }
 
   /** 
@@ -1043,16 +997,19 @@ private:
    * @return The query used to create the library table.
    */
   static const QString& getCreateLibraryQuery(){
-    static const QString createLibQuerey = 
-      "CREATE TABLE IF NOT EXISTS " + 
+    static const QString createLibQuery =
+      "CREATE TABLE IF NOT EXISTS " +
       getLibraryTableName() +
       "(" + getLibIdColName() + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-   	  getLibSongColName() + " TEXT NOT NULL, " +
+      getLibSongColName() + " TEXT NOT NULL, " +
       getLibArtistColName() + " TEXT NOT NULL, "+
-      getLibAlbumColName() + " TEXT NOT NULL, " + 
+      getLibAlbumColName() + " TEXT NOT NULL, " +
+      getLibGenreColName() + " TEXT NOT NULL, " +
+      getLibTrackColName() + " INTEGER NOT NULL, " +
       getLibFileColName() + " TEXT NOT NULL, " +
-      getLibDurationColName() + " INTEGER NOT NULL, "+
-      getLibIsDeletedColName() + " INTEGER DEFAULT 0, " + 
+      getLibDurationColName() + " INTEGER NOT NULL, " +
+      getLibIsDeletedColName() + " INTEGER DEFAULT 0, " +
+      getLibIsBannedColName() + " INTEGER DEFAULT 0, " +
       getLibSyncStatusColName() + " INTEGER DEFAULT " +
         QString::number(getLibNeedsAddSyncStatus()) + " " +
       "CHECK("+
@@ -1061,87 +1018,32 @@ private:
         getLibSyncStatusColName()+"="+
           QString::number(getLibNeedsAddSyncStatus()) +" OR " +
         getLibSyncStatusColName()+"="+
-          QString::number(getLibNeedsDeleteSyncStatus()) +
+          QString::number(getLibNeedsDeleteSyncStatus()) +" OR " +
+        getLibSyncStatusColName()+"="+
+          QString::number(getLibNeedsBanSyncStatus()) +
       "));";
-        
-    return createLibQuerey;
+
+    return createLibQuery;
   }
 
-  /** 
-   * \brief Gets the query used to create the song list table.
-   *
-   * @return The query used to create the song list table.
-   */
-  static const QString& getCreateSongListTableQuery(){
-    static const QString createSongListTableQuery = 
-      "CREATE TABLE IF NOT EXISTS " +
-      getSongListTableName() + "(" +
-      getSongListIdColName() + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-      getSongListNameColName() + " TEXT NOT NULL UNIQUE);";
-    return createSongListTableQuery;
-  }
-
-  /** 
-   * \brief Gets the query used to create the song list entry table.
-   *
-   * @return The query used to create the song list entry table.
-   */
-  static const QString& getCreateSongListEntryTableQuery(){
-    static const QString createSongListEntryTableQuery = 
-      "CREATE TABLE IF NOT EXISTS " +
-      getSongListEntryTableName() + "(" + 
-      getSongListEntryIdColName() + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-      getSongListEntrySongIdColName() + " INTEGER REFERENCES " +
-        getLibraryTableName() +"(" + getLibIdColName()+ ") ON DELETE CASCADE, "+
-      getSongListEntrySongListIdColName() + " INTEGER REFERENCES " +
-        getSongListTableName() +"(" + getSongListIdColName()+ 
-        ") ON DELETE CASCADE);";
-    return createSongListEntryTableQuery;
-  }
-
-  /** 
-   * \brief Gets the query used to create the available music table.
-   *
-   * @return The query used to create the available music table.
-   */
-  static const QString& getCreateAvailableMusicQuery(){
-    static const QString createAvailableMusicQuery = 
-      "CREATE TABLE IF NOT EXISTS " +
-      getAvailableMusicTableName() + "(" +
-      getAvailableEntryLibIdColName() + " INTEGER PRIMARY KEY REFERENCES " +
-        getLibraryTableName() +"(" + getLibIdColName()+ ") ON DELETE CASCADE," +
-      getAvailableEntryIsDeletedColName() + " INTEGER DEFAULT 0, " + 
-      getAvailableEntrySyncStatusColName() + " INTEGER DEFAULT " +
-        QString::number(getAvailableEntryNeedsAddSyncStatus()) + " " +
-      "CHECK("+
-        getAvailableEntrySyncStatusColName()+"="+
-          QString::number(getAvailableEntryIsSyncedStatus()) +" OR " +
-        getAvailableEntrySyncStatusColName()+"="+
-          QString::number(getAvailableEntryNeedsAddSyncStatus()) +" OR " +
-        getAvailableEntrySyncStatusColName()+"="+
-          QString::number(getAvailableEntryNeedsDeleteSyncStatus()) +
-      "));";
-    return createAvailableMusicQuery;
-  }
-
-  /** 
+  /**
    * \brief Gets the query used to create the active playlist table.
    *
    * @return The query used to create the active playlist table.
    */
   static const QString& getCreateActivePlaylistQuery(){
-    static const QString createActivePlaylistQuery = 
+    static const QString createActivePlaylistQuery =
       "CREATE TABLE IF NOT EXISTS " +
       getActivePlaylistTableName() +  "(" +
-   	  getActivePlaylistIdColName() + " INTEGER PRIMARY KEY, " +
-   	  getActivePlaylistLibIdColName() + " INTEGER REFERENCES " +
-        getLibraryTableName() +"(" + getLibIdColName()+ ") ON DELETE CASCADE, "+
+      getActivePlaylistIdColName() + " INTEGER PRIMARY KEY, " +
+      getActivePlaylistLibIdColName() + " INTEGER REFERENCES " +
+      getLibraryTableName() +"(" + getLibIdColName()+ ") ON DELETE CASCADE, "+
       getDownVoteColName() + " INTEGER NOT NULL, " +
       getUpVoteColName() + " INTEGER NOT NULL, " +
       getPriorityColName() + " INTEGER NOT NULL, " +
       getAdderIdColName() + " INTEGER NOT NULL, " +
       getAdderUsernameColName() + " TEXT NOT NULL, " +
-   	  getTimeAddedColName() + " TEXT DEFAULT CURRENT_TIMESTAMP);";
+      getTimeAddedColName() + " TEXT DEFAULT CURRENT_TIMESTAMP);";
     return createActivePlaylistQuery;
   }
 
@@ -1157,7 +1059,7 @@ private:
       "AS SELECT " +
       getActivePlaylistTableName() + "." + getActivePlaylistIdColName() + "," +
       getActivePlaylistTableName() + "." + 
-        getActivePlaylistLibIdColName() + "," +
+      getActivePlaylistLibIdColName() + "," +
       getLibraryTableName() + "." + getLibSongColName() + "," +
       getLibraryTableName() + "." + getLibFileColName() + "," +
       getLibraryTableName() + "." + getLibArtistColName() + "," +
@@ -1168,28 +1070,13 @@ private:
       getActivePlaylistTableName() + "." + getAdderIdColName() + "," +
       getActivePlaylistTableName() + "." + getAdderUsernameColName() + "," +
       getActivePlaylistTableName() + "." + getTimeAddedColName() + "," +
-      getLibraryTableName() + "." + getLibIdColName() + 
-        " AS " + getLibIdAlias() + " " +
-      "FROM " + getActivePlaylistTableName()
-       + " INNER JOIN " +
+      getLibraryTableName() + "." + getLibIdColName() + " AS " + getLibIdAlias() + " " +
+      "FROM " + getActivePlaylistTableName() + " INNER JOIN " +
       getLibraryTableName() + " ON " + getActivePlaylistTableName() + "." +
       getActivePlaylistLibIdColName() + "=" + getLibraryTableName() + "." +
       getLibIdColName() +" "
       "ORDER BY " +getPriorityColName() + " ASC;";
     return createActivePlaylistViewQuery;
-  }
-
-  /**
-   * \brief Gets the query used to delete all entries in the available music
-   * table.
-   *
-   * @return The query used to delete all entries in the available music
-   * table.
-   */
-  static const QString& getDeleteAvailableMusicQuery(){
-		static const QString deleteAvailableMusicQuery = 
-      "DELETE FROM " + getAvailableMusicTableName() + ";";
-    return deleteAvailableMusicQuery;
   }
 
   /**
@@ -1206,182 +1093,35 @@ private:
   }
 
   /**
-   * \brief Gets the query used to delete all entries in the active playlist
-   * add requests table.
+   * \brief Name of the setting used to store the username being used by the client.
    *
-   * @return The query used to delete all entries in the active playlist
-   * add requests table.
+   * @return Name of the setting used to store the username being used by the client.
    */
-  static const QString& getDeleteAddRequestsQuery(){
-    static const QString deleteAddRequestsQuery = 
-      "DELETE FROM " + getPlaylistAddRequestsTableName() + ";";
-    return deleteAddRequestsQuery;
-  }
-
-  /**
-   * \brief Gets the query used to delete all entries in the active playlist
-   * remove requests table.
-   *
-   * @return The query used to delete all entries in the active playlist
-   * remove requests table.
-   */
-  static const QString& getDeleteRemoveRequestsQuery(){
-    static const QString deleteRemoveRequestsQuery = 
-      "DELETE FROM " + getPlaylistRemoveRequestsTableName() + ";";
-    return deleteRemoveRequestsQuery;
-  }
-
-  static const QString& getDeleteEventGoersQuery(){
-    static const QString deleteEventGoersQuery = 
-      "DELETE FROM " + getEventGoersTableName() + ";";
-    return deleteEventGoersQuery;
-  }
-
-
-  /**
-   * Gets the name of the active playlist add request table.
-   *
-   * @return the name of the active playlist add request table.
-   */
-  static const QString& getPlaylistAddRequestsTableName(){
-    static const QString playlistAddRequestsTableName = "playlist_add_requests";
-    return playlistAddRequestsTableName;
-  }
-
-  /** 
-   * \brief Get the name fo the id column in the playlist add request table.
-   *
-   * @return The name fo the id column in the playlist add request table.
-   */
-  static const QString& getPlaylistAddIdColName(){
-    static const QString playlistAddIdColName = "addId";
-    return playlistAddIdColName;
-  }
-
-  /** 
-   * \brief Get the name for the lib id column in the playlist add request 
-   * table.
-   *
-   * @return The name fo the lib id column in the playlist add request table.
-   */
-  static const QString& getPlaylistAddLibIdColName(){
-    static const QString playlistAddLibIdColName = "libId";
-    return playlistAddLibIdColName;
-  }
-
-  /** 
-   * \brief Get the name fo the sync status column in the playlist add request 
-   * table.
-   *
-   * @return The name fo the lib sync status column in the playlist add 
-   * request table.
-   */
-  static const QString& getPlaylistAddSycnStatusColName(){
-    static const QString playlistAddSyncStatusColName = "sync_status";
-    return playlistAddSyncStatusColName;
-  }
-
-  /** 
-   * \brief Gets the sync status used in the playlist add request table to 
-   * indicate that an add needs to be synced.
-   *
-   * @return The sync status used in the playlist add request table to 
-   * indicate that an add needs to be synced.
-   */
-  static const playlist_add_sync_status_t& getPlaylistAddNeedsSync(){
-    static const playlist_add_sync_status_t needsSyncStatus=1;
-    return needsSyncStatus;
-  }
-
-  /** 
-   * \brief Gets the sync status used in the playlist add request table to 
-   * indicate that an add is synced.
-   *
-   * @return The sync status used in the playlist add request table to 
-   * indicate that an add is synced.
-   */
-  static const playlist_add_sync_status_t& getPlaylistAddIsSynced(){
-    static const playlist_add_sync_status_t isSynced=0;
-    return isSynced;
-  }
-
-
-  /**
-   * \brief Gets the query used to create the playlist add request table.
-   *
-   * @return The query used to create the playlist add request table.
-   */
-  static const QString& getCreatePlaylistAddRequestsTableQuery(){
-    static const QString createPlaylistAddRequestsTableQuery =
-      "CREATE TABLE IF NOT EXISTS " + getPlaylistAddRequestsTableName() +
-      "(" + getPlaylistAddIdColName() + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-   	  getPlaylistAddLibIdColName() + " INTEGER REFERENCES " +
-        getLibraryTableName() +"(" + getLibIdColName()+ 
-        ") ON DELETE SET NULL , " +
-      getPlaylistAddSycnStatusColName() + " INTEGER DEFAULT " +
-        QString::number(getPlaylistAddNeedsSync()) + 
-      ");";
-    return createPlaylistAddRequestsTableQuery;
-  }
-
-  /**
-   * \brief Gets the query used to create the playlist remove request table.
-   *
-   * @return The query used to create the playlist remove request table.
-   */
-  static const QString& getCreatePlaylistRemoveRequestsTableQuery(){
-    static const QString createPlaylistRemoveRequestsTableQuery =
-      "CREATE TABLE IF NOT EXISTS " + getPlaylistRemoveRequestsTableName() +
-      "(" + getPlaylistRemoveIdColName() + 
-         " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-   	  getPlaylistRemoveEntryIdColName() + " INTEGER UNIQUE, " +
-      getPlaylistRemoveSycnStatusColName() + " INTEGER DEFAULT " +
-        QString::number(getPlaylistRemoveNeedsSync()) + 
-      ");";
-    return createPlaylistRemoveRequestsTableQuery;
-  }
-
-
-
-
-  static const QString& getCreateEventGoersTableQuery(){
-    static QString createEventGoersTableQuery = 
-      "CREATE TABLE IF NOT EXISTS " + getEventGoersTableName() + 
-      "(" + getEventGoersIdColName() + " INTEGER PRIMARY KEY, " + 
-      getEventGoerUsernameColName() + " TEXT NOT NULL, " +
-      getEventGoerFirstNameColName() + " TEXT, " +
-      getEventGoerLastNameColName() + " TEXT, " +
-      getEventGoerStateColName() + " TEXT NOT NULL " +
-      "CHECK("+
-        getEventGoerStateColName()+"=\""+
-           getEventGoerInEventState() +"\" OR " +
-        getEventGoerStateColName()+"=\""+
-           getEventGoerLeftEventState() +"\"" +
-      "));";
-    return createEventGoersTableQuery;
-  }
-
-
   static const QString& getUsernameSettingName(){
     static const QString usernameSettingName = "username";
     return usernameSettingName;
   }
 
+  /**
+   * \brief Name of the setting used to store the password being used by the client.
+   *
+   * @return Name of the setting used to store the password being used by the client.
+   */
   static const QString& getPasswordSettingName(){
     static const QString passwordSettingName = "password";
     return passwordSettingName;
   }
 
 
+  /**
+   * \brief Name of the setting used to store whether or not the current credentials are valid.
+   *
+   * @return Name of the setting used to store whether or not the current credentials are valid.
+   */
   static const QString& getHasValidCredsSettingName(){
     static const QString hasValidSavedCredentialsSettingName = 
       "has_valid_creds";
     return hasValidSavedCredentialsSettingName;
-  }
-
-  static const QString& getMachineUUIDSettingName(){
-    static const QString machineUUIDSettingName = "machine_uuid";
-    return machineUUIDSettingName;
   }
 
  //@}
@@ -1391,12 +1131,17 @@ private:
 private slots:
 
   /**
+   * \brief Syncs the current state of the library with the server.
+   */
+  void syncLibrary();
+
+  /**
    * \brief Sets the sync status of a library song to synced.
    *
    * @param song The id of the song whose sync status should be set to synced.
    */
   void setLibSongSynced(library_song_id_t song);
-  
+
   /**
    * \brief Sets the sync status of the given library songs to synced.
    *
@@ -1404,7 +1149,7 @@ private slots:
    * to synced.
    */
   void setLibSongsSynced(const std::vector<library_song_id_t> songs);
-  
+
   /**
    * \brief Sets the sync status of the given library songs to the given
    * given sync status.
@@ -1415,82 +1160,134 @@ private slots:
   void setLibSongsSyncStatus(
     const std::vector<library_song_id_t> songs,
     const lib_sync_status_t syncStatus);
-  
+
+
   /**
-   * \brief Sets the sync status of an available song entry to synced.
+   * \brief Adds the given song to the active playlist in the database.
    *
-   * @param song The id of the song whose sync status should be set to synced.
+   * @param songToAdd A QVariantMap representing the song that should be added to the active
+   * playlist in the database.
+   * @param priority The priority of the song to be added.
    */
-  void setAvailableSongSynced(const library_song_id_t songs);
-  
+  void addSong2ActivePlaylistFromQVariant(const QVariantMap &songToAdd, int priority);
+
   /**
-   * \brief Sets the sync statuses of the give available song entries to synced.
+   * \brief Sets the active playlist to the given playlist.
    *
-   * @param songs The ids of the songs whose sync status should be set to 
-   * synced.
+   * @param newPlaylist The new playlist to be set in the database.
    */
-  void setAvailableSongsSynced(const std::vector<library_song_id_t> songs);
-  
+  void setActivePlaylist(const QVariantMap& playlist);
+
   /**
-   * \brief Sets the sync statuses of the give available song entries to the
-   * given sync status.
+   * \brief Takes appropriate action when retreiving the active playlist fails.
    *
-   * @param songs The ids of the songs whose sync status should be set.
-   * @param syncStatus The sync status to which the songs should be set.
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
    */
-  void setAvailableSongsSyncStatus(
-    const std::vector<library_song_id_t> songs,
-    const avail_music_sync_status_t syncStatus);
-  
+  void onGetActivePlaylistFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
   /**
-   * \brief Preforms certain cleanup operations once an event has ended.
-   */
-  void eventCleanUp();
-  
-  /**
-   * \brief Sets the active playlist to the given songs.
+   * \brief Takes the appropriate action when a player is succesfully created.
    *
-   * @param newSongs The new songs which should populate the active playlist.
+   * @param issuedId The id the server issued to the player that was created.
    */
-  void setActivePlaylist(const QVariantList newSongs);
+  void onPlayerCreate(const player_id_t& issuedId);
 
   /**
-   * \brief Sets the given playlist add request sync statuses' to sycned.
+   * \brief Takes appropriate action when creating a player fails.
    *
-   * @param toSetSynced The add request whose sync statuses' should be set
-   * to synced.
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
    */
-  void setPlaylistAddRequestsSynced(const std::vector<client_request_id_t> 
-    toSetSynced);
+  void onPlayerCreationFailed(const QString& errMessage, int errorCode,
+          const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief Sets the given playlist remove request sync statuses' to sycned.
-   *
-   * @param toSetSynced The remove request whose sync statuses' should be set
-   * to synced.
+   * \brief Takes appropriate action when the player state is changed.
    */
-  void setPlaylistRemoveRequestSynced(const playlist_song_id_t id);
-
-  void processNewEventGoers(QVariantList newEventGoers);
-
-  void addOrInsertEventGoer(const QVariantMap& eventGoer);
-
-  bool alreadyHaveEventGoer(user_id_t id);
-
-  void updateEventGoer(const QVariantMap &eventGoer);
-
-  void insertEventGoer(const QVariantMap &eventGoer);
-
-  void onEventCreate(const event_id_t& issuedId);
-
-  void onEventCreateFail(const QString message);
-
-  void onEventEnd();
-
-  void onEventEndFail(const QString message);
+  void onPlayerStateChanged(const QString& newState);
 
 
+  /**
+   * \brief Takes appropriate action when modifiying the library on the server fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void onLibModError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
+  /**
+   * \brief Takes appropriate action when retreiving setting the current song on the server fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void onSetCurrentSongFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Takes appropriate action when the client succesfully reauthenticates.
+   *
+   * \param ticketHash The ticket hash that was recieved from the server.
+   * \param userId The userId that was recieved from the server.
+   */
+  void onReauth(const QByteArray& ticketHash, const user_id_t& userId);
+
+  /**
+   * \brief Takes appropriate action when reauthentication fails.
+   *
+   * \param errMessage Error message given by the server.
+   */
+  void onAuthFail(const QString& errMessage);
+
+  /**
+   * \brief Takes appropriate action when the active playlist is succesfully modified on the server.
+   *
+   * \param added The songs that were added to the active playlist on the server.
+   * \param removed The songs that were removed from the active playlist on the server.
+   */
+  void onActivePlaylistModified(
+    const QSet<library_song_id_t>& added,
+    const QSet<library_song_id_t>& removed);
+
+  /**
+   * \brief Takes appropriate action when modifiying the active playlist on the server fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void onActivePlaylistModFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Takes appropriate action when setting the volume fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void onSetVolumeFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  //@}
 
 
 //@}
