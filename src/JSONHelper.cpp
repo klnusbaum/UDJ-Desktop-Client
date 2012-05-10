@@ -20,6 +20,7 @@
 #include "JSONHelper.hpp"
 #include "qt-json/json.h"
 #include <QSet>
+#include <iostream>
 
 namespace UDJ{
 

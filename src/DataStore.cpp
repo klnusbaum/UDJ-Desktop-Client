@@ -28,6 +28,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QDateTime>
+#include <QSqlError>
 #include <tag.h>
 #include <tstring.h>
 #include <fileref.h>
