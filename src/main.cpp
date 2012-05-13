@@ -19,19 +19,9 @@
 #include <QApplication>
 #include <QIcon>
 #include "LoginDialog.hpp"
-#ifdef WIN32
-#include <QSslConfiguration>
-#include <iostream>
-#endif
 
 int main(int argc, char* argv[]){
   QApplication app(argc, argv);
-  #ifdef WIN32
-  std::cout << "disabling ssl config" << std::endl;
-  QSslConfiguration defaultConfig = QSslConfiguration::defaultConfiguration();
-  defaultConfig.setPeerVerifyMode(QSslSocket::VerifyNone);
-  QSslConfiguration::setDefaultConfiguration(defaultConfig);
-  #endif
   QIcon windowIcon("udjlauncher.svg");
   QApplication::setWindowIcon(windowIcon);
   app.setApplicationName("Udj");
