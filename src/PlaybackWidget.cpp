@@ -25,8 +25,40 @@
 #include <QVBoxLayout>
 #include <QToolBar>
 #include <QStyle>
+#include <QDesktopServices>
+#include <QFile>
+
+#ifdef WIN32
+#include <mpegfile.h>
+void removeTags(UDJ::DataStore::song_info_t& song){
+  if(song.source.fileName().endsWith(".mp3")){
+    DEBUG_MESSAGE("On windows and got mp3, copying and striping metadata tags")
+    QString tempCopy = QDesktopServices::storageLocation(QDesktopServices::TempLocation) + "/striped.mp3";
+    if(QFile::exists(tempCopy)){
+      DEBUG_MESSAGE("Prevoius file existed, deleting now");
+      if(QFile::remove(tempCopy)){
+        DEBUG_MESSAGE("File removal worked")
+      }
+    }
+    bool fileCopyWorked = QFile::copy(song.source.fileName(), tempCopy);
+    if(!fileCopyWorked){
+      DEBUG_MESSAGE("File copy didn't work");
+      return;
+    }
+
+    TagLib::MPEG::File file(tempCopy.toStdString().c_str()); 
+    file.strip();
+    file.save();
+    Phonon::MediaSource newSource(tempCopy);
+    song.source = newSource;
+  }
+
+}
+#endif
+
 
 namespace UDJ{
+
 
 
 PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
@@ -109,6 +141,9 @@ void PlaybackWidget::stateChanged(
 
 void PlaybackWidget::playNextSong(){
   DataStore::song_info_t nextSong = dataStore->takeNextSongToPlay();
+  #ifdef WIN32
+  removeTags(nextSong);
+  #endif
   mediaObject->setCurrentSource(nextSong.source);
   if(nextSong.source.type() != Phonon::MediaSource::Empty){
     mediaObject->play();
@@ -200,6 +235,11 @@ void PlaybackWidget::createActions(){
 }
 
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
+  #ifdef WIN32
+  //Phonon on windows doesn't like compressed id3 tags. so we have to
+  //uncrompress them. Tis a bitch.
+  removeTags(newSong);
+  #endif
   DEBUG_MESSAGE("in set new source")
   mediaObject->setCurrentSource(newSong.source);
   songInfo->setText(newSong.title + " - " + newSong.artist);
@@ -217,7 +257,6 @@ void PlaybackWidget::clearWidget(){
   songInfo->setText("");
   timeLabel->setText("--:--");
 }
-
 
 
 
