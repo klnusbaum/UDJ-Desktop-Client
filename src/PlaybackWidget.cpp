@@ -31,9 +31,10 @@
 #ifdef WIN32
 #include <mpegfile.h>
 void removeTags(UDJ::DataStore::song_info_t& song){
+  static int fileCount =0;
   if(song.source.fileName().endsWith(".mp3")){
     DEBUG_MESSAGE("On windows and got mp3, copying and striping metadata tags")
-    QString tempCopy = QDesktopServices::storageLocation(QDesktopServices::TempLocation) + "/striped.mp3";
+    QString tempCopy = QDesktopServices::storageLocation(QDesktopServices::TempLocation) + "/striped" + QString::number(fileCount) +".mp3";
     if(QFile::exists(tempCopy)){
       DEBUG_MESSAGE("Prevoius file existed, deleting now");
       if(QFile::remove(tempCopy)){
@@ -51,6 +52,13 @@ void removeTags(UDJ::DataStore::song_info_t& song){
     file.save();
     Phonon::MediaSource newSource(tempCopy);
     song.source = newSource;
+    if(fileCount == 3){
+      fileCount =0;
+    }
+    else{
+      fileCount++;
+    }
+
   }
 
 }
