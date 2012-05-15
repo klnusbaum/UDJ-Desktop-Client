@@ -31,15 +31,13 @@ repository. On Windows, shit is tough. I'll try to add some instructions on that
 ### Configuring
 If you've installed all of your libraries and cmake in default locations, configuring should
 be very straight forward. Simply use cmake to configure the project (we recommend an out of 
-source build). The only variable you have to define is `SETTING_CRYPTO_KEY` which should be a
-16 digit hex value you (e.g. `"0x39485C3A0D33ACDE"`). You can also turn on debug messages
-by setting the `UDJ_DEBUG_BUILD` variable to `ON`.
+source build). You can turn on debug messages by setting the `UDJ_DEBUG_BUILD` variable to `ON`.
 
 ### Building
-CMake will generate different projects base on your host system. On OSX and Linux, a simple issue
-of the `make` command will build the project (unless you've configured CMake to generate some
-other type of project). On Windows, CMake generates a Visual Studio solution file that can then
-be used to build UDJ.
+CMake will generate different projects base on your host system. On OSX and Linux the default is 
+a makefile based project. Hence a simple issue of the `make` command will build the project 
+(unless you've configured CMake to generate some other type of project). 
+On Windows, CMake generates a Visual Studio solution file that can then be used to build UDJ.
 
 ## Who Are You?
 
