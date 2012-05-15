@@ -502,19 +502,16 @@ void DataStore::setLibSongsSyncStatus(
   const std::vector<library_song_id_t> songs,
   const lib_sync_status_t syncStatus)
 {
-  QSqlQuery setSyncedQuery(database);
-  for(int i=0; i< songs.size(); ++i){
-    EXEC_SQL(
-      "Error setting song to synced",
-      setSyncedQuery.exec(
-        "UPDATE " + getLibraryTableName() + " " +
-        "SET " + getLibSyncStatusColName() + "=" + QString::number(syncStatus) +
-        " WHERE "  +
-        getLibIdColName() + "=" + QString::number(songs[i]) + ";"),
-      setSyncedQuery)
-  }
-  emit libSongsModified();
+  LibSyncThread *syncThread = new LibSyncThread(songs, syncStatus, this);
+  connect(
+    syncThread,
+    SIGNAL(finished()),
+    this,
+    SIGNAL(libSongsModified()));
+  syncThread->start();
 }
+
+
 
 void DataStore::clearActivePlaylist(){
   QSqlQuery deleteActivePlayilstQuery(database);
@@ -779,6 +776,33 @@ QByteArray DataStore::getHeaderValue(
   return "";
 }
 
+
+
+
+LibSyncThread::LibSyncThread(
+  const std::vector<library_song_id_t> songs,
+  const lib_sync_status_t syncStatus, 
+  DataStore *dataStore,
+  QObject *parent):
+  QThread(parent),
+  songs(songs),
+  syncStatus(syncStatus),
+  dataStore(dataStore)
+{}
+
+void LibSyncThread::run(){
+  QSqlQuery setSyncedQuery(dataStore->getDatabaseConnection());
+  for(int i=0; i< songs.size(); ++i){
+    EXEC_SQL(
+      "Error setting song to synced",
+      setSyncedQuery.exec(
+        "UPDATE " + DataStore::getLibraryTableName() + " " +
+        "SET " + DataStore::getLibSyncStatusColName() + "=" + QString::number(syncStatus) +
+        " WHERE "  +
+        DataStore::getLibIdColName() + "=" + QString::number(songs[i]) + ";"),
+      setSyncedQuery)
+  }
+}
 
 
 

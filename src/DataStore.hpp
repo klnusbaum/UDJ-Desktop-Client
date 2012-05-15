@@ -25,6 +25,7 @@
 #include <QSettings>
 #include "ConfigDefs.hpp"
 #include <QNetworkReply>
+#include <QThread>
 
 class QTimer;
 
@@ -1292,6 +1293,20 @@ private slots:
 
 //@}
 
+};
+
+class LibSyncThread : public QThread{
+public:
+  LibSyncThread(
+    const std::vector<library_song_id_t> songs,
+    const lib_sync_status_t syncStatus,
+    DataStore *dataStore,
+    QObject *parent=0);
+  void run();
+private:
+  const std::vector<library_song_id_t> songs;
+  const lib_sync_status_t syncStatus;
+  DataStore *dataStore;
 };
 
 } //end namespace
