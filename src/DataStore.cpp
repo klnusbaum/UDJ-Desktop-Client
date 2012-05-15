@@ -32,6 +32,7 @@
 #include <tag.h>
 #include <tstring.h>
 #include <fileref.h>
+#include "Utils.hpp"
 
 namespace UDJ{
 
@@ -787,7 +788,7 @@ void DataStore::saveCredentials(
   const QString& username, const QString& password)
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  SimpleCrypt crypt = UDJ_GET_CRYPTO_OBJECT;
+  SimpleCrypt crypt = Utils::getCryptoObject();
   QString cryptUsername = crypt.encryptToString(username);
   QString cryptPassword = crypt.encryptToString(password);
   settings.setValue(getHasValidCredsSettingName(), true);
@@ -807,11 +808,9 @@ bool DataStore::hasValidSavedCredentials(){
 
 void DataStore::getSavedCredentials(QString* username, QString* password){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  SimpleCrypt crypt = UDJ_GET_CRYPTO_OBJECT;
-  QString encryptedUsername = 
-    settings.value(getUsernameSettingName()).toString();
-  QString encryptedPassword = 
-    settings.value(getPasswordSettingName()).toString();
+  SimpleCrypt crypt = Utils::getCryptoObject();
+  QString encryptedUsername = settings.value(getUsernameSettingName()).toString();
+  QString encryptedPassword = settings.value(getPasswordSettingName()).toString();
   *username = crypt.decryptToString(encryptedUsername);
   *password = crypt.decryptToString(encryptedPassword);
 }

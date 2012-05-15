@@ -23,6 +23,7 @@
 #include <QSqlRecord>
 #include <QSortFilterProxyModel>
 #include <set>
+#include "simpleCrypt/simplecrypt.h"
 
 namespace UDJ{
 
@@ -69,6 +70,17 @@ template<class T> QSet<T> getSelectedIds(
   }
   return selectedIds;
 }
+
+
+/**
+ * Retrieves a cryptographic object that can be used to encrypt
+ * sensitive material on the users local disk, which can then be
+ * unencrypted later.
+ *
+ * @return A SimpleCrypt object that can be used to encrypt and decrypt
+ * information on the user's local disk.
+ */
+SimpleCrypt getCryptoObject();
 
 
 } //end namespace utils
