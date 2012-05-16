@@ -27,6 +27,7 @@
 #include <QFile>
 #endif
 
+
 int main(int argc, char* argv[]){
   QApplication app(argc, argv);
   QIcon windowIcon("udjlauncher.svg");
@@ -37,8 +38,8 @@ int main(int argc, char* argv[]){
   loginDialog.show(); 
 
   #ifdef HAS_CUSTOM_CA_CERT
-  QFile servercaFile("serverca.pem");
-  if(servercaFile.exists("serverca.pem")){
+  QFile servercaFile("bin/serverca.pem");
+  if(servercaFile.exists()){
     DEBUG_MESSAGE("Explicitly setting server cas")
     servercaFile.open(QIODevice::ReadOnly);
     QList<QSslCertificate> cas;
