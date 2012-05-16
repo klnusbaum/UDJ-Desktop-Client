@@ -201,14 +201,22 @@ void DataStore::setPlayerState(const QString& newState){
 void DataStore::addMusicToLibrary(
   const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
 {
+  bool isTransacting=database.transaction();
   for(int i =0; i<songs.size(); ++i){
     addSongToLibrary(songs[i]);
     if(progress != NULL){
       progress->setValue(i);
       if(progress->wasCanceled()){
+        if(isTransacting){
+          database.rollback();
+        }
         break;
       }
     }
+  }
+  if(isTransacting){
+    DEBUG_MESSAGE("Committing add transaction")
+    database.commit();
   }
 }
 
@@ -312,7 +320,8 @@ void DataStore::removeSongsFromActivePlaylist(const QSet<library_song_id_t>& lib
 }
 
 QSqlDatabase DataStore::getDatabaseConnection(){
-  return database;
+  QSqlDatabase toReturn = QSqlDatabase::database(getPlayerDBConnectionName());
+  return toReturn;
 }
 
 Phonon::MediaSource DataStore::getNextSongToPlay(){
