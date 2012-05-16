@@ -911,6 +911,9 @@ private:
   /** \brief The set of songs that still need to be removed from the active playlist. */
   QSet<library_song_id_t> playlistIdsToRemove;
 
+  /** \brief The progress dialog being used to show the syncing of library contents. */
+  QProgressDialog *libModProgress;
+
   //@}
 
   /** @name Private Functions */
@@ -1295,55 +1298,6 @@ private slots:
 
 };
 
-/**
- * \brief A thread used for setting the sync status on a bunch of 
- * library entries in the database.
- */
-class LibSyncThread : public QThread{
-public:
-
-  /** @name Constructor(s) and Destructor */
-  //@{
-
-  /**
-   * \brief Construcst a LibSyncThread.
-   *
-   * \param songs A vector of song id's whose sync status needs to be set.
-   * \paramm syncStatus The sync status all the songs in the vector should be set to.
-   * \param dataStore The datastore containing the library.
-   * \param parent The parent QObject creating this LibSyncThread.
-   */
-  LibSyncThread(
-    const std::vector<library_song_id_t> songs,
-    const lib_sync_status_t syncStatus,
-    DataStore *dataStore,
-    QObject *parent=0);
-
-  //@}
-
-  /** @name Reimplemented from QThread */
-  //@{
-
-  /** \brief . */
-  void run();
-
-  //@}
-
-private:
-  /** @name Private members */
-  //@{
-
-  /** \brief Songs whose sync status should be set */
-  const std::vector<library_song_id_t> songs;
-
-  /** \brief Status the songs should be set to */
-  const lib_sync_status_t syncStatus;
-
-  /** \brief DataStore containing the library */
-  DataStore *dataStore;
-
-  //@}
-};
 
 } //end namespace
 #endif //DATA_STORE_HPP

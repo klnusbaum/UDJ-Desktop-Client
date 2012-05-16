@@ -198,8 +198,9 @@ void DataStore::setPlayerState(const QString& newState){
 void DataStore::addMusicToLibrary(
   const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
 {
+  libModProgress = progress;
   for(int i =0; i<songs.size(); ++i){
-    if(progress != NULL){
+    if(libModProgress != NULL){
       progress->setValue(i);
       if(progress->wasCanceled()){
         break;
@@ -502,13 +503,25 @@ void DataStore::setLibSongsSyncStatus(
   const std::vector<library_song_id_t> songs,
   const lib_sync_status_t syncStatus)
 {
-  LibSyncThread *syncThread = new LibSyncThread(songs, syncStatus, this);
-  connect(
-    syncThread,
-    SIGNAL(finished()),
-    this,
-    SIGNAL(libSongsModified()));
-  syncThread->start();
+  QSqlQuery setSyncedQuery(getDatabaseConnection());
+  for(int i=0; i< songs.size(); ++i){
+    EXEC_SQL(
+      "Error setting song to synced",
+      setSyncedQuery.exec(
+        "UPDATE " + getLibraryTableName() + " " +
+        "SET " + getLibSyncStatusColName() + "=" + QString::number(syncStatus) +
+        " WHERE "  +
+        getLibIdColName() + "=" + QString::number(songs[i]) + ";"),
+      setSyncedQuery)
+    if(libModProgress != NULL){
+      libModProgress->setValue(songs.size() + i);
+      if(libModProgress->wasCanceled()){
+        break;
+      }
+    }
+  }
+  libModProgress = NULL;
+  emit libSongsModified();
 }
 
 
@@ -775,35 +788,6 @@ QByteArray DataStore::getHeaderValue(
   }
   return "";
 }
-
-
-
-
-LibSyncThread::LibSyncThread(
-  const std::vector<library_song_id_t> songs,
-  const lib_sync_status_t syncStatus, 
-  DataStore *dataStore,
-  QObject *parent):
-  QThread(parent),
-  songs(songs),
-  syncStatus(syncStatus),
-  dataStore(dataStore)
-{}
-
-void LibSyncThread::run(){
-  QSqlQuery setSyncedQuery(dataStore->getDatabaseConnection());
-  for(int i=0; i< songs.size(); ++i){
-    EXEC_SQL(
-      "Error setting song to synced",
-      setSyncedQuery.exec(
-        "UPDATE " + DataStore::getLibraryTableName() + " " +
-        "SET " + DataStore::getLibSyncStatusColName() + "=" + QString::number(syncStatus) +
-        " WHERE "  +
-        DataStore::getLibIdColName() + "=" + QString::number(songs[i]) + ";"),
-      setSyncedQuery)
-  }
-}
-
 
 
 

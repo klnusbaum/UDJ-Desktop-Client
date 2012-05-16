@@ -107,7 +107,7 @@ void MetaWindow::addMusicToLibrary(){
   }
   int numNewFiles = musicToAdd.size();
   addingProgress = new QProgressDialog(
-    "Loading Library...", "Cancel", 0, numNewFiles+1, this);
+    "Loading Library...", "Cancel", 0, numNewFiles*2, this);
   addingProgress->setWindowModality(Qt::WindowModal);
   connect(
     dataStore,
