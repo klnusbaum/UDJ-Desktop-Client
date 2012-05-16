@@ -56,10 +56,9 @@ void UDJServerConnection::authenticate(
   DEBUG_MESSAGE("Doing auth request")
 }
 
-void UDJServerConnection::modLibContents(const QVariantList& songsToAdd, 
+void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
    const QVariantList& songsToDelete)
 {
-  DEBUG_MESSAGE("Modding lib contents")
   QNetworkRequest modRequest(getLibModUrl());
   modRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   QByteArray addJSON = JSONHelper::getJSONForLibAdd(songsToAdd);
@@ -220,12 +219,11 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     QVariant songsAdded = reply->property(getSongsAddedPropertyName());
     QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
-    std::vector<library_song_id_t> addedIds = JSONHelper::getLibIds(songsAdded.toByteArray());
-    std::vector<library_song_id_t> deletedIds =
-      JSONHelper::getLibIds(songsDeleted.toByteArray());
-    addedIds.insert(addedIds.begin(), deletedIds.begin(), deletedIds.end());
-
-    emit libSongsSyncedToServer(addedIds);
+    QSet<library_song_id_t> addedIds = JSONHelper::getLibIds(songsAdded.toByteArray());
+    QSet<library_song_id_t> deletedIds =
+      JSONHelper::convertLibIdArray(songsDeleted.toByteArray());
+    QSet<library_song_id_t> allSynced = addedIds.unite(deletedIds);
+    emit libSongsSyncedToServer(allSynced);
   }
   else{
     DEBUG_MESSAGE("Got bad lib mod")

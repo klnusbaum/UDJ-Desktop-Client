@@ -50,7 +50,11 @@ LibraryView::LibraryView(DataStore *dataStore, QWidget* parent):
   setContextMenuPolicy(Qt::CustomContextMenu);
   configureColumns();
   createActions();
-  connect(dataStore, SIGNAL(libSongsModified()), libraryModel, SLOT(refresh()));
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)), 
+    libraryModel,
+    SLOT(refresh()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)),
     this, SLOT(handleContextMenuRequest(const QPoint&)));
   connect(
@@ -101,58 +105,76 @@ void LibraryView::deleteSongs(){
   deletingProgress = new QProgressDialog(tr("Deleting Songs..."), tr("Cancel"), 0,0, this);
   deletingProgress->setWindowModality(Qt::WindowModal);
 
-  connect(
-    dataStore,
-    SIGNAL(libSongsModified()),
-    this,
-    SLOT(deletingDone()));
-
-
-  connect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(deletingError(const QString&)));
-
-  dataStore->removeSongsFromLibrary(
+  QSet<library_song_id_t> selectedIds =
     Utils::getSelectedIds<library_song_id_t>(
       this,
       libraryModel,
       DataStore::getLibIdColName(),
-      proxyModel));
-}
+      proxyModel);
 
-void LibraryView::deletingDone(){
-  disconnect(
+  DEBUG_MESSAGE("Lib view is requesting to deleted the following ids")
+  Q_FOREACH(library_song_id_t id, selectedIds){
+    DEBUG_MESSAGE(id)
+  }
+  dataStore->removeSongsFromLibrary(selectedIds);
+
+  deletingProgress->setLabelText(tr("Syncing With Server"));
+  deletingProgress->setMaximum(selectedIds.size());
+  deletingProgress->setValue(0);
+
+  connect(
     dataStore,
-    SIGNAL(libSongsModified()),
+    SIGNAL(allSynced()),
     this,
     SLOT(deletingDone()));
+
+  connect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(deletingError(const QString&)));
+
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(songsRemoved(const QSet<library_song_id_t>&)));
+
+  dataStore->syncLibrary();
+}
+
+void LibraryView::disconnectDeletionSignals(){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(deletingDone()));
+
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(songsRemoved(const QSet<library_song_id_t>&)));
 
   disconnect(
     dataStore,
     SIGNAL(libModError(const QString&)),
     this,
     SLOT(deletingError(const QString&)));
+}
 
+void LibraryView::songsRemoved(const QSet<library_song_id_t>& songs){
+  deletingProgress->setValue(deletingProgress->value() + songs.size());
+}
+
+void LibraryView::deletingDone(){
+  disconnectDeletionSignals();
   deletingProgress->close();
 }
 
 void LibraryView::deletingError(const QString& errMessage){
-  disconnect(
-    dataStore,
-    SIGNAL(libSongsModified()),
-    this,
-    SLOT(deletingDone()));
-
-  disconnect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(deletingError(const QString&)));
-
+  disconnectDeletionSignals();
   deletingProgress->close();
-
   QMessageBox::critical(
     this,
     tr("Error"),

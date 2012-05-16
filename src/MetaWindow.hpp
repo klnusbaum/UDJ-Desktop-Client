@@ -123,6 +123,13 @@ private slots:
    */
   void doneAdding();
 
+  /**
+   * \brief Takes appropriate action when the given songs are modified (i.e. synced with the server).
+   *
+   * @param addedSongs Songs added on the server.
+   */
+  void songsAdded(const QSet<library_song_id_t>& addedSongs);
+
   //@}
 
 private:
@@ -187,6 +194,12 @@ private:
 
   /** \brief Creates the actions used in the MetaWindow */
   void createActions();
+
+  /**
+   * \brief Disconnects any signals that may have been setup at the beginning
+   * of a library addition operation
+   */
+  void disconnectAddingSignals();
 
   //@}
 

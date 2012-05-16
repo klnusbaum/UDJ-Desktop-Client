@@ -21,13 +21,13 @@
 #include <QSqlDatabase>
 #include <phonon/mediaobject.h>
 #include <phonon/mediasource.h>
-#include <QProgressDialog>
 #include <QSettings>
 #include "ConfigDefs.hpp"
 #include <QNetworkReply>
 #include <QThread>
 
 class QTimer;
+class QProgressDialog;
 
 namespace UDJ{
 
@@ -751,8 +751,19 @@ public:
 //@{
 public slots:
 
+  /**
+   * \brief Syncs the current state of the library with the server.
+   */
+  void syncLibrary();
+
+  /**
+   * \brief Pauses player.
+   */
   void pausePlayer();
 
+  /**
+   * \brief Start player playing.
+   */
   void playPlayer();
 
   /**
@@ -833,8 +844,19 @@ signals:
   /**
    * \brief Emitted when the library table is modified.
    */
-  void libSongsModified();
+  void libSongsModified(const QSet<library_song_id_t>& modifiedSongs);
 
+  /**
+   * \brief Emitted when there was an error modifying the library.
+   * 
+   * @param errMessage An error message describing what happened.
+   */
+  void libModError(const QString& errMessage);
+
+  /**
+   * \brief Emitted when the library is completely synced with the server.
+   */
+  void allSynced();
 
   /**
    * \brief Emitted when a player is created.
@@ -910,9 +932,6 @@ private:
 
   /** \brief The set of songs that still need to be removed from the active playlist. */
   QSet<library_song_id_t> playlistIdsToRemove;
-
-  /** \brief The progress dialog being used to show the syncing of library contents. */
-  QProgressDialog *libModProgress;
 
   //@}
 
@@ -1141,11 +1160,6 @@ private:
 private slots:
 
   /**
-   * \brief Syncs the current state of the library with the server.
-   */
-  void syncLibrary();
-
-  /**
    * \brief Sets the sync status of a library song to synced.
    *
    * @param song The id of the song whose sync status should be set to synced.
@@ -1158,7 +1172,7 @@ private slots:
    * @param songs The ids of the songs whose sync status should be set 
    * to synced.
    */
-  void setLibSongsSynced(const std::vector<library_song_id_t> songs);
+  void setLibSongsSynced(const QSet<library_song_id_t>& songs);
 
   /**
    * \brief Sets the sync status of the given library songs to the given
@@ -1168,7 +1182,7 @@ private slots:
    * @param syncStatus The sync status to which the given songs should be set. 
    */
   void setLibSongsSyncStatus(
-    const std::vector<library_song_id_t> songs,
+    const QSet<library_song_id_t>& songs,
     const lib_sync_status_t syncStatus);
 
 

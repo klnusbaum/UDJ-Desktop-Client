@@ -210,7 +210,7 @@ signals:
    *
    * \param syncedIds The set of ids that were succesfully synced to the server.
    */
-  void libSongsSyncedToServer(const std::vector<library_song_id_t>& syncedIds);
+  void libSongsSyncedToServer(const QSet<library_song_id_t>& syncedIds);
 
   /**
    * \brief Emitted when there was an error syncing certains library songs with the server.

@@ -160,7 +160,15 @@ public:
    * @param payload The JSON from which the library ids should be extracted.
    * @return A vector containing the extracted library ids.
    */
-  static std::vector<library_song_id_t> getLibIds(const QByteArray& payload);
+  static QSet<library_song_id_t> getLibIds(const QByteArray& payload);
+
+  /**
+   * \brief Given JSON, this fuciton extracts QSet of library ids. The JSON
+   * is assumed to be a simple array with each element being a library id.
+   *
+   * \brief payload JSON to convert.
+   */
+  static QSet<library_song_id_t> convertLibIdArray(const QByteArray& payload);
 
 
   /**

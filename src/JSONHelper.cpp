@@ -42,7 +42,7 @@ QByteArray JSONHelper::getJSONForLibDelete(const QVariantList& songsToDelete, bo
   return QtJson::Json::serialize(songsToDelete, success);
 }
 
-std::vector<library_song_id_t> JSONHelper::getLibIds(const QByteArray& payload){
+QSet<library_song_id_t> JSONHelper::getLibIds(const QByteArray& payload){
   QString responseString = QString::fromUtf8(payload);
   bool success;
   QVariantList songs = 
@@ -53,9 +53,27 @@ std::vector<library_song_id_t> JSONHelper::getLibIds(const QByteArray& payload){
       responseString.toStdString() << std::endl;
   }
 
-  std::vector<library_song_id_t> toReturn(songs.size());
-  for(int i=0; i<songs.size(); ++i){
-    toReturn[i] = songs[i].toMap()["id"].value<library_song_id_t>();
+  QSet<library_song_id_t> toReturn;
+  Q_FOREACH(QVariant song, songs){
+    toReturn.insert(song.toMap()["id"].value<library_song_id_t>());
+  }
+  return toReturn;
+}
+
+QSet<library_song_id_t> JSONHelper::convertLibIdArray(const QByteArray& payload){
+  QString responseString = QString::fromUtf8(payload);
+  bool success;
+  QVariantList ids = 
+    QtJson::Json::parse(responseString, success).toList();
+  if(!success){
+    std::cerr << "Error parsing json from a response to an delete library entry" <<
+     "request" << std::endl <<
+      responseString.toStdString() << std::endl;
+  }
+
+  QSet<library_song_id_t> toReturn;
+  Q_FOREACH(QVariant id, ids){
+    toReturn.insert(id.value<library_song_id_t>());
   }
   return toReturn;
 }

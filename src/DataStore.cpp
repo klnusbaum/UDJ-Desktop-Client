@@ -18,7 +18,8 @@
  */
 #include "DataStore.hpp"
 #include "UDJServerConnection.hpp"
-#include "simpleCrypt/simplecrypt.h"
+#include "Utils.hpp"
+
 #include <QDir>
 #include <QDesktopServices>
 #include <QDir>
@@ -28,11 +29,13 @@
 #include <QThread>
 #include <QTimer>
 #include <QDateTime>
+#include <QProgressDialog>
 #include <QSqlError>
+
 #include <tag.h>
 #include <tstring.h>
 #include <fileref.h>
-#include "Utils.hpp"
+
 
 namespace UDJ{
 
@@ -47,8 +50,7 @@ DataStore::DataStore(
   username(username),
   password(password),
   isReauthing(false),
-  currentSongId(-1),
-  libModProgress(NULL)
+  currentSongId(-1)
 {
   serverConnection = new UDJServerConnection(this);
   serverConnection->setTicket(ticket);
@@ -63,9 +65,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(libSongsSyncedToServer(const std::vector<library_song_id_t>&)),
+    SIGNAL(libSongsSyncedToServer(const QSet<library_song_id_t>&)),
     this,
-    SLOT(setLibSongsSynced(const std::vector<library_song_id_t>&)));
+    SLOT(setLibSongsSynced(const QSet<library_song_id_t>&)));
 
   connect(
     serverConnection,
@@ -199,17 +201,15 @@ void DataStore::setPlayerState(const QString& newState){
 void DataStore::addMusicToLibrary(
   const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
 {
-  libModProgress = progress;
   for(int i =0; i<songs.size(); ++i){
-    if(libModProgress != NULL){
+    addSongToLibrary(songs[i]);
+    if(progress != NULL){
       progress->setValue(i);
       if(progress->wasCanceled()){
         break;
       }
     }
-    addSongToLibrary(songs[i]);
   }
-  syncLibrary();
 }
 
 void DataStore::addSongToLibrary(const Phonon::MediaSource& song){
@@ -290,9 +290,6 @@ void DataStore::removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove){
   bulkDelete.addBindValue(toDelete);
   EXEC_BULK_QUERY("Error removing songs from library", 
     bulkDelete)
-  if(bulkDelete.lastError().type() == QSqlError::NoError){
-    syncLibrary();
-  }
 }
 
 
@@ -446,7 +443,6 @@ void DataStore::changeVolumeSilently(qreal newVolume){
 
 
 void DataStore::syncLibrary(){
-
   QSqlQuery needAddSongs(database);
   DEBUG_MESSAGE("batching up sync")
   EXEC_SQL(
@@ -487,58 +483,49 @@ void DataStore::syncLibrary(){
     songsToDelete.append(currentRecord.value(getLibIdColName()));
   }
 
+  DEBUG_MESSAGE("Found " << songsToDelete.size() << " songs which need deleting");
+  DEBUG_MESSAGE("Found " << songsToAdd.size() << " songs which need adding");
   if(songsToDelete.size() > 0 || songsToAdd.size() > 0){
-    if(libModProgress ==NULL){
-      libModProgress = new QProgressDialog(
-        tr("Syncing Library With Server..."),
-	tr("Cancel"), 
-	0, 
-	getTotalUnsynced()-1);
-      libModProgress->setWindowModality(Qt::WindowModal);
-    }
     serverConnection->modLibContents(songsToAdd, songsToDelete);
   }
 }
 
 void DataStore::setLibSongSynced(library_song_id_t song){
-  std::vector<library_song_id_t> songVector(1,song);
-  setLibSongsSynced(songVector);
+  QSet<library_song_id_t> songSet;
+  songSet.insert(song);
+  setLibSongsSynced(songSet);
 }
 
-void DataStore::setLibSongsSynced(const std::vector<library_song_id_t> songs){
+void DataStore::setLibSongsSynced(const QSet<library_song_id_t>& songs){
   setLibSongsSyncStatus(songs, getLibIsSyncedStatus());
 }
 
 void DataStore::setLibSongsSyncStatus(
-  const std::vector<library_song_id_t> songs,
+  const QSet<library_song_id_t>& songs,
   const lib_sync_status_t syncStatus)
 {
-  DEBUG_MESSAGE("setting songs to synced")
-  QSqlQuery setSyncedQuery(getDatabaseConnection());
-  for(int i=0; i< songs.size(); ++i){
-    EXEC_SQL(
-      "Error setting song to synced",
-      setSyncedQuery.exec(
-        "UPDATE " + getLibraryTableName() + " " +
-        "SET " + getLibSyncStatusColName() + "=" + QString::number(syncStatus) +
-        " WHERE "  +
-        getLibIdColName() + "=" + QString::number(songs[i]) + ";"),
-      setSyncedQuery)
-    if(libModProgress != NULL){
-      libModProgress->setValue(libModProgress->value() +1);
-      if(libModProgress->wasCanceled()){
-        break;
-      }
-    }
+  QVariantList toSetSynced;
+  Q_FOREACH(library_song_id_t id, songs){
+    toSetSynced << QVariant::fromValue<library_song_id_t>(id);
   }
+  QSqlQuery bulkSync(database);
+  bulkSync.prepare("UPDATE " + getLibraryTableName() +  " "
+    "SET " + getLibSyncStatusColName() + "=" + 
+      QString::number(syncStatus) + " "
+    "WHERE " + getLibIdColName() + "= ?"); 
+  bulkSync.addBindValue(toSetSynced);
+  EXEC_BULK_QUERY("Error syncing songs in library", 
+    bulkSync)
+
+  emit libSongsModified(songs);
+
   if(hasUnsyncedSongs()){
     DEBUG_MESSAGE("more stuff to sync")
     syncLibrary();
   }
   else{
+    emit allSynced();
     DEBUG_MESSAGE("syncing done")
-    libModProgress = NULL;
-    emit libSongsModified();
   }
 }
 
@@ -722,7 +709,6 @@ void DataStore::onPlayerStateChanged(const QString& newState){
   if(!activePlaylistRefreshTimer->isActive()){
     refreshActivePlaylist();
     activePlaylistRefreshTimer->start();
-    syncLibrary();
   }
 }
 
@@ -738,6 +724,7 @@ void DataStore::onLibModError(
   }
   else{
     DEBUG_MESSAGE("Bad lib mod message " << errMessage.toStdString())
+    emit libModError(errMessage);
   }
 }
 

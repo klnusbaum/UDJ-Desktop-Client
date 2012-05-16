@@ -80,6 +80,15 @@ private slots:
    */
   void deletingError(const QString& errMessage);
 
+  /**
+   * \brief Takes appropriate action when the given set of songs is deleted.
+   *
+   * \param songs The songs that have been deleted.
+   */
+  void songsRemoved(const QSet<library_song_id_t>& songs);
+
+  //@}
+
 private:
 
   /** @name Private Memeber */
@@ -117,6 +126,12 @@ private:
    * \brief Configures the look of the headers in the view.
    */
   void configureColumns();
+
+  /**
+   * \brief Disconnects any signal slot connections that may have been
+   * setup when initiaiting a library delete.
+   */
+  void disconnectDeletionSignals();
 
   /**
    * \brief Gets the name used for the delete context menu item.

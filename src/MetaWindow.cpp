@@ -105,55 +105,66 @@ void MetaWindow::addMusicToLibrary(){
   if(musicToAdd.isEmpty()){
     return;
   }
+
   int numNewFiles = musicToAdd.size();
   addingProgress = new QProgressDialog(
     "Loading Library...", "Cancel", 0, numNewFiles*2, this);
   addingProgress->setWindowModality(Qt::WindowModal);
+
+  dataStore->addMusicToLibrary(musicToAdd, addingProgress);
   connect(
     dataStore,
-    SIGNAL(libSongsModified()),
+    SIGNAL(allSynced()),
     this,
     SLOT(doneAdding()));
+
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(songsAdded(const QSet<library_song_id_t>&)));
 
   connect(
     dataStore,
     SIGNAL(libModError(const QString&)),
     this,
     SLOT(errorAdding(const QString&)));
-
-  dataStore->addMusicToLibrary(musicToAdd, addingProgress);
   addingProgress->setLabelText(tr("Syncing With Server"));
+  dataStore->syncLibrary();
+}
+
+void MetaWindow::disconnectAddingSignals(){
+  disconnect(
+    dataStore,
+    SIGNAL(allSynced()),
+    this,
+    SLOT(doneAdding()));
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(errorAdding(const QString&)));
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(songsAdded(const QSet<library_song_id_t>&)));
+}
+
+void MetaWindow::songsAdded(const QSet<library_song_id_t>& addedSongs){
+  addingProgress->setValue(addingProgress->value() + addedSongs.size());
 }
 
 void MetaWindow::doneAdding(){
-  disconnect(
-    dataStore,
-    SIGNAL(libSongsModified()),
-    this,
-    SLOT(doneAdding()));
-  disconnect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(errorAdding(const QString&)));
+  disconnectAddingSignals();
   addingProgress->close();
 }
 
 void MetaWindow::errorAdding(const QString& errMessage){
-  disconnect(
-    dataStore,
-    SIGNAL(libSongsModified()),
-    this,
-    SLOT(doneAdding()));
-  disconnect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(errorAdding(const QString&)));
+  disconnectAddingSignals();
   addingProgress->close();
   QMessageBox::critical(this, "Error", "Error adding songs. Try again in a little bit.");
 }
-
 
 void MetaWindow::addSongToLibrary(){
   QString fileName = QFileDialog::getOpenFileName(
