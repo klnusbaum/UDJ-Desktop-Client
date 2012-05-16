@@ -27,7 +27,6 @@
 #include <QFile>
 #endif
 
-
 int main(int argc, char* argv[]){
   QApplication app(argc, argv);
   QIcon windowIcon("udjlauncher.svg");

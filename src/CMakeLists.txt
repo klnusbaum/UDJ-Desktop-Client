@@ -113,13 +113,19 @@ SET(UDJ_DEP_LIBS ${UDJ_DEP_LIBS} ${QT_QTMAIN_LIBRARY})
 #tab.lib and zlib1.lib libraries but include the dlls with the installer things
 #seem to work.
 IF(NOT TAGLIB_DLL_FILE)
-message(FATAL_ERROR "Must specify the absolute file path to the taglib dll")
+message(FATAL_ERROR "Must specify the absolute file path to the taglib dll. This can be done by setting the TAGLIB_DLL_FILE variable.")
 ENDIF(NOT TAGLIB_DLL_FILE)
 
 IF(NOT ZLIB_DLL_FILE)
-message(FATAL_ERROR "Must specify the absolute file path to the zlib dll")
+message(FATAL_ERROR "Must specify the absolute file path to the zlib dll. This can be done by setting the ZLIB_DLL_FILE variable.")
 ENDIF(NOT ZLIB_DLL_FILE)
 
+IF(NOT OPENSSL_LIBEAY_FILE)
+message(FATAL_ERROR "Must specify the absolute file path to the openssl libeay dll. This can be done by setting the OPENSSL_LIBEAY_FILE variable")
+ENDIF(NOT OPENSSL_LIBEAY_FILE)
+IF(NOT OPENSSL_SSLEAY_FILE)
+message(FATAL_ERROR "Must specify the absolute file path to the openssl libeay dll. This can be done by setting the OPENSSL_SSLEAY_FILE variable")
+ENDIF(NOT OPENSSL_SSLEAY_FILE)
 
 GET_FILENAME_COMPONENT(QT_DLL_PATH_tmp ${QT_QMAKE_EXECUTABLE} PATH)
 GET_FILENAME_COMPONENT(TAG_DLL_NAME ${TAGLIB_DLL_FILE} NAME)
@@ -142,6 +148,13 @@ CONFIGURE_FILE(${QT_DLL_PATH_tmp}/QtNetwork4.dll
   ${PROJECT_BINARY_DIR}/QtNetwork4.dll COPYONLY)
 CONFIGURE_FILE(${QT_DLL_PATH_tmp}/QtOpenGL4.dll 
   ${PROJECT_BINARY_DIR}/QtOpenGL4.dll COPYONLY)
+
+CONFIGURE_FILE(${QT_DLL_PATH_tmp}/../plugins/phonon_backend/phonon_ds94.dll 
+  ${PROJECT_BINARY_DIR}/phonon_ds94.dll COPYONLY)
+CONFIGURE_FILE(${QT_DLL_PATH_tmp}/../plugins/sqldrivers/qsqlite4.dll 
+  ${PROJECT_BINARY_DIR}/qsqlite4.dll COPYONLY)
+
+
 CONFIGURE_FILE(${TAGLIB_DLL_FILE} 
   ${PROJECT_BINARY_DIR}/${TAG_DLL_NAME} COPYONLY)
 CONFIGURE_FILE(${ZLIB_DLL_FILE} 
@@ -157,6 +170,12 @@ INSTALL(FILES ${PROJECT_BINARY_DIR}/QtCore4.dll DESTINATION bin)
 INSTALL(FILES ${PROJECT_BINARY_DIR}/QtSql4.dll DESTINATION bin)
 INSTALL(FILES ${PROJECT_BINARY_DIR}/QtNetwork4.dll DESTINATION bin)
 INSTALL(FILES ${PROJECT_BINARY_DIR}/QtOpenGL4.dll DESTINATION bin)
+
+INSTALL(FILES ${PROJECT_BINARY_DIR}/phonon_ds94.dll DESTINATION bin/phonon_backend)
+INSTALL(FILES ${PROJECT_BINARY_DIR}/qsqlite4.dll DESTINATION bin/sqldrivers)
+
+
+
 INSTALL(FILES ${PROJECT_BINARY_DIR}/${TAG_DLL_NAME} DESTINATION bin)
 INSTALL(FILES ${PROJECT_BINARY_DIR}/${ZLIB_DLL_NAME} DESTINATION bin)
 INSTALL(FILES ${PROJECT_BINARY_DIR}/${OPENSSL_LIBEAY_NAME} DESTINATION bin)
