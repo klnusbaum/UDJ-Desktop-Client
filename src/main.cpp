@@ -19,6 +19,10 @@
 #include <QApplication>
 #include <QIcon>
 #include "LoginDialog.hpp"
+#include <QSslConfiguration>
+#include <QSslCertificate>
+#include "ConfigDefs.hpp"
+#include <QFile>
 
 int main(int argc, char* argv[]){
   QApplication app(argc, argv);
@@ -28,6 +32,18 @@ int main(int argc, char* argv[]){
   app.setQuitOnLastWindowClosed(true);
   UDJ::LoginDialog loginDialog;
   loginDialog.show(); 
+  QFile servercaFile("serverca.pem");
+  if(servercaFile.exists("serverca.pem")){
+    DEBUG_MESSAGE("Explicitly setting server cas")
+    servercaFile.open(QIODevice::ReadOnly);
+    QList<QSslCertificate> cas;
+    QSslCertificate serverca(&servercaFile);
+    cas.append(serverca);
+    servercaFile.close();
+    QSslConfiguration defaultConfig = QSslConfiguration::defaultConfiguration();
+    defaultConfig.setCaCertificates(cas);
+    QSslConfiguration::setDefaultConfiguration(defaultConfig);
+  }
   int toReturn = app.exec();
 	return toReturn;
 }
