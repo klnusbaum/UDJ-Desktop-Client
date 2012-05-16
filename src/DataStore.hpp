@@ -919,8 +919,14 @@ private:
   /** @name Private Functions */
   //@{
 
-  /** \brief Does initiail database setup */
+  /** \brief Does initial database setup */
   void setupDB();
+
+  /** \brief Determines whether or not the library has unsynced songs.*/
+  bool hasUnsyncedSongs() const;
+
+  /** \brief Determines the number of unsynced songs in the library.*/
+  int getTotalUnsynced() const;
 
   /**
    * \brief Deletes all the entries in the active playlist table.
