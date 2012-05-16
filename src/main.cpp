@@ -19,10 +19,13 @@
 #include <QApplication>
 #include <QIcon>
 #include "LoginDialog.hpp"
+#include "ConfigDefs.hpp"
+
+#ifdef HAS_CUSTOM_CA_CERT
 #include <QSslConfiguration>
 #include <QSslCertificate>
-#include "ConfigDefs.hpp"
 #include <QFile>
+#endif
 
 int main(int argc, char* argv[]){
   QApplication app(argc, argv);
@@ -32,6 +35,8 @@ int main(int argc, char* argv[]){
   app.setQuitOnLastWindowClosed(true);
   UDJ::LoginDialog loginDialog;
   loginDialog.show(); 
+
+  #ifdef HAS_CUSTOM_CA_CERT
   QFile servercaFile("serverca.pem");
   if(servercaFile.exists("serverca.pem")){
     DEBUG_MESSAGE("Explicitly setting server cas")
@@ -44,6 +49,8 @@ int main(int argc, char* argv[]){
     defaultConfig.setCaCertificates(cas);
     QSslConfiguration::setDefaultConfiguration(defaultConfig);
   }
+  #endif
+
   int toReturn = app.exec();
 	return toReturn;
 }
