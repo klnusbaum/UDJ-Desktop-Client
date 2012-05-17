@@ -24,6 +24,7 @@
 #include "ActivePlaylistView.hpp"
 #include "PlayerCreateDialog.hpp"
 #include "PlayerDashboard.hpp"
+#include "LogViewer.hpp"
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -198,9 +199,12 @@ void MetaWindow::createActions(){
   addMusicAction->setShortcut(tr("Ctrl+M"));
   addSongAction = new QAction(tr("A&dd Song"), this);
   addSongAction->setShortcut(tr("Ctrl+D"));
+  viewLogAction = new QAction(tr("View &Log"), this);
+  viewLogAction->setShortcut(tr("Ctrl+L"));
   connect(addMusicAction, SIGNAL(triggered()), this, SLOT(addMusicToLibrary()));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
   connect(addSongAction, SIGNAL(triggered()), this, SLOT(addSongToLibrary()));
+  connect(viewLogAction, SIGNAL(triggered()), this, SLOT(displayLogView()));
 }
 
 void MetaWindow::setupMenus(){
@@ -209,6 +213,8 @@ void MetaWindow::setupMenus(){
   musicMenu->addAction(addSongAction);
   musicMenu->addSeparator();
   musicMenu->addAction(quitAction);
+  QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
+  helpMenu->addAction(viewLogAction);
 }
 
 
@@ -277,5 +283,11 @@ void MetaWindow::syncError(const QString& errMessage){
   syncingProgress->close();
   QMessageBox::critical(this, "Error", "Error syncing library. We'll try again next time you startup UDJ");
 }
+
+void MetaWindow::displayLogView(){
+  LogViewer *viewer = new LogViewer();
+  viewer->show();
+}
+
 
 } //end namespace

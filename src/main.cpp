@@ -52,10 +52,7 @@ int main(int argc, char* argv[]){
   }
   #endif
 
-  #ifdef UDJ_DEBUG_BUILD
-  UDJ::Utils::clearDebugFile();
-  #endif
-
   int toReturn = app.exec();
-	return toReturn;
+  UDJ::Logger::deleteLogger();
+  return toReturn;
 }

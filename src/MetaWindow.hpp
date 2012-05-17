@@ -90,6 +90,9 @@ private slots:
 
   /** @name Private Slots */
   //@{
+  
+  /** \brief Shows the logger view */
+  void displayLogView();
 
   /** \brief Initiates the syncing of the library */
   void syncLibrary();
@@ -153,6 +156,9 @@ private:
 
   /** \brief Trigers addition of single song to the library */
   QAction *addSongAction;
+
+  /** \brief Triggers display of the log viewer */
+  QAction *viewLogAction;
 
 //  QFileSystemWatcher* fileWatcher;
 

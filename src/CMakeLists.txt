@@ -44,6 +44,8 @@ SET(UDJ_SRCS
   ActivePlaylistModel.cpp
   PlayerDashboard.cpp
   Utils.cpp
+  Logger.cpp
+  LogViewer.cpp
 )
 
 SET(UDJ_HDRS 
@@ -72,6 +74,8 @@ SET(UDJ_MOC_HDRS
   LibraryWidget.hpp
   ActivePlaylistModel.hpp
   PlayerDashboard.hpp
+  Logger.hpp
+  LogViewer.hpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/src")
