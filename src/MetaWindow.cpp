@@ -83,6 +83,7 @@ void MetaWindow::closeEvent(QCloseEvent *event){
       SLOT(close()));
     quittingProgress = new QProgressDialog("Disconnecting...", "Cancel", 0, 0, this);
     quittingProgress->setWindowModality(Qt::WindowModal);
+    quittingProgress->setMinimumDuration(250);
     dataStore->setPlayerState(DataStore::getInactiveState());
     event->ignore();
   }

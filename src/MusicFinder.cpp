@@ -59,7 +59,7 @@ QRegExp MusicFinder::getMusicFileMatcher(){
       matcherString += "(.*" + availableTypes.at(i) + ")|";
     }
   }
-  DEBUG_MESSAGE("Matcher REGEX: " << matcherString.toStdString())
+  DEBUG_MESSAGE("Matcher REGEX: " + matcherString.toStdString())
   QRegExp matcher(matcherString);
   return matcher;
 }
@@ -76,12 +76,16 @@ QString MusicFinder::getMusicFileExtFilter(){
     }
   }
   filterString += ")";
-  DEBUG_MESSAGE("File Ext Filter: " << filterString.toStdString())
+  DEBUG_MESSAGE("File Ext Filter: " + filterString.toStdString())
   return filterString;
 }
 
 QStringList MusicFinder::availableMusicTypes(){
   QStringList mimes = Phonon::BackendCapabilities::availableMimeTypes();
+  DEBUG_MESSAGE("Found mime types:")
+  Q_FOREACH(QString s, mimes){
+    DEBUG_MESSAGE(s.toStdString())
+  }
   for(int i=0; i< mimes.size(); ++i){
     //DEBUG_MESSAGE("Mime: " << mimes.at(i).toStdString())
   }

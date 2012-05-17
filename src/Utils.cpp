@@ -3,6 +3,7 @@
 #include "simpleCrypt/simplecrypt.h"
 #include "ConfigDefs.hpp"
 #include <QDateTime>
+#include <QFile>
 
 namespace UDJ{
 namespace Utils{
@@ -32,6 +33,22 @@ SimpleCrypt getCryptoObject(){
       credKeyFile.close();
     return SimpleCrypt(random);
   }
+}
+
+QString getDebugFileName(){
+  QDir dataDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+  return dataDir.absoluteFilePath("debug_file.txt");
+}
+
+void writeToDebugFile(std::string debugMessage){
+  QFile debugFile(getDebugFileName());
+  debugFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append);
+  debugFile.write(QString::fromStdString(debugMessage + "\n").toUtf8());
+  debugFile.close();
+}
+
+void clearDebugFile(){
+  QFile::remove(getDebugFileName());
 }
 
 

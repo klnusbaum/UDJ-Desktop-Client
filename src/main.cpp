@@ -28,6 +28,7 @@
 #endif
 
 int main(int argc, char* argv[]){
+
   QApplication app(argc, argv);
   QIcon windowIcon("udjlauncher.svg");
   QApplication::setWindowIcon(windowIcon);
@@ -49,6 +50,10 @@ int main(int argc, char* argv[]){
     defaultConfig.setCaCertificates(cas);
     QSslConfiguration::setDefaultConfiguration(defaultConfig);
   }
+  #endif
+
+  #ifdef UDJ_DEBUG_BUILD
+  UDJ::Utils::clearDebugFile();
   #endif
 
   int toReturn = app.exec();

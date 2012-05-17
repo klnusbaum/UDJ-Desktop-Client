@@ -380,7 +380,7 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
   currentSongId =
     nextSongQuery.value(3).value<library_song_id_t>();
 
-  DEBUG_MESSAGE("Setting current song with id: " << currentSongId)
+  DEBUG_MESSAGE("Setting current song with id: " + QString::number(currentSongId).toStdString())
   serverConnection->setCurrentSong(currentSongId);
 
   QString filePath = nextSongQuery.value(0).toString();
@@ -412,7 +412,7 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
     QString filePath = getSongQuery.value(0).toString();
     currentSongId = songToPlay;
     serverConnection->setCurrentSong(songToPlay);
-    DEBUG_MESSAGE("Retrieved Artist " << getSongQuery.value(2).toString().toStdString())
+    DEBUG_MESSAGE("Retrieved Artist " + getSongQuery.value(2).toString().toStdString())
     song_info_t toEmit = {
       Phonon::MediaSource(filePath),
       getSongQuery.value(1).toString(),
@@ -456,8 +456,8 @@ void DataStore::createNewPlayer(
 
 void DataStore::changeVolumeSilently(qreal newVolume){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  DEBUG_MESSAGE("Current volume " << settings.value(getPlayerVolumeSettingName()).toReal())
-  DEBUG_MESSAGE("New volume " << newVolume)
+  DEBUG_MESSAGE("Current volume " + QString::number(settings.value(getPlayerVolumeSettingName()).toReal()).toStdString())
+  DEBUG_MESSAGE("New volume " + QString::number(newVolume).toStdString())
   if((int)(settings.value(getPlayerVolumeSettingName()).toReal()*10) != (int)(newVolume*10)){
     DEBUG_MESSAGE("Volume was different than current volume, now setting")
     settings.setValue(getPlayerVolumeSettingName(), newVolume);
@@ -511,8 +511,8 @@ void DataStore::syncLibrary(){
     songsToDelete.append(currentRecord.value(getLibIdColName()));
   }
 
-  DEBUG_MESSAGE("Found " << songsToDelete.size() << " songs which need deleting");
-  DEBUG_MESSAGE("Found " << songsToAdd.size() << " songs which need adding");
+  DEBUG_MESSAGE("Found " + QString::number(songsToDelete.size()).toStdString() + " songs which need deleting");
+  DEBUG_MESSAGE("Found " + QString::number(songsToAdd.size()).toStdString() + " songs which need adding");
   if(songsToDelete.size() > 0 || songsToAdd.size() > 0){
     serverConnection->modLibContents(songsToAdd, songsToDelete);
   }
@@ -625,7 +625,6 @@ void DataStore::addSong2ActivePlaylistFromQVariant(
 }
 
 void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
-  DEBUG_MESSAGE("Setting active playlist")
 
   int retrievedVolume = newPlaylist["volume"].toInt();
   if(retrievedVolume != (int)(getPlayerVolume()*10)){
@@ -677,7 +676,7 @@ void DataStore::onGetActivePlaylistFail(
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Playlist error: " << errorCode << " " <<errMessage.toStdString())
+  DEBUG_MESSAGE("Playlist error: " + QString::number(errorCode).toStdString() + " " + errMessage.toStdString())
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthActions.insert(GET_ACTIVE_PLAYLIST);
@@ -700,7 +699,7 @@ void DataStore::onActivePlaylistModFailed(
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Active playlist mod failed with code " << errorCode)
+  DEBUG_MESSAGE("Active playlist mod failed with code " + QString::number(errorCode).toStdString())
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthActions.insert(MOD_PLAYLIST);
@@ -749,14 +748,14 @@ void DataStore::onPlayerStateChanged(const QString& newState){
 void DataStore::onLibModError(
     const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Got bad libmod " << errorCode)
+  DEBUG_MESSAGE("Got bad libmod " + QString::number(errorCode).toStdString())
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthActions.insert(SYNC_LIB);
     initReauth();
   }
   else{
-    DEBUG_MESSAGE("Bad lib mod message " << errMessage.toStdString())
+    DEBUG_MESSAGE("Bad lib mod message " + errMessage.toStdString())
     emit libModError(errMessage);
   }
 }
@@ -764,7 +763,7 @@ void DataStore::onLibModError(
 void DataStore::onSetCurrentSongFailed(
   const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Setting current song failed: " << errorCode << " " << errMessage.toStdString())
+  DEBUG_MESSAGE("Setting current song failed: " + QString::number(errorCode).toStdString() + " " + errMessage.toStdString())
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthActions.insert(SET_CURRENT_SONG);
@@ -775,7 +774,8 @@ void DataStore::onSetCurrentSongFailed(
 void DataStore::onSetVolumeFailed(
   const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Setting volume failed " << errorCode << " " << errMessage.toStdString())
+  DEBUG_MESSAGE("Setting volume failed " + 
+    QString::number(errorCode).toStdString() + " " + errMessage.toStdString())
   if(isTicketAuthError(errorCode, headers)){
     DEBUG_MESSAGE("Got the ticket-hash challenge")
     reauthActions.insert(SET_CURRENT_VOLUME);

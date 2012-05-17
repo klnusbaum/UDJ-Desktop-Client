@@ -34,6 +34,7 @@ typedef int lib_sync_status_t;
 } //end namespace
 
 #ifdef UDJ_DEBUG_BUILD
+#include "Utils.hpp"
 #include <iostream>
 #include <QSqlError>
 
@@ -75,6 +76,7 @@ typedef int lib_sync_status_t;
   } \
 
 #define DEBUG_MESSAGE( MESSAGE ) \
+  UDJ::Utils::writeToDebugFile( MESSAGE ); \
   std::cout << MESSAGE << std::endl;
 
 #else

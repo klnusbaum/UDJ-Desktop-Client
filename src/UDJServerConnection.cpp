@@ -101,7 +101,7 @@ void UDJServerConnection::createPlayer(
 {
   const QByteArray playerJSON = JSONHelper::getCreatePlayerJSON(playerName, password,
       streetAddress, city, state, zipcode);
-  DEBUG_MESSAGE("Sending player json to server for creation: " << QString(playerJSON).toStdString())
+  DEBUG_MESSAGE("Sending player json to server for creation: " + QString(playerJSON).toStdString())
   createPlayer(playerJSON);
 }
 
@@ -155,7 +155,7 @@ void UDJServerConnection::setVolume(int volume){
 }
 
 void UDJServerConnection::setPlayerState(const QString& newState){
-  DEBUG_MESSAGE("Setting player state to " << newState.toStdString())
+  DEBUG_MESSAGE("Setting player state to " + newState.toStdString())
   QString params("state="+newState);
   QByteArray payload = params.toUtf8();
   QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
