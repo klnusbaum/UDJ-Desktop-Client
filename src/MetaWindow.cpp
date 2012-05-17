@@ -63,6 +63,9 @@ MetaWindow::MetaWindow(
   restoreState(settings.value("metaWindowState").toByteArray());
   if(dataStore->hasPlayerId()){
     dataStore->setPlayerState(DataStore::getPlayingState());
+    if(dataStore->hasUnsyncedSongs()){
+      syncLibrary();
+    }
   }
   else{
     PlayerCreateDialog *createDialog = new PlayerCreateDialog(dataStore, this);
@@ -107,80 +110,15 @@ void MetaWindow::addMusicToLibrary(){
   }
 
   int numNewFiles = musicToAdd.size();
-  addingProgress = new QProgressDialog(
-    "Loading Library...", "Cancel", 0, numNewFiles*2, this);
+  QProgressDialog *addingProgress = new QProgressDialog(
+    "Loading Library...", "Cancel", 0, numNewFiles, this);
   addingProgress->setWindowModality(Qt::WindowModal);
   addingProgress->setMinimumDuration(250);
-  connect(
-    addingProgress,
-    SIGNAL(cancel()),
-    this,
-    SLOT(disconnectAddingSignals()));
-  connect(
-    addingProgress,
-    SIGNAL(cancel()),
-    addingProgress,
-    SLOT(close()));
-
   dataStore->addMusicToLibrary(musicToAdd, addingProgress);
-  connect(
-    dataStore,
-    SIGNAL(allSynced()),
-    this,
-    SLOT(doneAdding()));
-
-  connect(
-    dataStore,
-    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
-    this,
-    SLOT(songsAdded(const QSet<library_song_id_t>&)));
-
-  connect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(errorAdding(const QString&)));
-  addingProgress->setLabelText(tr("Syncing With Server"));
-  addingProgress->setCancelButton(0);
-  dataStore->syncLibrary();
-}
-
-void MetaWindow::disconnectAddingSignals(){
-  disconnect(
-    addingProgress,
-    SIGNAL(cancel()),
-    this,
-    SLOT(handleAddCancel()));
-  disconnect(
-    dataStore,
-    SIGNAL(allSynced()),
-    this,
-    SLOT(doneAdding()));
-  disconnect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(errorAdding(const QString&)));
-  disconnect(
-    dataStore,
-    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
-    this,
-    SLOT(songsAdded(const QSet<library_song_id_t>&)));
-}
-
-void MetaWindow::songsAdded(const QSet<library_song_id_t>& addedSongs){
-  addingProgress->setValue(addingProgress->value() + addedSongs.size());
-}
-
-void MetaWindow::doneAdding(){
-  disconnectAddingSignals();
+  if(!addingProgress->wasCanceled()){
+    syncLibrary();
+  }
   addingProgress->close();
-}
-
-void MetaWindow::errorAdding(const QString& errMessage){
-  disconnectAddingSignals();
-  addingProgress->close();
-  QMessageBox::critical(this, "Error", "Error adding songs. Try again in a little bit.");
 }
 
 void MetaWindow::addSongToLibrary(){
@@ -192,6 +130,7 @@ void MetaWindow::addSongToLibrary(){
   QList<Phonon::MediaSource> songList;
   songList.append(Phonon::MediaSource(fileName));
   dataStore->addMusicToLibrary(songList);
+  syncLibrary();
 }
 
 void MetaWindow::setupUi(){
@@ -244,6 +183,11 @@ void MetaWindow::setupUi(){
     this,
     SLOT(displayPlaylist()));
 
+  connect(
+    libraryWidget,
+    SIGNAL(libNeedsSync()),
+    this,
+    SLOT(syncLibrary()));
 }
 
 void MetaWindow::createActions(){
@@ -275,5 +219,62 @@ void MetaWindow::displayPlaylist(){
   contentStack->setCurrentWidget(playlistView);
 }
 
+void MetaWindow::syncLibrary(){
+  syncingProgress = new QProgressDialog(
+    "Syncing Library...", "Cancel", 0, dataStore->getTotalUnsynced(), this);
+  syncingProgress->setWindowModality(Qt::WindowModal);
+  syncingProgress->setMinimumDuration(250);
+  syncingProgress->setCancelButton(0);
+  connect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(syncUpdate(const QSet<library_song_id_t>&)));
+  connect(
+    dataStore,
+    SIGNAL(allSynced()),
+    this,
+    SLOT(syncDone()));
+  connect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(syncError(const QString&)));
+  dataStore->syncLibrary();
+  syncingProgress->setValue(0);
+}
+
+void MetaWindow::syncUpdate(const QSet<library_song_id_t>& songs){
+  syncingProgress->setValue(syncingProgress->value() + songs.size());
+}
+
+void MetaWindow::disconnectSyncSignals(){
+  disconnect(
+    dataStore,
+    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
+    this,
+    SLOT(syncUpdate(const QSet<library_song_id_t>&)));
+  disconnect(
+    dataStore,
+    SIGNAL(allSynced()),
+    this,
+    SLOT(syncDone()));
+  disconnect(
+    dataStore,
+    SIGNAL(libModError(const QString&)),
+    this,
+    SLOT(syncError(const QString&)));
+}
+
+void MetaWindow::syncDone(){
+  disconnectSyncSignals();
+  syncingProgress->close();
+}
+
+void MetaWindow::syncError(const QString& errMessage){
+  disconnectSyncSignals();
+  syncingProgress->close();
+  QMessageBox::critical(this, "Error", "Error syncing library. We'll try again next time you startup UDJ");
+}
 
 } //end namespace

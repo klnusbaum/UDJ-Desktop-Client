@@ -57,6 +57,12 @@ LibraryWidget::LibraryWidget(DataStore* dataStore, QWidget* parent):
     SIGNAL(textChanged(const QString&)),
     libraryView,
     SLOT(filterContents(const QString&)));
+
+  connect(
+    libraryView,
+    SIGNAL(libNeedsSync()),
+    this,
+    SIGNAL(libNeedsSync()));
 }
 
 

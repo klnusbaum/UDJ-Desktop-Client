@@ -49,6 +49,16 @@ public:
 
   //@}
 
+/** @name Signals */
+//@{
+
+signals:
+
+  /** \brief Emitted when the LibraryView believes the song library needs to be synced. */
+  void libNeedsSync();
+
+//@}
+
 public slots:
   /** @name Slots */
   //@{
@@ -67,25 +77,6 @@ private slots:
    * @param pos The position where the context menu should be displayed.
    */
   void handleContextMenuRequest(const QPoint &pos);
-
-  /**
-   * \brief Takes appropriate action when the deleting of songs from the library has finished.
-   */
-  void deletingDone();
-
-  /**
-   * \brief Takes appropriate action when the deleting of songs from the library has an error.
-   *
-   * @param errMessage A message describing the error that occured.
-   */
-  void deletingError(const QString& errMessage);
-
-  /**
-   * \brief Takes appropriate action when the given set of songs is deleted.
-   *
-   * \param songs The songs that have been deleted.
-   */
-  void songsRemoved(const QSet<library_song_id_t>& songs);
 
   //@}
 
@@ -126,12 +117,6 @@ private:
    * \brief Configures the look of the headers in the view.
    */
   void configureColumns();
-
-  /**
-   * \brief Disconnects any signal slot connections that may have been
-   * setup when initiaiting a library delete.
-   */
-  void disconnectDeletionSignals();
 
   /**
    * \brief Gets the name used for the delete context menu item.

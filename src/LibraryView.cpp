@@ -109,74 +109,17 @@ void LibraryView::deleteSongs(){
       DataStore::getLibIdColName(),
       proxyModel);
 
-  deletingProgress =
+  QProgressDialog *deletingProgress =
     new QProgressDialog(tr("Deleting Songs..."), tr("Cancel"), 0, selectedIds.size()*2, this);
   deletingProgress->setWindowModality(Qt::WindowModal);
   deletingProgress->setMinimumDuration(250);
 
   dataStore->removeSongsFromLibrary(selectedIds, deletingProgress);
-  deletingProgress->setLabelText(tr("Syncing With Server"));
-  deletingProgress->setCancelButton(0);
-
-  connect(
-    dataStore,
-    SIGNAL(allSynced()),
-    this,
-    SLOT(deletingDone()));
-
-  connect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(deletingError(const QString&)));
-
-  connect(
-    dataStore,
-    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
-    this,
-    SLOT(songsRemoved(const QSet<library_song_id_t>&)));
-
-  dataStore->syncLibrary();
-}
-
-void LibraryView::disconnectDeletionSignals(){
-  disconnect(
-    dataStore,
-    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
-    this,
-    SLOT(deletingDone()));
-
-  disconnect(
-    dataStore,
-    SIGNAL(libSongsModified(const QSet<library_song_id_t>&)),
-    this,
-    SLOT(songsRemoved(const QSet<library_song_id_t>&)));
-
-  disconnect(
-    dataStore,
-    SIGNAL(libModError(const QString&)),
-    this,
-    SLOT(deletingError(const QString&)));
-}
-
-void LibraryView::songsRemoved(const QSet<library_song_id_t>& songs){
-  deletingProgress->setValue(deletingProgress->value() + songs.size());
-}
-
-void LibraryView::deletingDone(){
-  disconnectDeletionSignals();
+  if(!deletingProgress->wasCanceled()){
+    emit libNeedsSync();
+  }
   deletingProgress->close();
 }
-
-void LibraryView::deletingError(const QString& errMessage){
-  disconnectDeletionSignals();
-  deletingProgress->close();
-  QMessageBox::critical(
-    this,
-    tr("Error"),
-    tr("Error deleting songs from library. Try again in a little bit"));
-}
-
 
 void LibraryView::filterContents(const QString& filter){
   proxyModel->setFilterFixedString(filter);

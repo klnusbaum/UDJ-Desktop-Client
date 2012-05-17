@@ -49,6 +49,16 @@ public:
 
   //@}
 
+/** @name Signals */
+//@{
+
+signals:
+
+  /** \brief Emitted when the LibraryWidget believes the song library needs to be synced. */
+  void libNeedsSync();
+
+//@}
+
 private:
   /** @name Private Members */
   //@{

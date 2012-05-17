@@ -91,11 +91,8 @@ private slots:
   /** @name Private Slots */
   //@{
 
-  /**
-   * \brief Disconnects any signals that may have been setup at the beginning
-   * of a library addition operation
-   */
-  void disconnectAddingSignals();
+  /** \brief Initiates the syncing of the library */
+  void syncLibrary();
 
   /**
    * \brief Displays stuff for adding songs to a library.
@@ -108,13 +105,6 @@ private slots:
   void addSongToLibrary();
 
   /**
-   * \brief Takes appropriate action when adding songs on the server fails.
-   *
-   * @param errMessage A error message describing what happened.
-   */
-  void errorAdding(const QString& errMessage);
-
-  /**
    * \brief Displays the library widget in the main content panel.
    */
   void displayLibrary();
@@ -125,16 +115,23 @@ private slots:
   void displayPlaylist();
 
   /**
-   * \brief Takes appropriate action when adding songs to the server is finished.
+   * \brief Updates the syncprogress given the songs that have been updated.
+   *
+   * \param songs Songs that were updated.
    */
-  void doneAdding();
+  void syncUpdate(const QSet<library_song_id_t>& songs);
 
   /**
-   * \brief Takes appropriate action when the given songs are modified (i.e. synced with the server).
-   *
-   * @param addedSongs Songs added on the server.
+   * \brief Performs necessary actions when the library syncing is done.
    */
-  void songsAdded(const QSet<library_song_id_t>& addedSongs);
+  void syncDone();
+
+  /**
+   * \brief Performs necessary actions when the library syncing has an error.
+   *
+   * \param errMessage The error message given on a sync error.
+   */
+  void syncError(const QString& errMessage);
 
   //@}
 
@@ -175,8 +172,8 @@ private:
   /** \brief Progress dialog used when quitting.*/
   QProgressDialog *quittingProgress;
 
-  /** \brief Progress dialog used when adding songs to the library.*/
-  QProgressDialog *addingProgress;
+  /** \brief Progress dialog used syncing library.*/
+  QProgressDialog *syncingProgress;
 
   /** \brief Stack used to display various UI components. */
   QStackedWidget *contentStack;
@@ -201,6 +198,11 @@ private:
   /** \brief Creates the actions used in the MetaWindow */
   void createActions();
 
+  /**
+   * \brief Disconnects any signals that may have been setup at the beginning
+   * of a library sync operation.
+   */
+  void disconnectSyncSignals();
 
   //@}
 
