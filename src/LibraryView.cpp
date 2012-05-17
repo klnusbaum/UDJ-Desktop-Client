@@ -115,9 +115,8 @@ void LibraryView::deleteSongs(){
   deletingProgress->setMinimumDuration(250);
 
   dataStore->removeSongsFromLibrary(selectedIds, deletingProgress);
-
   deletingProgress->setLabelText(tr("Syncing With Server"));
-  deletingProgress->setMaximum(selectedIds.size());
+  deletingProgress->setCancelButton(0);
 
   connect(
     dataStore,

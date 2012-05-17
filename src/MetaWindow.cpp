@@ -111,6 +111,16 @@ void MetaWindow::addMusicToLibrary(){
     "Loading Library...", "Cancel", 0, numNewFiles*2, this);
   addingProgress->setWindowModality(Qt::WindowModal);
   addingProgress->setMinimumDuration(250);
+  connect(
+    addingProgress,
+    SIGNAL(cancel()),
+    this,
+    SLOT(disconnectAddingSignals()));
+  connect(
+    addingProgress,
+    SIGNAL(cancel()),
+    addingProgress,
+    SLOT(close()));
 
   dataStore->addMusicToLibrary(musicToAdd, addingProgress);
   connect(
@@ -131,10 +141,16 @@ void MetaWindow::addMusicToLibrary(){
     this,
     SLOT(errorAdding(const QString&)));
   addingProgress->setLabelText(tr("Syncing With Server"));
+  addingProgress->setCancelButton(0);
   dataStore->syncLibrary();
 }
 
 void MetaWindow::disconnectAddingSignals(){
+  disconnect(
+    addingProgress,
+    SIGNAL(cancel()),
+    this,
+    SLOT(handleAddCancel()));
   disconnect(
     dataStore,
     SIGNAL(allSynced()),

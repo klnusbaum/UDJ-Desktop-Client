@@ -92,6 +92,12 @@ private slots:
   //@{
 
   /**
+   * \brief Disconnects any signals that may have been setup at the beginning
+   * of a library addition operation
+   */
+  void disconnectAddingSignals();
+
+  /**
    * \brief Displays stuff for adding songs to a library.
    */
   void addMusicToLibrary();
@@ -195,11 +201,6 @@ private:
   /** \brief Creates the actions used in the MetaWindow */
   void createActions();
 
-  /**
-   * \brief Disconnects any signals that may have been setup at the beginning
-   * of a library addition operation
-   */
-  void disconnectAddingSignals();
 
   //@}
 
