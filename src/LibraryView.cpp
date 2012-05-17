@@ -102,9 +102,6 @@ void LibraryView::handleContextMenuRequest(const QPoint &pos){
 
 
 void LibraryView::deleteSongs(){
-  deletingProgress = new QProgressDialog(tr("Deleting Songs..."), tr("Cancel"), 0,0, this);
-  deletingProgress->setWindowModality(Qt::WindowModal);
-
   QSet<library_song_id_t> selectedIds =
     Utils::getSelectedIds<library_song_id_t>(
       this,
@@ -112,15 +109,15 @@ void LibraryView::deleteSongs(){
       DataStore::getLibIdColName(),
       proxyModel);
 
-  DEBUG_MESSAGE("Lib view is requesting to deleted the following ids")
-  Q_FOREACH(library_song_id_t id, selectedIds){
-    DEBUG_MESSAGE(id)
-  }
-  dataStore->removeSongsFromLibrary(selectedIds);
+  deletingProgress =
+    new QProgressDialog(tr("Deleting Songs..."), tr("Cancel"), 0, selectedIds.size()*2, this);
+  deletingProgress->setWindowModality(Qt::WindowModal);
+  deletingProgress->setMinimumDuration(250);
+
+  dataStore->removeSongsFromLibrary(selectedIds, deletingProgress);
 
   deletingProgress->setLabelText(tr("Syncing With Server"));
   deletingProgress->setMaximum(selectedIds.size());
-  deletingProgress->setValue(0);
 
   connect(
     dataStore,

@@ -202,8 +202,22 @@ void DataStore::addMusicToLibrary(
   const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
 {
   bool isTransacting=database.transaction();
+  QSqlQuery addQuery(database);
+  addQuery.prepare(
+    "INSERT INTO "+getLibraryTableName()+ 
+    "("+
+    getLibSongColName() + ","+
+    getLibArtistColName() + ","+
+    getLibAlbumColName() + ","+
+    getLibGenreColName() + "," +
+    getLibTrackColName() + "," +
+    getLibFileColName() + "," +
+    getLibDurationColName() +")" +
+    "VALUES ( :song , :artist , :album , :genre, :track, :file, :duration );"
+  );
+
   for(int i =0; i<songs.size(); ++i){
-    addSongToLibrary(songs[i]);
+    addSongToLibrary(songs[i], addQuery);
     if(progress != NULL){
       progress->setValue(i);
       if(progress->wasCanceled()){
@@ -220,7 +234,7 @@ void DataStore::addMusicToLibrary(
   }
 }
 
-void DataStore::addSongToLibrary(const Phonon::MediaSource& song){
+void DataStore::addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery &addQuery){
   QString fileName = song.fileName();
   QString songName;
   QString artistName;
@@ -257,18 +271,6 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song){
   }
 
   library_song_id_t hostId =-1;
-  QSqlQuery addQuery(
-    "INSERT INTO "+getLibraryTableName()+ 
-    "("+
-    getLibSongColName() + ","+
-    getLibArtistColName() + ","+
-    getLibAlbumColName() + ","+
-    getLibGenreColName() + "," +
-    getLibTrackColName() + "," +
-    getLibFileColName() + "," +
-    getLibDurationColName() +")" +
-    "VALUES ( :song , :artist , :album , :genre, :track, :file, :duration );", 
-    database);
 
   addQuery.bindValue(":song", songName);
   addQuery.bindValue(":artist", artistName);
@@ -284,20 +286,37 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song){
     library_song_id_t)
 }
 
-void DataStore::removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove){
-  QVariantList toDelete;
-  Q_FOREACH(library_song_id_t id, toRemove){
-    toDelete << QVariant::fromValue<library_song_id_t>(id);
-  }
-  QSqlQuery bulkDelete(database);
-  bulkDelete.prepare("UPDATE " + getLibraryTableName() +  " "
+void DataStore::removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove,
+  QProgressDialog* progress)
+{
+  bool isTransacting = database.transaction();
+  QSqlQuery deleteQuery(database);
+  deleteQuery.prepare("UPDATE " + getLibraryTableName() +  " "
     "SET " + getLibIsDeletedColName() + "=1, "+
     getLibSyncStatusColName() + "=" + 
       QString::number(getLibNeedsDeleteSyncStatus()) + " "
     "WHERE " + getLibIdColName() + "= ?"); 
-  bulkDelete.addBindValue(toDelete);
-  EXEC_BULK_QUERY("Error removing songs from library", 
-    bulkDelete)
+  int i=0;
+  Q_FOREACH(library_song_id_t id, toRemove){
+    deleteQuery.bindValue(0, QVariant::fromValue<library_song_id_t>(id));
+    EXEC_SQL(
+      "Error setting song sync status",
+      deleteQuery.exec(),
+      deleteQuery)
+    if(progress != NULL){
+      progress->setValue(i);
+      if(progress->wasCanceled()){
+        if(isTransacting){
+          database.rollback();
+        }
+        break;
+      }
+    }
+    ++i;
+  }
+  if(isTransacting){
+    database.commit();
+  }
 }
 
 
@@ -513,20 +532,25 @@ void DataStore::setLibSongsSyncStatus(
   const QSet<library_song_id_t>& songs,
   const lib_sync_status_t syncStatus)
 {
-  QVariantList toSetSynced;
-  Q_FOREACH(library_song_id_t id, songs){
-    toSetSynced << QVariant::fromValue<library_song_id_t>(id);
-  }
-  QSqlQuery bulkSync(database);
-  bulkSync.prepare("UPDATE " + getLibraryTableName() +  " "
+  bool isTransacting = database.transaction();
+  QSqlQuery syncQuery(database);
+  syncQuery.prepare("UPDATE " + getLibraryTableName() +  " "
     "SET " + getLibSyncStatusColName() + "=" + 
       QString::number(syncStatus) + " "
     "WHERE " + getLibIdColName() + "= ?"); 
-  bulkSync.addBindValue(toSetSynced);
-  EXEC_BULK_QUERY("Error syncing songs in library", 
-    bulkSync)
-
-  emit libSongsModified(songs);
+  Q_FOREACH(library_song_id_t id, songs){
+    syncQuery.bindValue(0, QVariant::fromValue<library_song_id_t>(id));
+    EXEC_SQL(
+      "Error setting song sync status",
+      syncQuery.exec(),
+      syncQuery)
+    QSet<library_song_id_t> modId;
+    modId.insert(id);
+    emit libSongsModified(modId);
+  }
+  if(isTransacting){
+    database.commit();
+  }
 
   if(hasUnsyncedSongs()){
     DEBUG_MESSAGE("more stuff to sync")

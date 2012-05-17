@@ -111,8 +111,11 @@ public:
    * \brief Removes the given songs from the music library. 
    *
    * @param toRemove A set of song ids to remove from the library.
+   * @param progress A progress dialog representing the progress of the 
+   * of removing the songs from the library.
    */
-  void removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove);
+  void removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove,
+      QProgressDialog *progress=0);
 
   /**
    * \brief Gets the raw connection to the actual database that the DataStore
@@ -968,8 +971,9 @@ private:
    * \brief Adds a single song to the music library.
    *
    * @param song Song to be added to the library.
+   * @param addQuery Prepared statmemnt ready to be used for adding
    */
-  void addSongToLibrary(const Phonon::MediaSource& song);
+  void addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery& addQuery);
 
   /**
    * \brief Gets the value of a header.
