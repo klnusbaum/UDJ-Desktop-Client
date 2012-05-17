@@ -27,6 +27,16 @@
 
 namespace UDJ{
 
+/**
+ * Sometimes the semicolons just don't get encoded. This is incorrect
+ * because the URL starndard clearly states that semicolons are reserved 
+ * characters. So we just go threw and encode the semicolons ourself.
+ */
+QByteArray encodeSemiColons(QByteArray toScrub){
+  QString string(toScrub);
+  string.replace(";", "%3B");
+  return string.toUtf8();
+}
 
 UDJServerConnection::UDJServerConnection(QObject *parent):QObject(parent),
   ticket_hash(""),
@@ -67,6 +77,7 @@ void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
   params.addQueryItem("to_add", addJSON);
   params.addQueryItem("to_delete", deleteJSON);
   QByteArray payload = params.encodedQuery();
+  payload = encodeSemiColons(payload);
   QNetworkReply *reply = netAccessManager->post(modRequest, payload);
   reply->setProperty(getSongsAddedPropertyName(), addJSON);
   reply->setProperty(getSongsDeletedPropertyName(), deleteJSON);
