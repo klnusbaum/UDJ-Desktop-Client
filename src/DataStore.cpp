@@ -479,7 +479,7 @@ void DataStore::syncLibrary(){
     needAddSongs.exec(
       "SELECT * FROM " + getLibraryTableName() + " WHERE " + 
       getLibSyncStatusColName() + "==" + 
-      QString::number(getLibNeedsAddSyncStatus()) + " LIMIT 1;"),
+      QString::number(getLibNeedsAddSyncStatus()) + " LIMIT 100;"),
     needAddSongs)
 
   QVariantList songsToAdd;
@@ -503,7 +503,7 @@ void DataStore::syncLibrary(){
     needDeleteSongs.exec(
       "SELECT * FROM " + getLibraryTableName() + " WHERE " + 
       getLibSyncStatusColName() + "==" + 
-      QString::number(getLibNeedsDeleteSyncStatus()) + " LIMIT 1;"),
+      QString::number(getLibNeedsDeleteSyncStatus()) + " LIMIT 100;"),
     needDeleteSongs)
 
   QVariantList songsToDelete;
