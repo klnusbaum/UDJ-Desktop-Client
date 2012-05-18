@@ -79,6 +79,7 @@ void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
   params.addQueryItem("to_delete", deleteJSON);
   QByteArray payload = params.encodedQuery();
   payload = encodeSemiColons(payload);
+  Logger::instance()->log("Lib mod payload: " + QString(payload).toStdString());
   QNetworkReply *reply = netAccessManager->post(modRequest, payload);
   reply->setProperty(getSongsAddedPropertyName(), addJSON);
   reply->setProperty(getSongsDeletedPropertyName(), deleteJSON);
