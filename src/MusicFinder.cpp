@@ -17,9 +17,9 @@
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MusicFinder.hpp"
+#include "Logger.hpp"
 #include <QRegExp>
 #include <phonon/backendcapabilities.h>
-#include "ConfigDefs.hpp"
 
 namespace UDJ{
 
@@ -59,7 +59,7 @@ QRegExp MusicFinder::getMusicFileMatcher(){
       matcherString += "(.*" + availableTypes.at(i) + ")|";
     }
   }
-  DEBUG_MESSAGE("Matcher REGEX: " + matcherString.toStdString())
+  Logger::instance()->log("Matcher REGEX: " + matcherString.toStdString());
   QRegExp matcher(matcherString);
   return matcher;
 }
@@ -76,18 +76,15 @@ QString MusicFinder::getMusicFileExtFilter(){
     }
   }
   filterString += ")";
-  DEBUG_MESSAGE("File Ext Filter: " + filterString.toStdString())
+  Logger::instance()->log("File Ext Filter: " + filterString.toStdString());
   return filterString;
 }
 
 QStringList MusicFinder::availableMusicTypes(){
   QStringList mimes = Phonon::BackendCapabilities::availableMimeTypes();
-  DEBUG_MESSAGE("Found mime types:")
+  Logger::instance()->log("Found mime types:");
   Q_FOREACH(QString s, mimes){
-    DEBUG_MESSAGE(s.toStdString())
-  }
-  for(int i=0; i< mimes.size(); ++i){
-    //DEBUG_MESSAGE("Mime: " << mimes.at(i).toStdString())
+    Logger::instance()->log(s.toStdString());
   }
   QStringList toReturn;
   if(mimes.contains("audio/flac") || mimes.contains("audio/x-flac")){

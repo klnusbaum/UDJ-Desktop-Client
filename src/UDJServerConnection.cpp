@@ -22,6 +22,7 @@
 #include <QStringList>
 #include "UDJServerConnection.hpp"
 #include "JSONHelper.hpp"
+#include "Logger.hpp"
 #include <QSet>
 
 
@@ -63,7 +64,7 @@ void UDJServerConnection::authenticate(
   dataBuffer->setData(data.toUtf8());
   QNetworkReply *reply = netAccessManager->post(authRequest, dataBuffer);
   dataBuffer->setParent(reply);
-  DEBUG_MESSAGE("Doing auth request")
+  Logger::instance()->log("Doing auth request");
 }
 
 void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
@@ -101,7 +102,7 @@ void UDJServerConnection::createPlayer(
 {
   const QByteArray playerJSON = JSONHelper::getCreatePlayerJSON(playerName, password,
       streetAddress, city, state, zipcode);
-  DEBUG_MESSAGE("Sending player json to server for creation: " + QString(playerJSON).toStdString())
+  Logger::instance()->log("Sending player json to server for creation: " + QString(playerJSON).toStdString());
   createPlayer(playerJSON);
 }
 
@@ -136,7 +137,7 @@ void UDJServerConnection::modActivePlaylist(
 }
 
 void UDJServerConnection::setCurrentSong(library_song_id_t currentSong){
-  DEBUG_MESSAGE("Setting current song")
+  Logger::instance()->log("Setting current song");
   QString params = "lib_id="+QString::number(currentSong);
   QNetworkRequest setCurrentSongRequest(getCurrentSongUrl());
   setCurrentSongRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
@@ -145,7 +146,7 @@ void UDJServerConnection::setCurrentSong(library_song_id_t currentSong){
 }
 
 void UDJServerConnection::setVolume(int volume){
-  DEBUG_MESSAGE("Setting volume")
+  Logger::instance()->log("Setting volume");
   QUrl params;
   params.addQueryItem("volume", QString::number(volume));
   QNetworkRequest setCurrentVolumeRequest(getVolumeUrl());
@@ -155,7 +156,7 @@ void UDJServerConnection::setVolume(int volume){
 }
 
 void UDJServerConnection::setPlayerState(const QString& newState){
-  DEBUG_MESSAGE("Setting player state to " + newState.toStdString())
+  Logger::instance()->log("Setting player state to " + newState.toStdString());
   QString params("state="+newState);
   QByteArray payload = params.toUtf8();
   QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
@@ -190,8 +191,8 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
     handleRecievedPlaylistMod(reply);
   }
   else{
-    DEBUG_MESSAGE("Recieved unknown response")
-    DEBUG_MESSAGE(reply->request().url().path().toStdString())
+    Logger::instance()->log("Recieved unknown response");
+    Logger::instance()->log(reply->request().url().path().toStdString());
   }
   reply->deleteLater();
 }
@@ -200,7 +201,7 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   bool success = true;
   QVariantMap authReplyJSON = JSONHelper::getAuthReplyFromJSON(reply, success);
   if(reply->error() == QNetworkReply::NoError && success){
-    DEBUG_MESSAGE("Got good auth reply")
+    Logger::instance()->log("Got good auth reply");
     emit authenticated(authReplyJSON["ticket_hash"].toByteArray(), authReplyJSON["user_id"].value<user_id_t>());
   }
   else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 401){
@@ -209,7 +210,7 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   else{
     QByteArray responseData = reply->readAll();
     QString responseString = QString::fromUtf8(responseData);
-    DEBUG_MESSAGE(responseString.toStdString())
+    Logger::instance()->log(responseString.toStdString());
     emit authFailed(
       tr("We're experiencing some techinical difficulties. "
       "We'll be back in a bit"));
@@ -237,7 +238,7 @@ void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
     emit libSongsSyncedToServer(allSynced);
   }
   else{
-    DEBUG_MESSAGE("Got bad lib mod")
+    Logger::instance()->log("Got bad lib mod");
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit libModError("error: " + responseMsg,
@@ -252,7 +253,7 @@ void UDJServerConnection::handleCreatePlayerReply(QNetworkReply *reply){
     emit playerCreated(issuedId);
   }
   else{
-    DEBUG_MESSAGE("Player creation failed")
+    Logger::instance()->log("Player creation failed");
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit playerCreationFailed(
@@ -267,7 +268,7 @@ void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
     emit newActivePlaylist(JSONHelper::getActivePlaylistFromJSON(reply));
   }
   else{
-    DEBUG_MESSAGE("Getting playlist failed")
+    Logger::instance()->log("Getting playlist failed");
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit getActivePlaylistFail(
@@ -285,7 +286,7 @@ void UDJServerConnection::handleRecievedPlaylistMod(QNetworkReply *reply){
     );
   }
   else{
-    DEBUG_MESSAGE("Modding playlist failed")
+    Logger::instance()->log("Modding playlist failed");
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit activePlaylistModFailed(
@@ -300,7 +301,7 @@ void UDJServerConnection::handleRecievedCurrentSongSet(QNetworkReply *reply){
     emit currentSongSet();
   }
   else{
-    DEBUG_MESSAGE("Setting current song failed")
+    Logger::instance()->log("Setting current song failed");
     QByteArray response = reply->readAll();
     QString responseMsg = QString(response);
     emit setCurrentSongFailed(

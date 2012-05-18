@@ -19,6 +19,7 @@
 #include "ActivePlaylistView.hpp"
 #include "ActivePlaylistModel.hpp"
 #include "Utils.hpp"
+#include "Logger.hpp"
 #include <QHeaderView>
 #include <QSqlRecord>
 #include <QAction>
@@ -77,7 +78,7 @@ void ActivePlaylistView::configureHeaders(){
 }
 
 void ActivePlaylistView::setCurrentSong(const QModelIndex& index){
-  DEBUG_MESSAGE("Manual setting of current song")
+  Logger::instance()->log("Manual setting of current song");
   QSqlRecord songToPlayRecord = model->record(index.row());
   QVariant data = 
     songToPlayRecord.value(DataStore::getActivePlaylistLibIdColName());

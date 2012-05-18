@@ -19,13 +19,13 @@
 #ifndef UDJ_SERVER_CONNECTION_HPP
 #define UDJ_SERVER_CONNECTION_HPP
 
-#include "ConfigDefs.hpp"
 #include <QSqlDatabase>
 #include <QDateTime>
 #include <QObject>
 #include <vector>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include "ConfigDefs.hpp"
 
 class QNetworkAccessManager;
 class QNetworkCookieJar;

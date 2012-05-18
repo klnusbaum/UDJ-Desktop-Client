@@ -19,6 +19,7 @@
 #include "DataStore.hpp"
 #include "UDJServerConnection.hpp"
 #include "Utils.hpp"
+#include "Logger.hpp"
 
 #include <QDir>
 #include <QDesktopServices>
@@ -229,7 +230,7 @@ void DataStore::addMusicToLibrary(
     }
   }
   if(isTransacting){
-    DEBUG_MESSAGE("Committing add transaction")
+    Logger::instance()->log("Committing add transaction");
     database.commit();
   }
 }
@@ -380,7 +381,7 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
   currentSongId =
     nextSongQuery.value(3).value<library_song_id_t>();
 
-  DEBUG_MESSAGE("Setting current song with id: " + QString::number(currentSongId).toStdString())
+  Logger::instance()->log("Setting current song with id: " + QString::number(currentSongId).toStdString());
   serverConnection->setCurrentSong(currentSongId);
 
   QString filePath = nextSongQuery.value(0).toString();
@@ -408,11 +409,11 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
     getSongQuery)
   getSongQuery.next();
   if(getSongQuery.isValid()){
-    DEBUG_MESSAGE("Got file, for manual song set")
+    Logger::instance()->log("Got file, for manual song set");
     QString filePath = getSongQuery.value(0).toString();
     currentSongId = songToPlay;
     serverConnection->setCurrentSong(songToPlay);
-    DEBUG_MESSAGE("Retrieved Artist " + getSongQuery.value(2).toString().toStdString())
+    Logger::instance()->log("Retrieved Artist " + getSongQuery.value(2).toString().toStdString());
     song_info_t toEmit = {
       Phonon::MediaSource(filePath),
       getSongQuery.value(1).toString(),
@@ -456,10 +457,10 @@ void DataStore::createNewPlayer(
 
 void DataStore::changeVolumeSilently(qreal newVolume){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  DEBUG_MESSAGE("Current volume " + QString::number(settings.value(getPlayerVolumeSettingName()).toReal()).toStdString())
-  DEBUG_MESSAGE("New volume " + QString::number(newVolume).toStdString())
+  Logger::instance()->log("Current volume " + QString::number(settings.value(getPlayerVolumeSettingName()).toReal()).toStdString());
+  Logger::instance()->log("New volume " + QString::number(newVolume).toStdString());
   if((int)(settings.value(getPlayerVolumeSettingName()).toReal()*10) != (int)(newVolume*10)){
-    DEBUG_MESSAGE("Volume was different than current volume, now setting")
+    Logger::instance()->log("Volume was different than current volume, now setting");
     settings.setValue(getPlayerVolumeSettingName(), newVolume);
     serverConnection->setVolume((int)(newVolume * 10));
   }
@@ -472,7 +473,7 @@ void DataStore::changeVolumeSilently(qreal newVolume){
 
 void DataStore::syncLibrary(){
   QSqlQuery needAddSongs(database);
-  DEBUG_MESSAGE("batching up sync")
+  Logger::instance()->log("batching up sync");
   EXEC_SQL(
     "Error querying for song to add",
     needAddSongs.exec(
@@ -511,8 +512,8 @@ void DataStore::syncLibrary(){
     songsToDelete.append(currentRecord.value(getLibIdColName()));
   }
 
-  DEBUG_MESSAGE("Found " + QString::number(songsToDelete.size()).toStdString() + " songs which need deleting");
-  DEBUG_MESSAGE("Found " + QString::number(songsToAdd.size()).toStdString() + " songs which need adding");
+  Logger::instance()->log("Found " + QString::number(songsToDelete.size()).toStdString() + " songs which need deleting");
+  Logger::instance()->log("Found " + QString::number(songsToAdd.size()).toStdString() + " songs which need adding");
   if(songsToDelete.size() > 0 || songsToAdd.size() > 0){
     serverConnection->modLibContents(songsToAdd, songsToDelete);
   }
@@ -553,12 +554,12 @@ void DataStore::setLibSongsSyncStatus(
   }
 
   if(hasUnsyncedSongs()){
-    DEBUG_MESSAGE("more stuff to sync")
+    Logger::instance()->log("more stuff to sync");
     syncLibrary();
   }
   else{
     emit allSynced();
-    DEBUG_MESSAGE("syncing done")
+    Logger::instance()->log("syncing done");
   }
 }
 
@@ -651,7 +652,7 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
       getSongQuery)
     getSongQuery.next();
     if(getSongQuery.isValid()){
-      DEBUG_MESSAGE("Got file, for manual song set")
+      Logger::instance()->log("Got file, for manual song set");
       QString filePath = getSongQuery.value(0).toString();
       currentSongId = retrievedCurrentId;
       song_info_t toEmit = {
@@ -676,9 +677,9 @@ void DataStore::onGetActivePlaylistFail(
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Playlist error: " + QString::number(errorCode).toStdString() + " " + errMessage.toStdString())
+  Logger::instance()->log("Playlist error: " + QString::number(errorCode).toStdString() + " " + errMessage.toStdString());
   if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(GET_ACTIVE_PLAYLIST);
     initReauth();
   }
@@ -699,9 +700,9 @@ void DataStore::onActivePlaylistModFailed(
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Active playlist mod failed with code " + QString::number(errorCode).toStdString())
+  Logger::instance()->log("Active playlist mod failed with code " + QString::number(errorCode).toStdString());
   if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(MOD_PLAYLIST);
     initReauth();
   }
@@ -748,14 +749,14 @@ void DataStore::onPlayerStateChanged(const QString& newState){
 void DataStore::onLibModError(
     const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Got bad libmod " + QString::number(errorCode).toStdString())
+  Logger::instance()->log("Got bad libmod " + QString::number(errorCode).toStdString());
   if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(SYNC_LIB);
     initReauth();
   }
   else{
-    DEBUG_MESSAGE("Bad lib mod message " + errMessage.toStdString())
+    Logger::instance()->log("Bad lib mod message " + errMessage.toStdString());
     emit libModError(errMessage);
   }
 }
@@ -763,9 +764,9 @@ void DataStore::onLibModError(
 void DataStore::onSetCurrentSongFailed(
   const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Setting current song failed: " + QString::number(errorCode).toStdString() + " " + errMessage.toStdString())
+  Logger::instance()->log("Setting current song failed: " + QString::number(errorCode).toStdString() + " " + errMessage.toStdString());
   if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(SET_CURRENT_SONG);
     initReauth();
   }
@@ -774,10 +775,10 @@ void DataStore::onSetCurrentSongFailed(
 void DataStore::onSetVolumeFailed(
   const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  DEBUG_MESSAGE("Setting volume failed " + 
-    QString::number(errorCode).toStdString() + " " + errMessage.toStdString())
+  Logger::instance()->log("Setting volume failed " + 
+    QString::number(errorCode).toStdString() + " " + errMessage.toStdString());
   if(isTicketAuthError(errorCode, headers)){
-    DEBUG_MESSAGE("Got the ticket-hash challenge")
+    Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(SET_CURRENT_VOLUME);
     initReauth();
   }
@@ -788,7 +789,7 @@ void DataStore::onSetVolumeFailed(
 
 
 void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
-  DEBUG_MESSAGE("in on reauth")
+  Logger::instance()->log("in on reauth");
   isReauthing=false;
   serverConnection->setTicket(ticketHash);
   serverConnection->setUserId(userId);
@@ -825,7 +826,7 @@ void DataStore::doReauthAction(const ReauthAction& action){
 
 void DataStore::onAuthFail(const QString& errMessage){
   isReauthing=false;
-  DEBUG_MESSAGE("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
+  Logger::instance()->log("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
   //TODO need to do something here
 }
 

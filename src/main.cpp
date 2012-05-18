@@ -20,6 +20,7 @@
 #include <QIcon>
 #include "LoginDialog.hpp"
 #include "ConfigDefs.hpp"
+#include "Logger.hpp"
 
 #ifdef HAS_CUSTOM_CA_CERT
 #include <QSslConfiguration>
@@ -40,7 +41,7 @@ int main(int argc, char* argv[]){
   #ifdef HAS_CUSTOM_CA_CERT
   QFile servercaFile("bin/serverca.pem");
   if(servercaFile.exists()){
-    DEBUG_MESSAGE("Explicitly setting server cas")
+    UDJ::Logger::instance()->log("Explicitly setting server cas");
     servercaFile.open(QIODevice::ReadOnly);
     QList<QSslCertificate> cas;
     QSslCertificate serverca(&servercaFile);

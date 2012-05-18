@@ -18,6 +18,7 @@
  */
 
 #include "Logger.hpp"
+#include <iostream>
 
 namespace UDJ{
 
@@ -37,6 +38,7 @@ Logger* Logger::instance(){
 }
 
 void Logger::log(std::string message){
+  std::cout << message << std::endl;
   data.append(message);
   emit dataChanged(message);
 }

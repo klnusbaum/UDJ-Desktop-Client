@@ -82,19 +82,6 @@ template<class T> QSet<T> getSelectedIds(
  */
 SimpleCrypt getCryptoObject();
 
-/**
- * Write out the given message to the debug file.
- *
- * @param debugMessage Message to be written out to the debug
- * file.
- */
-void writeToDebugFile(std::string debugMessage);
-
-/**
- * Erases the debug file.
- */
-void clearDebugFile();
-
 } //end namespace utils
 
 

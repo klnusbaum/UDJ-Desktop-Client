@@ -27,23 +27,24 @@
 #include <QStyle>
 #include <QDesktopServices>
 #include <QFile>
+#include "Logger.hpp"
 
 #ifdef WIN32
 #include <mpegfile.h>
 void removeTags(UDJ::DataStore::song_info_t& song){
   static int fileCount =0;
   if(song.source.fileName().endsWith(".mp3")){
-    DEBUG_MESSAGE("On windows and got mp3, copying and striping metadata tags")
+    UDJ::Logger::instance()->log("On windows and got mp3, copying and striping metadata tags");
     QString tempCopy = QDesktopServices::storageLocation(QDesktopServices::TempLocation) + "/striped" + QString::number(fileCount) +".mp3";
     if(QFile::exists(tempCopy)){
-      DEBUG_MESSAGE("Prevoius file existed, deleting now");
+      UDJ::Logger::instance()->log("Prevoius file existed, deleting now");
       if(QFile::remove(tempCopy)){
-        DEBUG_MESSAGE("File removal worked")
+        UDJ::Logger::instance()->log("File removal worked");
       }
     }
     bool fileCopyWorked = QFile::copy(song.source.fileName(), tempCopy);
     if(!fileCopyWorked){
-      DEBUG_MESSAGE("File copy didn't work");
+      UDJ::Logger::instance()->log("File copy didn't work");
       return;
     }
 
@@ -248,7 +249,7 @@ void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   //uncrompress them. Tis a bitch.
   removeTags(newSong);
   #endif
-  DEBUG_MESSAGE("in set new source")
+  Logger::instance()->log("in set new source");
   mediaObject->setCurrentSource(newSong.source);
   songInfo->setText(newSong.title + " - " + newSong.artist);
   if(dataStore->getPlayingState() == DataStore::getPausedState()){

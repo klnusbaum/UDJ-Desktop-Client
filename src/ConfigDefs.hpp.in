@@ -34,7 +34,6 @@ typedef int lib_sync_status_t;
 } //end namespace
 
 #ifdef UDJ_DEBUG_BUILD
-#include "Logger.hpp"
 #include <iostream>
 #include <QSqlError>
 
@@ -75,10 +74,6 @@ typedef int lib_sync_status_t;
     std::cerr << std::endl; \
   } \
 
-#define DEBUG_MESSAGE( MESSAGE ) \
-  UDJ::Logger::instance()->log( MESSAGE ); \
-  std::cout << MESSAGE << std::endl;
-
 #else
 
 #define EXEC_SQL( MESSAGE, STMT, QSQLOBJECT) \
@@ -87,9 +82,6 @@ typedef int lib_sync_status_t;
 #define EXEC_INSERT( MESSAGE, QSQLOBJECT, RESULT_VAR) \
   QSQLOBJECT.exec(); \
   RESULT_VAR = QSQLOBJECT.lastInsertId().value<library_song_id_t>();
-
-#define DEBUG_MESSAGE( MESSAGE ) \
-  UDJ::Logger::instance()->log( MESSAGE );
 
 #define EXEC_BULK_QUERY( MESSAGE, QSQLOBJECT) \
   QSQLOBJECT.execBatch();
