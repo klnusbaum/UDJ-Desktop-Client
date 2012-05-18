@@ -25,18 +25,18 @@ LogViewer::LogViewer(QWidget *parent):
   QTextEdit(parent)
 {
   setReadOnly(true);
-  Q_FOREACH(std::string logLine, Logger::instance()->getLog()){
-    append(QString::fromStdString(logLine));
+  Q_FOREACH(QString logLine, Logger::instance()->getLog()){
+    append(logLine);
   }
   connect(
     Logger::instance(),
-    SIGNAL(dataChanged(const std::string&)),
+    SIGNAL(dataChanged(const QString&)),
     this,
-    SLOT(updateText(const std::string&)));
+    SLOT(updateText(const QString&)));
 }
 
-void LogViewer::updateText(const std::string& newLogLine){
-  append(QString::fromStdString(newLogLine));
+void LogViewer::updateText(const QString& newLogLine){
+  append(newLogLine);
 }
 
 

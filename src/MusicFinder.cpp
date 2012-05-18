@@ -59,7 +59,7 @@ QRegExp MusicFinder::getMusicFileMatcher(){
       matcherString += "(.*" + availableTypes.at(i) + ")|";
     }
   }
-  Logger::instance()->log("Matcher REGEX: " + matcherString.toStdString());
+  Logger::instance()->log("Matcher REGEX: " + matcherString);
   QRegExp matcher(matcherString);
   return matcher;
 }
@@ -76,7 +76,7 @@ QString MusicFinder::getMusicFileExtFilter(){
     }
   }
   filterString += ")";
-  Logger::instance()->log("File Ext Filter: " + filterString.toStdString());
+  Logger::instance()->log("File Ext Filter: " + filterString);
   return filterString;
 }
 
@@ -84,7 +84,7 @@ QStringList MusicFinder::availableMusicTypes(){
   QStringList mimes = Phonon::BackendCapabilities::availableMimeTypes();
   Logger::instance()->log("Found mime types:");
   Q_FOREACH(QString s, mimes){
-    Logger::instance()->log(s.toStdString());
+    Logger::instance()->log(s);
   }
   QStringList toReturn;
   if(mimes.contains("audio/flac") || mimes.contains("audio/x-flac")){

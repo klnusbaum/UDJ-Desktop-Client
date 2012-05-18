@@ -74,12 +74,16 @@ void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
   modRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   QByteArray addJSON = JSONHelper::getJSONForLibAdd(songsToAdd);
   QByteArray deleteJSON = JSONHelper::getJSONForLibDelete(songsToDelete);
-  QUrl params;
+  Logger::instance()->log("Lib mod add JSON: " + QString(addJSON));
+  Logger::instance()->log("Lib mod delete JSON: " + QString(deleteJSON));
+  /*QUrl params;
   params.addQueryItem("to_add", addJSON);
   params.addQueryItem("to_delete", deleteJSON);
   QByteArray payload = params.encodedQuery();
-  payload = encodeSemiColons(payload);
-  Logger::instance()->log("Lib mod payload: " + QString(payload).toStdString());
+  payload = encodeSemiColons(payload);*/
+  QByteArray payload = "to_add=" + QUrl::toPercentEncoding(addJSON) + 
+    "&to_delete="+QUrl::toPercentEncoding(deleteJSON);
+  Logger::instance()->log("Lib mod payload: " + QString(payload));
   QNetworkReply *reply = netAccessManager->post(modRequest, payload);
   reply->setProperty(getSongsAddedPropertyName(), addJSON);
   reply->setProperty(getSongsDeletedPropertyName(), deleteJSON);
@@ -103,7 +107,7 @@ void UDJServerConnection::createPlayer(
 {
   const QByteArray playerJSON = JSONHelper::getCreatePlayerJSON(playerName, password,
       streetAddress, city, state, zipcode);
-  Logger::instance()->log("Sending player json to server for creation: " + QString(playerJSON).toStdString());
+  Logger::instance()->log("Sending player json to server for creation: " + QString(playerJSON));
   createPlayer(playerJSON);
 }
 
@@ -157,7 +161,7 @@ void UDJServerConnection::setVolume(int volume){
 }
 
 void UDJServerConnection::setPlayerState(const QString& newState){
-  Logger::instance()->log("Setting player state to " + newState.toStdString());
+  Logger::instance()->log("Setting player state to " + newState);
   QString params("state="+newState);
   QByteArray payload = params.toUtf8();
   QNetworkRequest setPlayerActiveRequest(getPlayerStateUrl());
@@ -193,7 +197,7 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   }
   else{
     Logger::instance()->log("Recieved unknown response");
-    Logger::instance()->log(reply->request().url().path().toStdString());
+    Logger::instance()->log(reply->request().url().path());
   }
   reply->deleteLater();
 }
@@ -211,7 +215,7 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   else{
     QByteArray responseData = reply->readAll();
     QString responseString = QString::fromUtf8(responseData);
-    Logger::instance()->log(responseString.toStdString());
+    Logger::instance()->log(responseString);
     emit authFailed(
       tr("We're experiencing some techinical difficulties. "
       "We'll be back in a bit"));

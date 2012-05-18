@@ -37,13 +37,13 @@ Logger* Logger::instance(){
   return myInstance;
 }
 
-void Logger::log(std::string message){
-  std::cout << message << std::endl;
+void Logger::log(QString message){
+  std::cout << message.toStdString() << std::endl;
   data.append(message);
   emit dataChanged(message);
 }
 
-QList<std::string> Logger::getLog(){
+QStringList Logger::getLog(){
   return data;
 }
 

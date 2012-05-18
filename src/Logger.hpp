@@ -19,7 +19,7 @@
 #ifndef LOGGER_HPP_
 #define LOGGER_HPP_
 #include <QObject>
-#include <QList>
+#include <QStringList>
 
 namespace UDJ{
 
@@ -57,7 +57,7 @@ public:
    *
    * \param message Message to add to the log.
    */
-  void log(std::string message);
+  void log(QString message);
 
 
   /**
@@ -65,7 +65,7 @@ public:
    *
    * \return The current log of messages.
    */
-  QList<std::string> getLog();
+  QStringList getLog();
 
   //@}
 
@@ -78,7 +78,7 @@ signals:
    *
    * \param newLogLine The new message that was added to the log.
    */
-  void dataChanged(const std::string& newLogLine);
+  void dataChanged(const QString& newLogLine);
 
   //@}
 
@@ -101,7 +101,7 @@ private:
   /** \brief Singelton instance of the log */
   static Logger* myInstance;
   /** \brief Actual data in the log*/
-  QList<std::string> data;
+  QStringList data;
 
   //@}
 };

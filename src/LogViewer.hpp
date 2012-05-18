@@ -49,7 +49,7 @@ private slots:
    *
    * \param newLogLine The new text to be added to the log view.
    */
-  void updateText(const std::string& newLogLine);
+  void updateText(const QString& newLogLine);
 
   //@}
 };
