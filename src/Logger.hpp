@@ -24,26 +24,86 @@
 namespace UDJ{
 
 
+/**
+ * \brief Singleton class used to keep a log of messages
+ */
 class Logger : public QObject{
 Q_OBJECT
 public:
+
+  /** @name Creation/Destruction Functions */
+  //@{
+
+  /**
+   * \brief Retrieves an instance of the logger.
+   *
+   * \return An instance of the logger.
+   */
   static Logger* instance();
 
-  void log(std::string message);
-
+  /**
+   * \brief Deletes the instance of the logger. This should only be called when the program
+   * is finished and there is no more intent of logging things.
+   */
   static void deleteLogger();
 
+  //@}
+  
+  /** @name Log Functoins */
+  //@{
+
+  /**
+   * \brief Adds the given message to the log.
+   *
+   * \param message Message to add to the log.
+   */
+  void log(std::string message);
+
+
+  /**
+   * \brief Gets the current log of messages.
+   *
+   * \return The current log of messages.
+   */
   QList<std::string> getLog();
 
+  //@}
+
 signals:
-  void dataChanged(const std::string& loggerData);
+  /** @name Signals */
+  //@{
+
+  /**
+   * \brief Emitted when ever a message is added to the log.
+   *
+   * \param newLogLine The new message that was added to the log.
+   */
+  void dataChanged(const std::string& newLogLine);
+
+  //@}
 
 private:
+  /** @name Constructor(s) */
+  //@{
+
+  /** \brief . */
   Logger(){};
+  /** \brief . */
   Logger(Logger const&){};
+  /** \brief . */
   Logger& operator=(Logger const&){};
+
+  //@}
+
+  /** Private Members */
+  //@{
+
+  /** \brief Singelton instance of the log */
   static Logger* myInstance;
+  /** \brief Actual data in the log*/
   QList<std::string> data;
+
+  //@}
 };
 
 

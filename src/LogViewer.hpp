@@ -22,12 +22,36 @@
 
 namespace UDJ{
 
+/**
+ * \brief A quick and dirty widget for viewing the contents of the log
+ */
 class LogViewer : public QTextEdit{
 Q_OBJECT
 public:
+  /** @name Constructor(s) */
+  //@{
+
+  /**
+   * \brief Constructs a LogViewer.
+   *
+   * \param parent The parent widget.
+   */
   LogViewer(QWidget *parent=0);
+
+  //@}
+
 private slots:
+  /** @name Private Slots */
+  //@{
+
+  /**
+   * \brief Updates the text in the log view.
+   *
+   * \param newLogLine The new text to be added to the log view.
+   */
   void updateText(const std::string& newLogLine);
+
+  //@}
 };
 
 }

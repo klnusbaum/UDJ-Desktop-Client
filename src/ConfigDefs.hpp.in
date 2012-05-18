@@ -88,7 +88,8 @@ typedef int lib_sync_status_t;
   QSQLOBJECT.exec(); \
   RESULT_VAR = QSQLOBJECT.lastInsertId().value<library_song_id_t>();
 
-#define DEBUG_MESSAGE( MESSAGE )
+#define DEBUG_MESSAGE( MESSAGE ) \
+  UDJ::Logger::instance()->log( MESSAGE );
 
 #define EXEC_BULK_QUERY( MESSAGE, QSQLOBJECT) \
   QSQLOBJECT.execBatch();
