@@ -488,12 +488,20 @@ void DataStore::syncLibrary(){
     currentRecord = needAddSongs.record();
     QVariantMap songToAdd;
     songToAdd["id"] = currentRecord.value(getLibIdColName());
-    songToAdd["title"] = currentRecord.value(getLibSongColName());
-    songToAdd["artist"] = currentRecord.value(getLibArtistColName());
-    songToAdd["album"] = currentRecord.value(getLibAlbumColName());
+    QString title = currentRecord.value(getLibSongColName()).toString();
+    title.truncate(199);
+    songToAdd["title"] = title;
+    QString artist = currentRecord.value(getLibArtistColName()).toString();
+    artist.truncate(199);
+    songToAdd["artist"] = artist;
+    QString album = currentRecord.value(getLibAlbumColName()).toString();
+    album.truncate(199);
+    songToAdd["album"] = album; 
     songToAdd["duration"] = currentRecord.value(getLibDurationColName());
     songToAdd["track"] = currentRecord.value(getLibTrackColName()).toInt();
-    songToAdd["genre"] = currentRecord.value(getLibGenreColName()).toString();
+    QString genre = currentRecord.value(getLibGenreColName()).toString();
+    genre.truncate(49);
+    songToAdd["genre"] = genre;
     songsToAdd.append(songToAdd);
   }
 
@@ -533,6 +541,7 @@ void DataStore::setLibSongsSyncStatus(
   const QSet<library_song_id_t>& songs,
   const lib_sync_status_t syncStatus)
 {
+  Logger::instance()->log("Setting songs to synced");
   bool isTransacting = database.transaction();
   QSqlQuery syncQuery(database);
   syncQuery.prepare("UPDATE " + getLibraryTableName() +  " "

@@ -28,6 +28,7 @@
 #include <QDesktopServices>
 #include <QFile>
 #include "Logger.hpp"
+#include <QMessageBox>
 
 #ifdef WIN32
 #include <mpegfile.h>
@@ -145,6 +146,12 @@ void PlaybackWidget::metaDataChanged(){
 void PlaybackWidget::stateChanged(
   Phonon::State newState, Phonon::State oldState)
 {
+  if(newState == Phonon::ErrorState){
+    Logger::instance()->log("Playback error: " + mediaObject->errorString());
+    if(mediaObject->errorType() == Phonon::FatalError){
+      QMessageBox::critical(this, "Bad Song", "Ooops. Looks like we're having some trouble playing the current song. Can you pick another song?");
+    }
+  }
 
 }
 
