@@ -251,7 +251,7 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery &add
     albumName = TStringToQString(tag->album());
     genre = TStringToQString(tag->genre());
     duration = f.audioProperties()->length();
-    int track = tag->track();
+    track = tag->track();
   }
   else{
     //TODO throw error
@@ -705,7 +705,7 @@ void DataStore::onActivePlaylistModified(
 }
 
 void DataStore::onActivePlaylistModFailed(
-  const QString& errMessage,
+  const QString& /*errMessage*/,
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
 {
@@ -731,8 +731,8 @@ void DataStore::onPlayerCreate(const player_id_t& issuedId){
   emit playerCreated();
 }
 
-void DataStore::onPlayerCreationFailed(const QString& errMessage, int errorCode,
-    const QList<QNetworkReply::RawHeaderPair>& headers)
+void DataStore::onPlayerCreationFailed(const QString& errMessage, int /*errorCode*/,
+    const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
 {
   //TODO do other stuff as well. like do reauth
   emit playerCreationFailed(errMessage);
@@ -833,7 +833,7 @@ void DataStore::doReauthAction(const ReauthAction& action){
   }
 }
 
-void DataStore::onAuthFail(const QString& errMessage){
+void DataStore::onAuthFail(const QString& /*errMessage*/){
   isReauthing=false;
   Logger::instance()->log("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
   //TODO need to do something here

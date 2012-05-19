@@ -134,6 +134,9 @@ private:
   /** @name Private Memeber */
   //@{
 
+  /** \brief The data store backing this instance of UDJ. */
+  DataStore *dataStore;
+
   /** \brief The current state of music playback. */
   PlaybackState currentPlaybackState;
 
@@ -161,9 +164,6 @@ private:
 
   /** \brief The seek slider for adjusting playback position. */
   Phonon::SeekSlider *seekSlider;
-
-  /** \brief The data store backing this instance of UDJ. */
-  DataStore *dataStore;
 
   //@}
 

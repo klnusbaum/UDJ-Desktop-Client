@@ -87,11 +87,11 @@ private:
   //@{
 
   /** \brief . */
-  Logger(){};
+  Logger():QObject(){};
   /** \brief . */
-  Logger(Logger const&){};
+  Logger(Logger const&):QObject(){};
   /** \brief . */
-  Logger& operator=(Logger const&){};
+  Logger& operator=(Logger const&);
 
   //@}
 

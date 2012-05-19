@@ -279,7 +279,7 @@ void MetaWindow::syncDone(){
   syncingProgress->close();
 }
 
-void MetaWindow::syncError(const QString& errMessage){
+void MetaWindow::syncError(const QString& /*errMessage*/){
   disconnectSyncSignals();
   syncingProgress->close();
   QMessageBox::critical(this, "Error", "Error syncing library. We'll try again next time you startup UDJ");

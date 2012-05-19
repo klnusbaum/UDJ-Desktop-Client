@@ -335,14 +335,14 @@ private:
   /** @name Private Members */
   //@{
 
-  /** \brief Id of the player associated with this conneciton */
-  player_id_t playerId;
-
   /** \brief Ticket hash that should be used for all requests. */
   QByteArray ticket_hash;
 
   /** \brief Id of the user that is currently logged in. */
   user_id_t  user_id;
+
+  /** \brief Id of the player associated with this conneciton */
+  player_id_t playerId;
 
   /** \brief Manager for access to the network. */
   QNetworkAccessManager *netAccessManager;

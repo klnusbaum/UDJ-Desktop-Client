@@ -79,9 +79,9 @@ typedef int lib_sync_status_t;
 #define EXEC_SQL( MESSAGE, STMT, QSQLOBJECT) \
   STMT;
 
-#define EXEC_INSERT( MESSAGE, QSQLOBJECT, RESULT_VAR) \
+#define EXEC_INSERT( MESSAGE, QSQLOBJECT, RESULT_VAR, RESULT_VAR_TYPE) \
   QSQLOBJECT.exec(); \
-  RESULT_VAR = QSQLOBJECT.lastInsertId().value<library_song_id_t>();
+  RESULT_VAR = QSQLOBJECT.lastInsertId().value< RESULT_VAR_TYPE >();
 
 #define EXEC_BULK_QUERY( MESSAGE, QSQLOBJECT) \
   QSQLOBJECT.execBatch();

@@ -24,6 +24,7 @@ namespace UDJ{
 
 Logger* Logger::myInstance = NULL;
 
+
 void Logger::deleteLogger(){
   if(myInstance != NULL){
     delete myInstance;

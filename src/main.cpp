@@ -31,15 +31,15 @@
 int main(int argc, char* argv[]){
 
   QApplication app(argc, argv);
-  QIcon windowIcon("udjlauncher.svg");
-  QApplication::setWindowIcon(windowIcon);
+  //QIcon windowIcon("udjlauncher.svg");
+  //QApplication::setWindowIcon(windowIcon);
   app.setApplicationName("Udj");
   app.setQuitOnLastWindowClosed(true);
   UDJ::LoginDialog loginDialog;
   loginDialog.show(); 
 
   #ifdef HAS_CUSTOM_CA_CERT
-  QFile servercaFile("bin/serverca.pem");
+  QFile servercaFile("serverca.pem");
   if(servercaFile.exists()){
     UDJ::Logger::instance()->log("Explicitly setting server cas");
     servercaFile.open(QIODevice::ReadOnly);

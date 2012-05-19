@@ -95,7 +95,7 @@ void ActivePlaylistView::createActions(){
     SLOT(removeSongs()));
 }
 
-void ActivePlaylistView::handleContextMenuRequest(const QPoint& pos){
+void ActivePlaylistView::handleContextMenuRequest(const QPoint& /*pos*/){
   QMenu contextMenu(this);
   contextMenu.addAction(removeSongAction);
   QAction *selected = contextMenu.exec(QCursor::pos());
@@ -115,7 +115,7 @@ void ActivePlaylistView::removeSongs(){
 
 void ActivePlaylistView::handleSelectionChange(
   const QItemSelection& selected,
-  const QItemSelection& deselected)
+  const QItemSelection& /*deselected*/)
 {
   if(selected.indexes().size() == 0){
     connect(

@@ -135,7 +135,7 @@ void PlaybackWidget::tick(qint64 time){
   timeLabel->setText(tickTime.toString("mm:ss"));
 }
 
-void PlaybackWidget::sourceChanged(const Phonon::MediaSource &source){
+void PlaybackWidget::sourceChanged(const Phonon::MediaSource &/*source*/){
 
 }
 
@@ -144,7 +144,7 @@ void PlaybackWidget::metaDataChanged(){
 }
 
 void PlaybackWidget::stateChanged(
-  Phonon::State newState, Phonon::State oldState)
+  Phonon::State newState, Phonon::State /*oldState*/)
 {
   if(newState == Phonon::ErrorState){
     Logger::instance()->log("Playback error: " + mediaObject->errorString());

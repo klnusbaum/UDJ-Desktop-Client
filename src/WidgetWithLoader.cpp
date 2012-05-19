@@ -21,7 +21,9 @@
 
 namespace UDJ{
 
-WidgetWithLoader::WidgetWithLoader(QString loadingText, QWidget *parent){
+WidgetWithLoader::WidgetWithLoader(QString loadingText, QWidget *parent):
+QStackedWidget(parent)
+{
   loadingLabel = new QLabel(loadingText); 
   loadingLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
   addWidget(loadingLabel);

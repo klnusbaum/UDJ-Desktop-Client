@@ -93,7 +93,7 @@ void LibraryView::createActions(){
 }
 
 
-void LibraryView::handleContextMenuRequest(const QPoint &pos){
+void LibraryView::handleContextMenuRequest(const QPoint &/*pos*/){
   QMenu contextMenu(this);
   contextMenu.addAction(deleteSongAction);
   contextMenu.addAction(addToPlaylistAction);

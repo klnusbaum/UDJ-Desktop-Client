@@ -123,7 +123,7 @@ void UDJServerConnection::createPlayer(
 void UDJServerConnection::createPlayer(const QByteArray& payload){
   QNetworkRequest createPlayerRequest(getCreatePlayerUrl());
   prepareJSONRequest(createPlayerRequest);
-  QNetworkReply *reply = netAccessManager->put(createPlayerRequest, payload);
+  /*QNetworkReply *reply =*/ netAccessManager->put(createPlayerRequest, payload);
 }
 
 void UDJServerConnection::getActivePlaylist(){
@@ -155,7 +155,7 @@ void UDJServerConnection::setCurrentSong(library_song_id_t currentSong){
   QString params = "lib_id="+QString::number(currentSong);
   QNetworkRequest setCurrentSongRequest(getCurrentSongUrl());
   setCurrentSongRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
-  QNetworkReply *reply =
+  /*QNetworkReply *reply =*/
     netAccessManager->post(setCurrentSongRequest, params.toUtf8());
 }
 
@@ -165,7 +165,7 @@ void UDJServerConnection::setVolume(int volume){
   params.addQueryItem("volume", QString::number(volume));
   QNetworkRequest setCurrentVolumeRequest(getVolumeUrl());
   setCurrentVolumeRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
-  QNetworkReply *reply = 
+  /*QNetworkReply *reply = */
     netAccessManager->post(setCurrentVolumeRequest,  params.encodedQuery());
 }
 
