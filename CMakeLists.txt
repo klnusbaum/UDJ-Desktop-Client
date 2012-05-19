@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.7)
 PROJECT(UDJ)
 SET(PROJECT_VERSION_MAJOR 0)
 SET(PROJECT_VERSION_MINOR 5)
@@ -58,5 +58,10 @@ CONFIGURE_FILE(${CUSTOM_CA_CERT}
   ${PROJECT_BINARY_DIR}/serverca.pem COPYONLY)
 set(HAS_CUSTOM_CA_CERT 1)
 ENDIF(CUSTOM_CA_CERT)
+
+set(IS_APPLE_BUILD 0)
+IF(APPLE)
+  set(IS_APPLE_BUILD 1)
+ENDIF()
 
 ADD_SUBDIRECTORY(src)

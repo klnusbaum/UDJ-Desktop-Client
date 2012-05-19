@@ -223,9 +223,12 @@ void DataStore::addMusicToLibrary(
       progress->setValue(i);
       if(progress->wasCanceled()){
         if(isTransacting){
-          database.rollback();
+          Logger::instance()->log("Rolling back transaction");
+          if(!database.rollback()){
+            Logger::instance()->log("Roll back failed");
+          }
         }
-        break;
+        return;
       }
     }
   }

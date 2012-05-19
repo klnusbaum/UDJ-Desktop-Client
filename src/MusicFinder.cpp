@@ -20,6 +20,7 @@
 #include "Logger.hpp"
 #include <QRegExp>
 #include <phonon/backendcapabilities.h>
+#include "ConfigDefs.hpp"
 
 namespace UDJ{
 
@@ -81,7 +82,16 @@ QString MusicFinder::getMusicFileExtFilter(){
 }
 
 QStringList MusicFinder::availableMusicTypes(){
+  #ifdef IS_APPLE_BUILD
+  Logger::instance()->log("On mac, just saying mp3s and m4as");
+  QStringList toReturn;
+  toReturn << "mp3" << "m4a";
+  return toReturn;
+  #else
   QStringList mimes = Phonon::BackendCapabilities::availableMimeTypes();
+  if(mimes.size() == 0){
+    Logger::instance()->log("Didn't find any mime types");
+  }
   Logger::instance()->log("Found mime types:");
   Q_FOREACH(QString s, mimes){
     Logger::instance()->log(s);
@@ -112,6 +122,7 @@ mimes.contains("audio/x-vorbis+ogg"))
     toReturn.append("ogg");
   }
   return toReturn;
+  #endif
 }
 
 } //end namespace

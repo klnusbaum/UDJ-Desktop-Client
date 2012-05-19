@@ -38,6 +38,7 @@
 #include <QStackedWidget>
 #include <QSplitter>
 #include <QMessageBox>
+#include "Logger.hpp"
 
 
 namespace UDJ{
@@ -101,12 +102,16 @@ void MetaWindow::closeEvent(QCloseEvent *event){
 
 void MetaWindow::addMusicToLibrary(){
   //TODO: Check to see if musicDir is different than then current music dir
-  QDir musicDir = QFileDialog::getExistingDirectory(this,
+  QString musicDir = QFileDialog::getExistingDirectory(this,
     tr("Pick folder to add"),
     QDir::homePath(),
     QFileDialog::ShowDirsOnly);
+  Logger::instance()->log("got directory: " + musicDir);
+  if(musicDir == ""){
+    return;
+  }
   QList<Phonon::MediaSource> musicToAdd =
-    MusicFinder::findMusicInDir(musicDir.absolutePath());
+    MusicFinder::findMusicInDir(musicDir);
   if(musicToAdd.isEmpty()){
     QMessageBox::information(this, "No Music Found", "Sorry, but we couldn't find any music that we know how to play.");
     return;
@@ -130,6 +135,9 @@ void MetaWindow::addSongToLibrary(){
       tr("Pick song to add"),
       QDir::homePath(),
       tr("Audio Files ") + MusicFinder::getMusicFileExtFilter());
+  if(fileName == ""){
+    return;
+  }
   QList<Phonon::MediaSource> songList;
   songList.append(Phonon::MediaSource(fileName));
   dataStore->addMusicToLibrary(songList);

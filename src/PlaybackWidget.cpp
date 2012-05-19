@@ -157,11 +157,13 @@ void PlaybackWidget::stateChanged(
 
 void PlaybackWidget::playNextSong(){
   DataStore::song_info_t nextSong = dataStore->takeNextSongToPlay();
-  #ifdef WIN32
-  removeTags(nextSong);
-  #endif
-  mediaObject->setCurrentSource(nextSong.source);
-  if(nextSong.source.type() != Phonon::MediaSource::Empty){
+  if(nextSong.source.type() != Phonon::MediaSource::Empty
+      && nextSong.source.type() != Phonon::MediaSource::Invalid)
+  {
+    #ifdef WIN32
+    removeTags(nextSong);
+    #endif
+    mediaObject->setCurrentSource(nextSong.source);
     mediaObject->play();
     songInfo->setText(nextSong.title + " - " + nextSong.artist);
   }

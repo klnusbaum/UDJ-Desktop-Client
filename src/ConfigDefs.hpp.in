@@ -21,6 +21,7 @@
 #define CONFIG_DEFS_HPP
 
 #define HAS_CUSTOM_CA_CERT @HAS_CUSTOM_CA_CERT@
+#define IS_APPLE_BUILD @IS_APPLE_BUILD@
 
 #include <QUrl>
 
