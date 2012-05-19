@@ -5,7 +5,7 @@
     <key>CFBundleExecutable</key>
     <string>UDJ</string>
     <key>CFBundleIconFile</key>
-    <string>udjlauncher.icns</string>
+    <string>UDJ.icns</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundlePackageType</key>
