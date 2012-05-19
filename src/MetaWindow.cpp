@@ -108,6 +108,7 @@ void MetaWindow::addMusicToLibrary(){
   QList<Phonon::MediaSource> musicToAdd =
     MusicFinder::findMusicInDir(musicDir.absolutePath());
   if(musicToAdd.isEmpty()){
+    QMessageBox::information(this, "No Music Found", "Sorry, but we couldn't find any music that we know how to play.");
     return;
   }
 
