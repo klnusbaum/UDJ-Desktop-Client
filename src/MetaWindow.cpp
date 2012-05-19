@@ -55,7 +55,8 @@ MetaWindow::MetaWindow(
   isQuiting(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
-  createActions(); setupUi();
+  createActions();
+  setupUi();
   setupMenus();
   QSettings settings(
     QSettings::UserScope,

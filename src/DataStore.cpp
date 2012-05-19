@@ -158,13 +158,21 @@ DataStore::DataStore(
 
 void DataStore::setupDB(){
   //TODO do all of this stuff in a seperate thread and return right away.
-  QDir dbDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));  
+  QDir dbDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
   if(!dbDir.exists()){
+    Logger::instance()->log("DB dir didn't exists. making it at : " + dbDir.absolutePath());
     //TODO handle if this fails
     dbDir.mkpath(dbDir.absolutePath());
   }
+  QString dbFilePath = dbDir.absoluteFilePath(getPlayerDBName());
+  if(!QFile::exists(dbFilePath)){
+    Logger::instance()->log("DB file didn't exist, so creating it at: " + dbFilePath);
+    QFile dbFile(dbFilePath);
+    dbFile.open(QIODevice::WriteOnly);
+    dbFile.close();
+  }
   database = QSqlDatabase::addDatabase("QSQLITE", getPlayerDBConnectionName());
-  database.setDatabaseName(dbDir.absoluteFilePath(getPlayerDBName()));
+  database.setDatabaseName(dbFilePath);
   database.open();
 
   QSqlQuery setupQuery(database);
@@ -203,6 +211,9 @@ void DataStore::addMusicToLibrary(
   const QList<Phonon::MediaSource>& songs, QProgressDialog* progress)
 {
   bool isTransacting=database.transaction();
+  if(isTransacting){
+    Logger::instance()->log("Was able to start transaction");
+  }
   QSqlQuery addQuery(database);
   addQuery.prepare(
     "INSERT INTO "+getLibraryTableName()+ 
@@ -273,6 +284,8 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery &add
   if(genre == ""){
     genre = unknownGenre();
   }
+
+  Logger::instance()->log("adding song with title: " + songName + " to database");
 
   library_song_id_t hostId =-1;
 
