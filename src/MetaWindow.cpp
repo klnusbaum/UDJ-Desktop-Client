@@ -39,6 +39,7 @@
 #include <QSplitter>
 #include <QMessageBox>
 #include "Logger.hpp"
+#include "AboutWidget.hpp"
 
 
 namespace UDJ{
@@ -211,10 +212,12 @@ void MetaWindow::createActions(){
   addSongAction->setShortcut(tr("Ctrl+D"));
   viewLogAction = new QAction(tr("View &Log"), this);
   viewLogAction->setShortcut(tr("Ctrl+L"));
+  viewAboutAction = new QAction(tr("About"), this);
   connect(addMusicAction, SIGNAL(triggered()), this, SLOT(addMusicToLibrary()));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
   connect(addSongAction, SIGNAL(triggered()), this, SLOT(addSongToLibrary()));
   connect(viewLogAction, SIGNAL(triggered()), this, SLOT(displayLogView()));
+  connect(viewAboutAction, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
 }
 
 void MetaWindow::setupMenus(){
@@ -225,6 +228,7 @@ void MetaWindow::setupMenus(){
   musicMenu->addAction(quitAction);
   QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(viewLogAction);
+  helpMenu->addAction(viewAboutAction);
 }
 
 
@@ -297,6 +301,11 @@ void MetaWindow::syncError(const QString& /*errMessage*/){
 void MetaWindow::displayLogView(){
   LogViewer *viewer = new LogViewer();
   viewer->show();
+}
+
+void MetaWindow::displayAboutWidget(){
+  AboutWidget *about = new AboutWidget();
+  about->show();
 }
 
 
