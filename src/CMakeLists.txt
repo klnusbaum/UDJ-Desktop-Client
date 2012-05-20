@@ -79,7 +79,7 @@ endif()
 
 set(RESOURCES_SOURCES "")
 if(MSVC)
-  list(APPEND RESOURCES_SOURCES Fabula.rc)
+  list(APPEND RESOURCES_SOURCES ${PROJECT_SOURCE_DIR}/src/udj.rc)
 endif()
 
 if(APPLE)

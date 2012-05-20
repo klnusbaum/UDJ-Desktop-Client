@@ -64,6 +64,7 @@ void PlayerCreationWidget::setupUi(){
   useAddress = new QCheckBox(tr("Provide Address")); 
 
   QFormLayout *formLayout = new QFormLayout;
+  formLayout->addRow(new QLabel(tr("Welcome to UDJ! We just need you to fill a few things out before you get started. Can you tell us a little information about this music player?")));
   formLayout->addRow(tr("Name of player"), nameEdit);
   formLayout->addRow(tr("Password (optional)"), passwordEdit);
   formLayout->addRow(useAddress);
