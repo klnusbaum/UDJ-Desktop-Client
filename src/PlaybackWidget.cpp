@@ -146,7 +146,10 @@ void PlaybackWidget::metaDataChanged(){
 void PlaybackWidget::stateChanged(
   Phonon::State newState, Phonon::State /*oldState*/)
 {
-  if(newState == Phonon::ErrorState){
+  if(newState == Phonon::ErrorState &&
+      mediaObject->currentSource().type() != Phonon::MediaSource::Empty &&
+      mediaObject->currentSource().type() != Phonon::MediaSource::Invalid)
+  {
     Logger::instance()->log("Playback error: " + mediaObject->errorString());
     if(mediaObject->errorType() == Phonon::FatalError){
       QMessageBox::critical(this, "Bad Song", "Ooops. Looks like we're having some trouble playing the current song. Can you pick another song?");
@@ -157,13 +160,13 @@ void PlaybackWidget::stateChanged(
 
 void PlaybackWidget::playNextSong(){
   DataStore::song_info_t nextSong = dataStore->takeNextSongToPlay();
+  mediaObject->setCurrentSource(nextSong.source);
   if(nextSong.source.type() != Phonon::MediaSource::Empty
       && nextSong.source.type() != Phonon::MediaSource::Invalid)
   {
     #ifdef WIN32
     removeTags(nextSong);
     #endif
-    mediaObject->setCurrentSource(nextSong.source);
     mediaObject->play();
     songInfo->setText(nextSong.title + " - " + nextSong.artist);
   }
