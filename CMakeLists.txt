@@ -35,8 +35,6 @@ include(UseQt4)
 
 SET(CMAKE_AUTOMOC TRUE)
 
-
-
 FIND_LIBRARY(TAGLIB "tag" PATH)
 IF(NOT TAGLIB)
   MESSAGE(fatal_error "Could not find taglib")
