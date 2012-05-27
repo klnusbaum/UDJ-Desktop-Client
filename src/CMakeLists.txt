@@ -107,6 +107,18 @@ IF(CUSTOM_CA_CERT)
   INSTALL(FILES ${PROJECT_BINARY_DIR}/serverca.pem DESTINATION ${BIN_INSTALL_DIR})
 ENDIF(CUSTOM_CA_CERT)
 
+IF(WIN32)
+#We need to look for and include the openssl libs because some asshole made
+#openssl export controlled and isn't installed by default on windows
+  FIND_PACKAGE(OpenSSL)
+  if(NOT OPENSSL_FOUND)
+    message(fatal_error "Cannot find OpenSSL. This is required on windows")
+  endif()
+  get_filename_component(OPENSSL_ROOT ${OPENSSL_INCLUDE_DIR} PATH)
+  set(SSL_LIBS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
+
+  INSTALL(FILES ${SSL_LIBS} DESTINATION ${BIN_INSTALL_DIR})
+endif()
 
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
