@@ -99,6 +99,12 @@ public slots:
   /** @name Slots */
   //@{
 
+  /**
+   * \brief Tells the server to change the players name to the new name.
+   *
+   * \param newName New name for the player.
+   */
+  void setPlayerName(const QString& newName);
 
   /**
    * \brief Sets the player state.
@@ -197,6 +203,26 @@ signals:
    * @param errMessage A message describing the error.
    */
   void authFailed(const QString errMessage);
+
+  /**
+   * \brief Emitted when chaning the players name is succesful on the server.
+   *
+   * @param newName The new name of the player.
+   */
+  void playerNameChanged(const QString& newName);
+
+  /**
+   * \brief Emitted when there was an error changing the players name.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerNameChangeError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
 
   /**
    * \brief Emitted when the state on the player was changed.
@@ -427,6 +453,13 @@ private:
   void handleRecievedVolumeSet(QNetworkReply *reply);
 
   /**
+   * \brief Handle a response from the server regarding the setting of the player name.
+   *
+   * @param reply Response from the server.
+   */
+  void handleNameSetReply(QNetworkReply *reply);
+
+  /**
    * \brief Prepares a network request that is going to include JSON.
    *
    * @param request Request to prepare.
@@ -434,9 +467,16 @@ private:
   void prepareJSONRequest(QNetworkRequest &request);
 
   /**
+   * \brief Gets the url used for accessing the player's name.
+   *
+   * \return The url used for accessing the player's name.
+   */
+  QUrl getPlayerNameUrl() const;
+
+  /**
    * \brief Gets the url that should be used for modifying the library.
    *
-   * \return The url that sholud be used for modifying the library.
+   * \return The url that should be used for modifying the library.
    */
   QUrl getLibModUrl() const;
 
@@ -592,6 +632,16 @@ private:
   static const QByteArray& getMissingResourceHeader(){
     static const QByteArray missingResourceHeader = "X-Udj-Missing-Resource";
     return missingResourceHeader;
+  }
+
+  /**
+   * \brief Gets the property name for a player name property.
+   *
+   * \return The property name for a player name property.
+   */
+  static const char* getPlayerNamePropertyName(){
+    static const char* playerNamePropertyName = "player_name";
+    return playerNamePropertyName;
   }
 
   /**

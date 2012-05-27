@@ -101,6 +101,13 @@ public:
     QProgressDialog* progress=0);
 
   /**
+   * \brief Set player name.
+   *
+   * \param The new name the player should have.
+   */
+  void setPlayerName(const QString& newName);
+
+  /**
    * \brief Set player state.
    *
    * \param State to which the player should be set.
@@ -862,6 +869,20 @@ signals:
 //@{
 
   /**
+   * \brief Emitted when the players name is succesfully changed.
+   *
+   * \param newName The new name the player was set to.
+   */
+  void playerNameChanged(const QString& newName);
+
+  /**
+   * \brief Emitted when changing the players name failes.
+   *
+   * \param errMessage An error message describing the failure.
+   */
+  void playerNameChangeError(const QString& errMessage);
+
+  /**
    * \brief Emitted when the library table is modified.
    */
   void libSongsModified(const QSet<library_song_id_t>& modifiedSongs);
@@ -1173,6 +1194,26 @@ private:
 /** @name Private Slots */
 //@{
 private slots:
+
+  /**
+   * \brief Preforms appropriate tasks when a players name was succesfully changed on the
+   * server.
+   *
+   * \param newName The new name of the player.
+   */
+  void onPlayerNameChanged(const QString& newName);
+
+  /**
+   * \brief Preforms appropriate tasks when changing the player name failed.
+   *
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onPlayerNameChangeFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Sets the sync status of a library song to synced.

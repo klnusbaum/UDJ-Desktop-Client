@@ -126,6 +126,16 @@ void UDJServerConnection::createPlayer(const QByteArray& payload){
   /*QNetworkReply *reply =*/ netAccessManager->put(createPlayerRequest, payload);
 }
 
+void UDJServerConnection::setPlayerName(const QString& newName){
+  QNetworkRequest setNameRequest(getPlayerNameUrl());
+  setNameRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QUrl params;
+  params.addQueryItem("name", newName);
+  QByteArray payload = params.encodedQuery();
+  QNetworkReply *reply = netAccessManager->post(setNameRequest, payload);
+  reply->setProperty(getPlayerNamePropertyName(), newName);
+}
+
 void UDJServerConnection::getActivePlaylist(){
   QNetworkRequest getActivePlaylistRequest(getActivePlaylistUrl());
   getActivePlaylistRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
@@ -204,6 +214,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(isModActivePlaylistReply(reply)){
     handleRecievedPlaylistMod(reply);
   }
+  else if(reply->request().url().path() == getPlayerNameUrl().path()){
+    handleNameSetReply(reply);
+  }
   else{
     Logger::instance()->log("Recieved unknown response");
     Logger::instance()->log(reply->request().url().path());
@@ -238,6 +251,24 @@ void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){
   else{
     //TODO handle error
   }
+}
+
+void UDJServerConnection::handleNameSetReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit playerNameChanged(reply->property(getPlayerNamePropertyName()).toString());
+  }
+  else if(isResponseType(reply, 409)){
+    Logger::instance()->log("Change player name got 409");
+    emit playerNameChangeError("Name already in use.", 409, reply->rawHeaderPairs());
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Change player name got error " + responseData);
+    emit playerNameChangeError(responseData,
+        reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+        reply->rawHeaderPairs());
+  }
+
 }
 
 
@@ -371,6 +402,12 @@ QUrl UDJServerConnection::getVolumeUrl() const{
   return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
       QString::number(playerId) + "/volume");
 }
+
+QUrl UDJServerConnection::getPlayerNameUrl() const{
+  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+      QString::number(playerId) + "/name");
+}
+
 
 
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{

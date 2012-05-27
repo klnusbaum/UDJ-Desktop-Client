@@ -66,6 +66,18 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
+    SIGNAL(playerNameChanged(const QString&)),
+    this,
+    SLOT(onPlayerNameChanged(const QString&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onPlayerNameChangeFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
     SIGNAL(libSongsSyncedToServer(const QSet<library_song_id_t>&)),
     this,
     SLOT(setLibSongsSynced(const QSet<library_song_id_t>&)));
@@ -194,6 +206,34 @@ void DataStore::setupDB(){
 
 }
 
+void DataStore::setPlayerName(const QString& newName){
+  serverConnection->setPlayerName(newName);
+}
+
+void DataStore::onPlayerNameChanged(const QString& newName){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerNameSettingName(), newName);
+  emit playerNameChanged(newName);
+}
+
+void DataStore::onPlayerNameChangeFail(
+  const QString& /*errMessage*/,
+  int errorCode,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
+  //TODO if reauth error, should reauth
+  if(errorCode == 409){
+    emit playerNameChangeError(tr(
+      "You already have a player with that name."
+    ));
+  }
+  else{
+  emit playerNameChangeError(tr(
+    "We seem to be having some techincal difficulties and couldn't change "
+    "the name of your player. Try again in a little bit."
+  ));
+  }
+}
 void DataStore::pausePlayer(){
   setPlayerState(getPausedState());
 }

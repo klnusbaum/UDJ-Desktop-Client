@@ -51,8 +51,11 @@ private slots:
   /** @name Private Slots */
   //@{
 
-  /** \brief Takes appropriate action upon the creation of a player.  */
-  void onPlayerCreation();
+  /**
+   * \brief Sets the player info to be displayed.
+   */
+  void setPlayerInfo();
+
 
   //@}
 
@@ -79,11 +82,6 @@ private:
    * \brief Sets up UI components
    */
   void setupUi();
-
-  /**
-   * \brief Sets the player info to be displayed.
-   */
-  void setPlayerInfo();
 
   //@}
 };

@@ -139,6 +139,23 @@ private slots:
    */
   void syncError(const QString& errMessage);
 
+  /**
+   * \brief Initiates the process for changing the players name.
+   */
+  void changePlayerName();
+
+  /**
+   * \brief Preforms necessary actions when a players name is succesfully changed.
+   */
+  void onPlayerNameChanged();
+
+  /**
+   * \brief Preforms necessary actions when changing a players name failed.
+   *
+   * \param errMessage A message describing the error.
+   */
+  void onPlayerNameChangeError(const QString& errMessage);
+
   //@}
 
 private:
@@ -218,6 +235,12 @@ private:
    * of a library sync operation.
    */
   void disconnectSyncSignals();
+
+  /**
+   * \brief Disconnects any signals that may have been setup when initiating a player
+   * name change operation.
+   */
+  void disconnectNameChangeSignals();
 
   //@}
 
