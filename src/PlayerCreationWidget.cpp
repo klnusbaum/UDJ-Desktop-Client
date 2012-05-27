@@ -23,10 +23,9 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QMessageBox>
-#include <QCheckBox>
 #include <QFormLayout>
-#include <QComboBox>
 #include <QGridLayout>
+#include <QGroupBox>
 
 
 namespace UDJ{
@@ -59,15 +58,21 @@ void PlayerCreationWidget::setupUi(){
 
   nameEdit = new QLineEdit();
   passwordEdit = new QLineEdit();
-  useAddress = new QCheckBox(tr("Provide Address")); 
-  addressWidget = new AddressWidget(this);
+  addressGroup = new QGroupBox();
+  addressWidget = new AddressWidget();
+  QGridLayout *addressLayout = new QGridLayout();
+  addressLayout->addWidget(addressWidget,0,0);
+  addressGroup->setLayout(addressLayout);
+  addressGroup->setCheckable(true);
+  addressGroup->setChecked(false);
+  addressGroup->setTitle(tr("Provide Location"));
 
   QFormLayout *formLayout = new QFormLayout;
   formLayout->addRow(tr("Name of player:"), nameEdit);
   formLayout->addRow(tr("Password (optional):"), passwordEdit);
 
   connect(
-    useAddress,
+    addressGroup,
     SIGNAL(toggled(bool)),
     addressWidget,
     SLOT(setEnabled(bool)));
@@ -76,8 +81,7 @@ void PlayerCreationWidget::setupUi(){
   QGridLayout *mainLayout = new QGridLayout();
   mainLayout->addWidget(welcomeMessage, 0,0);
   mainLayout->addLayout(formLayout,1,0);
-  mainLayout->addWidget(useAddress,2,0);
-  mainLayout->addWidget(addressWidget,3,0);
+  mainLayout->addWidget(addressGroup,2,0);
 
   mainWidget->setLayout(mainLayout);
 
@@ -93,7 +97,7 @@ void PlayerCreationWidget::doCreation(){
     return;
   }
 
-  if(useAddress->isChecked()){
+  if(addressGroup->isChecked()){
     QString badInputs = addressWidget->getBadInputs();
     if(badInputs == ""){
       dataStore->createNewPlayer(

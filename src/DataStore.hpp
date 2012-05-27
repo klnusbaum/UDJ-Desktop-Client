@@ -169,9 +169,9 @@ public:
   }
 
   /**
-   * \brief Gets the password being used by the client
+   * \brief Gets the password being used by the user.
    *
-   * @return The password being used by the client.
+   * @return The password being used by the user.
    */
   inline const QString& getPassword() const{
     return password;
@@ -186,6 +186,17 @@ public:
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.contains(getAddressSettingName());
+  }
+
+  /**
+   * \brief Determines whether or not the player has a password.
+   *
+   * @return True if the player has a password, false otherwise.
+   */
+  inline bool hasPlayerPassword() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.contains(getPasswordSettingName());
   }
 
 

@@ -23,8 +23,7 @@
 class QLineEdit;
 class QPushButton;
 class QLabel;
-class QProgressDialog;
-class QCheckBox;
+class QGroupBox;
 
 namespace UDJ{
 
@@ -89,8 +88,8 @@ private:
   /** \brief lineedit used to the password of the event */
   QLineEdit *passwordEdit;
 
-  /** \brief Checkbox used to indicate the user wishes to provide a location for the player */
-  QCheckBox *useAddress;
+  /** \brief Groupbox holding the address widget */
+  QGroupBox *addressGroup;
 
   /** \brief Lable to display instructions */
   QLabel *createLabel;

@@ -210,6 +210,9 @@ private:
   /** \brief Creates the actions used in the MetaWindow */
   void createActions();
 
+  /** \brief Configures the menu for changing player settings. */
+  void configurePlayerMenu();
+
   /**
    * \brief Disconnects any signals that may have been setup at the beginning
    * of a library sync operation.
