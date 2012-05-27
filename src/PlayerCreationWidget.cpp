@@ -18,6 +18,7 @@
  */
 #include "PlayerCreationWidget.hpp"
 #include "DataStore.hpp"
+#include "AddressWidget.hpp"
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
@@ -32,7 +33,7 @@ namespace UDJ{
 
 
 PlayerCreationWidget::PlayerCreationWidget(
-  DataStore *dataStore, 
+  DataStore *dataStore,
   QWidget *parent):
   WidgetWithLoader(tr("Creating Player..."), parent),
   dataStore(dataStore)
@@ -52,52 +53,38 @@ PlayerCreationWidget::PlayerCreationWidget(
 
 
 void PlayerCreationWidget::setupUi(){
-  QWidget *formContainer = new QWidget(this);
-  playerForm = new QWidget(formContainer);
+  QWidget *mainWidget = new QWidget(this);
+  QLabel *welcomeMessage = new QLabel(tr("Welcome to UDJ! We just need you to fill a few things out before you get started. Can you tell us a little information about this music player?"));
+  welcomeMessage->setWordWrap(true);
 
   nameEdit = new QLineEdit();
   passwordEdit = new QLineEdit();
-  streetAddress = new QLineEdit();
-  city = new QLineEdit();
-  setupStateCombo();
-  zipcode = new QLineEdit();
   useAddress = new QCheckBox(tr("Provide Address")); 
+  addressWidget = new AddressWidget(this);
 
   QFormLayout *formLayout = new QFormLayout;
-  formLayout->addRow(new QLabel(tr("Welcome to UDJ! We just need you to fill a few things out before you get started. Can you tell us a little information about this music player?")));
-  formLayout->addRow(tr("Name of player"), nameEdit);
-  formLayout->addRow(tr("Password (optional)"), passwordEdit);
-  formLayout->addRow(useAddress);
-  formLayout->addRow(tr("Address:"), streetAddress);
-  formLayout->addRow(tr("City:"), city);
-  formLayout->addRow(tr("State:"), state);
-  formLayout->addRow(tr("Zipcode:"), zipcode);
-
-  QGridLayout *layout = new QGridLayout;
-  layout->addLayout(formLayout,0,0, Qt::AlignHCenter);
+  formLayout->addRow(tr("Name of player:"), nameEdit);
+  formLayout->addRow(tr("Password (optional):"), passwordEdit);
 
   connect(
     useAddress,
     SIGNAL(toggled(bool)),
-    this,
-    SLOT(enableAddressInputs(bool)));
-  enableAddressInputs(false);
+    addressWidget,
+    SLOT(setEnabled(bool)));
+  addressWidget->setEnabled(false);
 
-  playerForm->setLayout(layout);
+  QGridLayout *mainLayout = new QGridLayout();
+  mainLayout->addWidget(welcomeMessage, 0,0);
+  mainLayout->addLayout(formLayout,1,0);
+  mainLayout->addWidget(useAddress,2,0);
+  mainLayout->addWidget(addressWidget,3,0);
 
-  QGridLayout *formContainerLayout = new QGridLayout;
-  formContainerLayout->addWidget(playerForm, 0,0,Qt::AlignCenter);
-  formContainer->setLayout(formContainerLayout);
-  setMainWidget(formContainer);
+  mainWidget->setLayout(mainLayout);
+
+  setMainWidget(mainWidget);
   showMainWidget();
 }
 
-void PlayerCreationWidget::enableAddressInputs(bool enable){
-  streetAddress->setEnabled(enable);
-  city->setEnabled(enable);
-  state->setEnabled(enable);
-  zipcode->setEnabled(enable);
-}
 
 void PlayerCreationWidget::doCreation(){
   showLoadingText();
@@ -107,15 +94,15 @@ void PlayerCreationWidget::doCreation(){
   }
 
   if(useAddress->isChecked()){
-    QString badInputs = getAddressBadInputs();
+    QString badInputs = addressWidget->getBadInputs();
     if(badInputs == ""){
       dataStore->createNewPlayer(
         nameEdit->text(),
         passwordEdit->text(),
-        streetAddress->text(),
-        city->text(),
-        state->currentText(),
-        zipcode->text().toInt());
+        addressWidget->getStreetAddress(),
+        addressWidget->getCity(),
+        addressWidget->getState(),
+        addressWidget->getZipcode());
     }
     else{
       playerCreateFail("The address you supplied is invalid. Please correct " 
@@ -125,20 +112,6 @@ void PlayerCreationWidget::doCreation(){
   else{
     dataStore->createNewPlayer(nameEdit->text(), passwordEdit->text());
   }
-}
-
-QString PlayerCreationWidget::getAddressBadInputs() const{
-  QString toReturn ="";
-  int errorCounter = 1;
-  if(streetAddress->text() == ""){
-    toReturn += QString::number(errorCounter++) + 
-      ". You did not enter a street address.\n";
-  }
-  if(!getZipcodeRegex().exactMatch(zipcode->text())){
-    toReturn += QString::number(errorCounter++) + 
-      ". Zipcode invalid.";
-  }
-  return toReturn;
 }
 
 
@@ -156,61 +129,6 @@ void PlayerCreationWidget::playerCreateFail(const QString& errMessage){
   emit playerCreateFailed();
 }
 
-
-void PlayerCreationWidget::setupStateCombo(){
-  state = new QComboBox();
-  state->addItem("AL");
-  state->addItem("AK");
-  state->addItem("AZ");
-  state->addItem("AR");
-  state->addItem("CA");
-  state->addItem("CO");
-  state->addItem("CT");
-  state->addItem("DE");
-  state->addItem("DC");
-  state->addItem("FL");
-  state->addItem("GA");
-  state->addItem("HI");
-  state->addItem("ID");
-  state->addItem("IL");
-  state->addItem("IN");
-  state->addItem("IA");
-  state->addItem("KS");
-  state->addItem("KY");
-  state->addItem("LA");
-  state->addItem("ME");
-  state->addItem("MT");
-  state->addItem("NE");
-  state->addItem("NV");
-  state->addItem("NH");
-  state->addItem("NJ");
-  state->addItem("NM");
-  state->addItem("NY");
-  state->addItem("NC");
-  state->addItem("ND");
-  state->addItem("OH");
-  state->addItem("OK");
-  state->addItem("OR");
-  state->addItem("MD");
-  state->addItem("MA");
-  state->addItem("MI");
-  state->addItem("MN");
-  state->addItem("MS");
-  state->addItem("MO");
-  state->addItem("PA");
-  state->addItem("RI");
-  state->addItem("SC");
-  state->addItem("SD");
-  state->addItem("TN");
-  state->addItem("TX");
-  state->addItem("UT");
-  state->addItem("VT");
-  state->addItem("VA");
-  state->addItem("WA");
-  state->addItem("WV");
-  state->addItem("WI");
-  state->addItem("WY");
-}
 
 }//end namespace UDJ
 

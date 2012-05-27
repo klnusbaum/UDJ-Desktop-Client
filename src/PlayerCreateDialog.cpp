@@ -32,6 +32,7 @@ PlayerCreateDialog::PlayerCreateDialog(DataStore *dataStore, QWidget *parent, Qt
   :QDialog(parent, f),
   dataStore(dataStore)
 {
+  setWindowTitle(tr("Player Setup"));
   setModal(true);
   setupUi();
 }

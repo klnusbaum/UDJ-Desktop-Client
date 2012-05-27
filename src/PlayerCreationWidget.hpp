@@ -25,11 +25,11 @@ class QPushButton;
 class QLabel;
 class QProgressDialog;
 class QCheckBox;
-class QComboBox;
 
 namespace UDJ{
 
 class DataStore;
+class AddressWidget;
 
 /** \brief Widget used to create a new player. */
 class PlayerCreationWidget : public WidgetWithLoader{
@@ -78,26 +78,6 @@ private:
   /** \brief Initilizes the UI */
   void setupUi();
 
-  /** \brief Sets up all the options for the state combo box. */
-  void setupStateCombo();
-
-  /**
-   * \brief Gets the adress inputs which are currently bad 
-   *
-   * \return The address inputs that are currently bad
-   */
-  QString getAddressBadInputs() const;
-
-  /**
-   * \brief Retrieves the regex for validating the zipcode.
-   *
-   * \return The regex for validating the zipcode.
-   */
-  static const QRegExp& getZipcodeRegex(){
-    static const QRegExp zipcodeRegex("^\\d{5}(-\\d{4})?$");
-    return zipcodeRegex;
-  }
-
   //@}
 
   /** @name Private Memeber */
@@ -121,17 +101,10 @@ private:
    */
   DataStore *dataStore;
 
-  /** \brief LineEdit used to specify the street address of the player */
-  QLineEdit *streetAddress;
-
-  /** \brief LineEdit used to specify the city of the player */
-  QLineEdit *city;
-
-  /** \brief LineEdit used to specify the state of the player */
-  QComboBox *state;
-
-  /** \brief LineEdit used to specify the zipcode of the player */
-  QLineEdit *zipcode;
+  /**
+   * \brief Widget for retrieving address information.
+   */
+  AddressWidget *addressWidget;
 
   /** \brief From containing the inputs required for player creation. */
   QWidget *playerForm;
@@ -151,13 +124,6 @@ private slots:
    * \brief Executes appropriate actions after player was failed to be created.
    */
   void playerCreateFail(const QString& errMessage);
-
-  /**
-   * \brief Enables/disables the address inputs.
-   *
-   * \param enable If true, the address inputs become enabled, otherwise they become disabled.
-   */
-  void enableAddressInputs(bool enable);
 
   //@}
 

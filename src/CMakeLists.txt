@@ -47,6 +47,7 @@ SET(SOURCES
   Logger.cpp
   LogViewer.cpp
   AboutWidget.cpp
+  AddressWidget.cpp
 )
 
 
