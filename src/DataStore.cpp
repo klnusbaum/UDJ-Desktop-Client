@@ -68,7 +68,7 @@ DataStore::DataStore(
     serverConnection,
     SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, int)),
     this,
-    SLOT(onPlayerLocationSetError(const QString&, const QString&, const QString&, int)));
+    SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, int)));
 
   connect(
     serverConnection,

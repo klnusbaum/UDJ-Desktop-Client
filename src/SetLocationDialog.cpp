@@ -21,6 +21,7 @@
 #include "WidgetWithLoader.hpp"
 #include "DataStore.hpp"
 #include "AddressWidget.hpp"
+#include "Logger.hpp"
 #include <QPushButton>
 #include <QGridLayout>
 #include <QMessageBox>
@@ -55,6 +56,7 @@ void SetLocationDialog::onChangeLocationError(const QString& errMessage){
 }
 
 void SetLocationDialog::accept(){
+  Logger::instance()->log("in accept for setting location dialog");
   QString badInputs = addressWidget->getBadInputs();
   if(badInputs == ""){
     loaderContainer->showLoadingText();
@@ -83,18 +85,18 @@ void SetLocationDialog::setupUi(){
   QWidget* containerWidget = new QWidget(this);
   if(dataStore->hasLocation()){
     addressWidget = new AddressWidget(
-      this,
+      containerWidget,
       dataStore->getLocationStreetAddress(),
       dataStore->getLocationCity(),
       dataStore->getLocationState(),
       QString::number(dataStore->getLocationZipcode()));
   }
   else{
-    addressWidget = new AddressWidget(this);
+    addressWidget = new AddressWidget(containerWidget);
   }
 
-  setLocationButton = new QPushButton(tr("Set Location"), this);
-  cancelButton = new QPushButton(tr("Cancel"), this);
+  setLocationButton = new QPushButton(tr("Set Location"), containerWidget);
+  cancelButton = new QPushButton(tr("Cancel"), containerWidget);
   setLocationButton->setDefault(true);
   setLocationButton->setAutoDefault(true);
 
@@ -111,16 +113,17 @@ void SetLocationDialog::setupUi(){
     SLOT(reject()));
 
   QGridLayout *layout = new QGridLayout;
-  layout->addWidget(containerWidget, 0,0,3,3);
-  layout->addWidget(setLocationButton, 3,2);
-  layout->addWidget(cancelButton, 3,1);
+  layout->addWidget(addressWidget, 0,0,3,3);
+  layout->addWidget(cancelButton, 4,1);
+  layout->addWidget(setLocationButton, 4,2);
   containerWidget->setLayout(layout);
 
   loaderContainer = new WidgetWithLoader(tr("Setting Location..."), this);
   loaderContainer->setMainWidget(containerWidget);
+  loaderContainer->showMainWidget();
 
   QGridLayout *containerLayout = new QGridLayout();
-  containerLayout->addWidget(containerWidget,0,0);
+  containerLayout->addWidget(loaderContainer,0,0,1,1);
   setLayout(containerLayout);
 }
 

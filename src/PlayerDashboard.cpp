@@ -39,6 +39,11 @@ PlayerDashboard::PlayerDashboard(DataStore *dataStore, QWidget *parent):
     SIGNAL(playerNameChanged(const QString&)),
     this,
     SLOT(setPlayerInfo()));
+  connect(
+    dataStore,
+    SIGNAL(playerLocationSet()),
+    this,
+    SLOT(setPlayerInfo()));
 }
 
 void PlayerDashboard::setupUi(){

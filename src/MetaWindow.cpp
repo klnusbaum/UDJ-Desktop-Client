@@ -246,6 +246,10 @@ void MetaWindow::configurePlayerMenu(){
   playerMenu->addAction(changeNameAction);
   connect(changeNameAction, SIGNAL(triggered()), this, SLOT(changePlayerName()));
 
+  QAction *setLocationAction = new QAction(tr("Set Location"), this);
+  playerMenu->addAction(setLocationAction);
+  connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
+
   /*if(dataStore->hasPlayerPassword()){
     QAction *changePasswordAction = new QAction(tr("Change Password"), this);
     playerMenu->addAction(changePasswordAction);
@@ -257,9 +261,6 @@ void MetaWindow::configurePlayerMenu(){
     playerMenu->addAction(setPasswordAction);
   }*/
 
-  QAction *setLocationAction = new QAction(tr("Set Location"), this);
-  playerMenu->addAction(setLocationAction);
-  connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
 }
 
 void MetaWindow::setPlayerLocation(){
