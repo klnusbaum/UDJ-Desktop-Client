@@ -139,7 +139,7 @@ void UDJServerConnection::setPlayerLocation(
   params.addQueryItem("address", streetAddress);
   params.addQueryItem("city", city);
   params.addQueryItem("state", state);
-  params.addQueryItem("zipcode", zipcode);
+  params.addQueryItem("zipcode", QString::number(zipcode));
   QByteArray payload = params.encodedQuery();
   QNetworkReply *reply = netAccessManager->post(setLocationRequest, payload);
   reply->setProperty(getLocationAddressPropertyName(), streetAddress);
@@ -298,10 +298,10 @@ void UDJServerConnection::handleNameSetReply(QNetworkReply *reply){
 void UDJServerConnection::handleLocationSetReply(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit playerLocationSet(
-      reply->property(getAddressPropertyName()).toString(),
-      reply->property(getCityPropertyName()).toString(),
-      reply->property(getStatePropertyName()).toString(),
-      reply->property(getZipcodePropertyName()).toInt());
+      reply->property(getLocationAddressPropertyName()).toString(),
+      reply->property(getLocationCityPropertyName()).toString(),
+      reply->property(getLocationStatePropertyName()).toString(),
+      reply->property(getLocationZipcodePropertyName()).toInt());
   }
   else{
     QString responseData = QString(reply->readAll());

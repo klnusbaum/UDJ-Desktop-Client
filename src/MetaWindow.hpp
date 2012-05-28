@@ -156,6 +156,11 @@ private slots:
    */
   void onPlayerNameChangeError(const QString& errMessage);
 
+  /**
+   * \brief Preforms necessary actions in order to start changing the player's location.
+   */
+  void setPlayerLocation();
+
   //@}
 
 private:

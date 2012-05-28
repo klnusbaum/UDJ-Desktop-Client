@@ -1282,7 +1282,7 @@ private slots:
     const QString& city,
     const QString& state,
     int zipcode
-  )
+  );
 
   /**
    * \brief Preforms appropriate tasks when there was an error setting the player's location.

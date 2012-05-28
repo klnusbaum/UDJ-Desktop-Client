@@ -20,6 +20,7 @@
 #include "SetLocationDialog.hpp"
 #include "WidgetWithLoader.hpp"
 #include "DataStore.hpp"
+#include "AddressWidget.hpp"
 #include <QPushButton>
 #include <QGridLayout>
 #include <QMessageBox>

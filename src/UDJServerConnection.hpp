@@ -112,7 +112,7 @@ public slots:
     const QString& city,
     const QString& state,
     int zipcode
-  )
+  );
 
   /**
    * \brief Tells the server to change the players name to the new name.
@@ -227,7 +227,7 @@ signals:
    * \param state State of the set location.
    * \param zipcode Zipcode of the set location.
    */
-  void playerNameChanged(
+  void playerLocationSet(
     const QString& streetAddress,
     const QString& city,
     const QString& state,

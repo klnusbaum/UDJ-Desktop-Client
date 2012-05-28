@@ -24,6 +24,7 @@ class QPushButton;
 
 namespace UDJ{
 
+class AddressWidget;
 class WidgetWithLoader;
 class DataStore;
 

@@ -240,7 +240,7 @@ void DataStore::onPlayerLocationSet(
   settings.setValue(getCitySettingName(), city);
   settings.setValue(getStateSettingName(), state);
   settings.setValue(getZipCodeSettingName(), zipcode);
-  emit playerLocationChanged();
+  emit playerLocationSet();
 }
 
 void DataStore::onPlayerLocationSetError(
