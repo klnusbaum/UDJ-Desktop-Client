@@ -101,6 +101,21 @@ public:
     QProgressDialog* progress=0);
 
   /**
+   * \brief Set player location.
+   *
+   * \param streetAddress The street address of the location to be set.
+   * \param city The city of the location to be set.
+   * \param state The state of the location to be set.
+   * \param zipcode The zipcode of the location to be set.
+   */
+  void setPlayerLocation(
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    int zipcode
+  );
+
+  /**
    * \brief Set player name.
    *
    * \param The new name the player should have.
@@ -916,6 +931,18 @@ signals:
 //@{
 
   /**
+   * \brief Emitted when the players location has been set.
+   */
+  void playerLocationSet();
+
+  /**
+   * \brief Emitted when there is an error setting the player's location.
+   *
+   * \brief errMessage Message describing the error.
+   */
+  void playerLocationSetError(const QString& errMessage);
+
+  /**
    * \brief Emitted when the players name is succesfully changed.
    *
    * \param newName The new name the player was set to.
@@ -1243,6 +1270,33 @@ private:
 private slots:
 
   /**
+   * \brief Preforms appropriate tasks when a players location was succesfully set.
+   *
+   * \brief streetAddress The street address of location that was set for the player.
+   * \brief city The city of location that was set for the player.
+   * \brief state The state of location that was set for the player.
+   * \brief zipcode The zipcode of location that was set for the player.
+   */
+  void onPlayerLocationSet(
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    int zipcode
+  )
+
+  /**
+   * \brief Preforms appropriate tasks when there was an error setting the player's location.
+   *
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onPlayerLocationSetError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
    * \brief Preforms appropriate tasks when a players name was succesfully changed on the
    * server.
    *
@@ -1251,13 +1305,13 @@ private slots:
   void onPlayerNameChanged(const QString& newName);
 
   /**
-   * \brief Preforms appropriate tasks when changing the player name failed.
+   * \brief Preforms appropriate tasks when there was an error changing the player name.
    *
    * \param errMessage A message describing the error.
    * \param errorCode HTTP error code describing error.
    * \param headers HTTP headers accompianing in the error response.
    */
-  void onPlayerNameChangeFail(
+  void onPlayerNameChangeError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

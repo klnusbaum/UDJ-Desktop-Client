@@ -48,6 +48,7 @@ SET(SOURCES
   LogViewer.cpp
   AboutWidget.cpp
   AddressWidget.cpp
+  SetLocationDialog.cpp
 )
 
 

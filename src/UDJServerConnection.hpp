@@ -100,6 +100,21 @@ public slots:
   //@{
 
   /**
+   * \brief Tells the server to set the players location to the given location.
+   *
+   * \param streetAddress Street address of the given location.
+   * \param city City of the given location.
+   * \param state State of the given location.
+   * \param zipcode Zipcode of the given location.
+   */
+  void setPlayerLocation(
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    int zipcode
+  )
+
+  /**
    * \brief Tells the server to change the players name to the new name.
    *
    * \param newName New name for the player.
@@ -203,6 +218,32 @@ signals:
    * @param errMessage A message describing the error.
    */
   void authFailed(const QString errMessage);
+
+  /**
+   * \brief Emitted when chaning the player's location is succesfully set.
+   *
+   * \param streetAddress Street address of the set location.
+   * \param city City of the set location.
+   * \param state State of the set location.
+   * \param zipcode Zipcode of the set location.
+   */
+  void playerNameChanged(
+    const QString& streetAddress,
+    const QString& city,
+    const QString& state,
+    int zipcode);
+
+  /**
+   * \brief Emitted when there was an error changing the player's location.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerLocationSetError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Emitted when chaning the players name is succesful on the server.
@@ -453,6 +494,13 @@ private:
   void handleRecievedVolumeSet(QNetworkReply *reply);
 
   /**
+   * \brief Handle a response from the server regarding the setting of the player location.
+   *
+   * @param reply Response from the server.
+   */
+  void handleLocationSetReply(QNetworkReply *reply);
+
+  /**
    * \brief Handle a response from the server regarding the setting of the player name.
    *
    * @param reply Response from the server.
@@ -472,6 +520,13 @@ private:
    * \return The url used for accessing the player's name.
    */
   QUrl getPlayerNameUrl() const;
+
+  /**
+   * \brief Gets the url used for accessing the player's location.
+   *
+   * \return The url used for accessing the player's location.
+   */
+  QUrl getPlayerLocationUrl() const;
 
   /**
    * \brief Gets the url that should be used for modifying the library.
@@ -642,6 +697,46 @@ private:
   static const char* getPlayerNamePropertyName(){
     static const char* playerNamePropertyName = "player_name";
     return playerNamePropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a location address property.
+   *
+   * \return The property name for a location address property.
+   */
+  static const char* getLocationAddressPropertyName(){
+    static const char* locationAddressPropertyName = "address";
+    return locationAddressPropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a location city property.
+   *
+   * \return The property name for a location city property.
+   */
+  static const char* getLocationCityPropertyName(){
+    static const char* locationCityPropertyName = "city";
+    return locationCityPropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a location state property.
+   *
+   * \return The property name for a location state property.
+   */
+  static const char* getLocationStatePropertyName(){
+    static const char* locationStatePropertyName = "state";
+    return locationStatePropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a location zipcode property.
+   *
+   * \return The property name for a location zipcode property.
+   */
+  static const char* getLocationZipcodePropertyName(){
+    static const char* locationZipcodePropertyName = "zipcode";
+    return locationZipcodePropertyName;
   }
 
   /**

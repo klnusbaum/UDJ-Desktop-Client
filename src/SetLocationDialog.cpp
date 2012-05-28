@@ -35,8 +35,12 @@ SetLocationDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::
   setWindowTitle(tr("Set Player Location"));
   setModal(true);
   setupUi();
-  connect(dataStore, SIGNAL(playerLocationChanged()), this, SLOT(closeDialog()));
-  connect(dataStore, SIGNAL(playerLocationChangeError()), this, SLOT(onChangeLocationError()));
+  connect(dataStore, SIGNAL(playerLocationSet()), this, SLOT(closeDialog()));
+  connect(
+    dataStore,
+    SIGNAL(playerLocationSetError(const QString&)),
+    this,
+    SLOT(onChangeLocationError(const QString&)));
 
 }
 
@@ -53,7 +57,7 @@ void SetLocationDialog::accept(){
   QString badInputs = addressWidget->getBadInputs();
   if(badInputs == ""){
     loaderContainer->showLoadingText();
-    dataStore->setLocation(
+    dataStore->setPlayerLocation(
       addressWidget->getStreetAddress(),
       addressWidget->getCity(),
       addressWidget->getState(),

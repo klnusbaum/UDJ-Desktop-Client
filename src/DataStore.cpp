@@ -66,6 +66,18 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
+    SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, int)),
+    this,
+    SLOT(onPlayerLocationSetError(const QString&, const QString&, const QString&, int)));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerLocationSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onPlayerLocationSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
     SIGNAL(playerNameChanged(const QString&)),
     this,
     SLOT(onPlayerNameChanged(const QString&)));
@@ -74,7 +86,7 @@ DataStore::DataStore(
     serverConnection,
     SIGNAL(playerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
-    SLOT(onPlayerNameChangeFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+    SLOT(onPlayerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -206,6 +218,40 @@ void DataStore::setupDB(){
 
 }
 
+void DataStore::setPlayerLocation(
+  const QString& streetAddress,
+  const QString& city,
+  const QString& state,
+  int zipcode
+)
+{
+  serverConnection->setPlayerLocation(streetAddress, city, state, zipcode);
+}
+
+void DataStore::onPlayerLocationSet(
+  const QString& streetAddress,
+  const QString& city,
+  const QString& state,
+  int zipcode
+)
+{
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getAddressSettingName(), streetAddress);
+  settings.setValue(getCitySettingName(), city);
+  settings.setValue(getStateSettingName(), state);
+  settings.setValue(getZipCodeSettingName(), zipcode);
+  emit playerLocationChanged();
+}
+
+void DataStore::onPlayerLocationSetError(
+  const QString& errMessage,
+  int /*errorCode*/,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
+  //TODO handle reauth error
+  emit playerLocationSetError(errMessage);
+}
+
 void DataStore::setPlayerName(const QString& newName){
   serverConnection->setPlayerName(newName);
 }
@@ -216,7 +262,7 @@ void DataStore::onPlayerNameChanged(const QString& newName){
   emit playerNameChanged(newName);
 }
 
-void DataStore::onPlayerNameChangeFail(
+void DataStore::onPlayerNameChangeError(
   const QString& /*errMessage*/,
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& /*headers*/)

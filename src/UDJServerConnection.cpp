@@ -126,6 +126,28 @@ void UDJServerConnection::createPlayer(const QByteArray& payload){
   /*QNetworkReply *reply =*/ netAccessManager->put(createPlayerRequest, payload);
 }
 
+void UDJServerConnection::setPlayerLocation(
+  const QString& streetAddress,
+  const QString& city,
+  const QString& state,
+  int zipcode
+)
+{
+  QNetworkRequest setLocationRequest(getPlayerLocationUrl());
+  setLocationRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QUrl params;
+  params.addQueryItem("address", streetAddress);
+  params.addQueryItem("city", city);
+  params.addQueryItem("state", state);
+  params.addQueryItem("zipcode", zipcode);
+  QByteArray payload = params.encodedQuery();
+  QNetworkReply *reply = netAccessManager->post(setLocationRequest, payload);
+  reply->setProperty(getLocationAddressPropertyName(), streetAddress);
+  reply->setProperty(getLocationCityPropertyName(), city);
+  reply->setProperty(getLocationStatePropertyName(), state);
+  reply->setProperty(getLocationZipcodePropertyName(), zipcode);
+}
+
 void UDJServerConnection::setPlayerName(const QString& newName){
   QNetworkRequest setNameRequest(getPlayerNameUrl());
   setNameRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
@@ -217,6 +239,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getPlayerNameUrl().path()){
     handleNameSetReply(reply);
   }
+  else if(reply->request().url().path() == getPlayerLocationUrl().path()){
+    handleLocationSetReply(reply);
+  }
   else{
     Logger::instance()->log("Recieved unknown response");
     Logger::instance()->log(reply->request().url().path());
@@ -268,7 +293,23 @@ void UDJServerConnection::handleNameSetReply(QNetworkReply *reply){
         reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
         reply->rawHeaderPairs());
   }
+}
 
+void UDJServerConnection::handleLocationSetReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit playerLocationSet(
+      reply->property(getAddressPropertyName()).toString(),
+      reply->property(getCityPropertyName()).toString(),
+      reply->property(getStatePropertyName()).toString(),
+      reply->property(getZipcodePropertyName()).toInt());
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Setting player location error: " + responseData);
+    emit playerLocationSetError(responseData,
+        reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+        reply->rawHeaderPairs());
+  }
 }
 
 
@@ -408,6 +449,10 @@ QUrl UDJServerConnection::getPlayerNameUrl() const{
       QString::number(playerId) + "/name");
 }
 
+QUrl UDJServerConnection::getPlayerLocationUrl() const{
+  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+      QString::number(playerId) + "/location");
+}
 
 
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{
