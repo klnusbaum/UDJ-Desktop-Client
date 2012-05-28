@@ -19,8 +19,6 @@
 
 #include "LoginDialog.hpp"
 #include "LoginWidget.hpp"
-#include <QPushButton>
-#include <QGridLayout>
 #include <QApplication>
 
 
@@ -28,13 +26,13 @@ namespace UDJ{
 
 
 LoginDialog::LoginDialog(QWidget *parent, Qt::WindowFlags f)
-  :QDialog(parent, f)
+  :DialogWithLoaderWidget(tr("Logging In..."), tr("Login"), tr("Cancel"), true, parent, f)
 {
   setupUi();
 }
 
 void LoginDialog::accept(){
-  loginButton->hide();
+  showLoadingText();
   loginWidget->doLogin();
 }
 
@@ -43,38 +41,20 @@ void LoginDialog::reject(){
   QApplication::quit();
 }
 
-void LoginDialog::closeDialog(){
-  done(QDialog::Accepted);
-}
-
 void LoginDialog::setupUi(){
   loginWidget = new LoginWidget(this);
-  loginButton = new QPushButton(tr("Login"), this);
-  loginButton->setDefault(true);
-  loginButton->setAutoDefault(true);
-
+  setMainWidget(loginWidget);
   connect(
-    loginWidget, 
-    SIGNAL(startedMainGUI()), 
-    this, 
+    loginWidget,
+    SIGNAL(startedMainGUI()),
+    this,
     SLOT(closeDialog()));
-
   connect(
     loginWidget,
     SIGNAL(loginFailed()),
-    loginButton,
-    SLOT(show()));
-
-  connect(
-    loginButton,
-    SIGNAL(clicked()),
     this,
-    SLOT(accept()));
-
-  QGridLayout *layout = new QGridLayout;
-  layout->addWidget(loginWidget, 0,0,3,3);
-  layout->addWidget(loginButton, 3,1);
-  setLayout(layout);
+    SLOT(showMainWidget()));
+  setNegativeButtonEnabled(false);
 }
 
 

@@ -31,6 +31,7 @@ SetLocationDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::
     tr("Setting Player Location..."),
     tr("Set Location"),
     tr("Cancel"),
+    false,
     parent,
     f),
   dataStore(dataStore)

@@ -31,10 +31,11 @@ DialogWithLoaderWidget::DialogWithLoaderWidget(
   QString loadingText,
   QString positiveButtonText,
   QString negativeButtonText,
+  bool centerPositiveButton,
   QWidget *parent,
   Qt::WindowFlags f):QDialog(parent, f)
 {
-  setupUi(loadingText, positiveButtonText, negativeButtonText);
+  setupUi(loadingText, positiveButtonText, negativeButtonText, centerPositiveButton);
 }
 
 void DialogWithLoaderWidget::setNegativeButtonEnabled(bool enabled){
@@ -71,7 +72,7 @@ void DialogWithLoaderWidget::closeDialog(){
 }
 
 void DialogWithLoaderWidget::setupUi(
-  QString loadingText, QString positiveText, QString negativeText)
+  QString loadingText, QString positiveText, QString negativeText, bool centerPositiveButton)
 {
 
   positiveButton = new QPushButton(positiveText);
@@ -83,8 +84,14 @@ void DialogWithLoaderWidget::setupUi(
 
   QGridLayout *mainLayout = new QGridLayout;
   mainLayout->addWidget(loaderWidget, 0,0,3,3);
-  mainLayout->addWidget(negativeButton, 4,1);
-  mainLayout->addWidget(positiveButton, 4,2);
+  if(centerPositiveButton){
+    mainLayout->addWidget(negativeButton, 4,0);
+    mainLayout->addWidget(positiveButton, 4,1);
+  }
+  else{
+    mainLayout->addWidget(negativeButton, 4,1);
+    mainLayout->addWidget(positiveButton, 4,2);
+  }
 
   setLayout(mainLayout);
 

@@ -37,6 +37,7 @@ public:
     QString loadingText,
     QString postiveButtonText=tr("Ok"),
     QString negativeButtonText=tr("Cancel"),
+    bool centerPositiveButton=false,
     QWidget *parent=0,
     Qt::WindowFlags f=0);
 
@@ -78,8 +79,9 @@ private:
    * \param loadingText The text to show while loading.
    * \param positiveText The text to display on the positive button.
    * \param negativeText The text to diplay on the negative button.
+   * \param centerPositiveButton Whether or not the positive button should be centered.
    */
-  void setupUi(QString loadingText, QString positiveText, QString negativeText);
+  void setupUi(QString loadingText, QString positiveText, QString negativeText, bool centerPositiveButton);
 
 
   /** \brief whether or not a negative button should be displayed. */

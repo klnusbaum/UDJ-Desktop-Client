@@ -19,10 +19,7 @@
 #ifndef LOGIN_DIALOG_HPP
 #define LOGIN_DIALOG_HPP
 
-#include <QDialog>
-
-class QPushButton;
-class QCheckBox;
+#include "DialogWithLoaderWidget.hpp"
 
 namespace UDJ{
 
@@ -30,7 +27,7 @@ class LoginWidget;
 
 
 /** \brief Dialog used to login to the UDJ server */
-class LoginDialog : public QDialog{
+class LoginDialog : public DialogWithLoaderWidget{
 Q_OBJECT
 public:
   /** @name Constructors */
@@ -67,10 +64,6 @@ private:
   /** \brief Widget used for logging in. */
   LoginWidget *loginWidget;
 
-  /** \brief button used for initiating the login procedure. */
-  QPushButton *loginButton;
-
-
   //@}
 
   /** @name Private Functions */
@@ -82,14 +75,6 @@ private:
 
   //@}
 
-private slots:
-  /** @name Private Slots */
-  //@{
-
-  /** \brief Closes the dialog. */
-  void closeDialog();
-
-  //@}
 };
 
 
