@@ -58,7 +58,7 @@ private:
   //@{
 
   /** \brief Widget used for containing the actual input widget.*/
-  WidgetWithLoader *loaderContainer;
+  WidgetWithLoader *loaderWidget;
 
   /** \brief Button used for indicating the postive action should be invoked. */
   QPushButton *positiveButton;

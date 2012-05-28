@@ -26,7 +26,7 @@ namespace UDJ{
 class AddressWidget;
 class DataStore;
 
-/** \brief Dialog for creating a player. */
+/** \brief Dialog for setting a player's location. */
 class SetLocationDialog : public DialogWithLoaderWidget{
 Q_OBJECT
 public:

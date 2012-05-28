@@ -38,28 +38,20 @@ DialogWithLoaderWidget::DialogWithLoaderWidget(
 }
 
 void DialogWithLoaderWidget::showLoadingText(){
-  loaderContainer->showLoadingText();
+  loaderWidget->showLoadingText();
+  negativeButton->hide();
+  positiveButton->hide();
 }
 
 void DialogWithLoaderWidget::showMainWidget(){
-  loaderContainer->showMainWidget();
+  loaderWidget->showMainWidget();
+  negativeButton->show();
+  positiveButton->show();
 }
 
 void DialogWithLoaderWidget::setMainWidget(QWidget *mainWidget){
-  QWidget* containerWidget = new QWidget(this);
-
-  QGridLayout *mainLayout = new QGridLayout;
-  mainLayout->addWidget(mainWidget, 0,0,3,3);
-  mainLayout->addWidget(negativeButton, 4,1);
-  mainLayout->addWidget(positiveButton, 4,2);
-  containerWidget->setLayout(mainLayout);
-
-  loaderContainer->setMainWidget(containerWidget);
-  loaderContainer->showMainWidget();
-
-  QGridLayout *containerLayout = new QGridLayout();
-  containerLayout->addWidget(loaderContainer,0,0,1,1);
-  setLayout(containerLayout);
+  loaderWidget->setMainWidget(mainWidget);
+  loaderWidget->showMainWidget();
 }
 
 void DialogWithLoaderWidget::closeDialog(){
@@ -75,7 +67,14 @@ void DialogWithLoaderWidget::setupUi(
   positiveButton->setDefault(true);
   positiveButton->setAutoDefault(true);
 
-  loaderContainer = new WidgetWithLoader(loadingText, this);
+  loaderWidget = new WidgetWithLoader(loadingText, this);
+
+  QGridLayout *mainLayout = new QGridLayout;
+  mainLayout->addWidget(loaderWidget, 0,0,3,3);
+  mainLayout->addWidget(negativeButton, 4,1);
+  mainLayout->addWidget(positiveButton, 4,2);
+
+  setLayout(mainLayout);
 
   connect(
     positiveButton,
