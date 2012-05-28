@@ -220,7 +220,54 @@ public:
       settings.value(getCitySettingName()).toString() + " " +
       settings.value(getStateSettingName()).toString() + ", " +
       settings.value(getZipCodeSettingName()).toString();
+  }
 
+  /**
+   * \brief Gets the set location street address. If no location is currently set,
+   * an empty string is returned.
+   *
+   * \return The set location street address or an empty string if no address is set.
+   */
+  inline QString getLocationStreetAddress() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getAddressSettingName()).toString();
+  }
+
+  /**
+   * \brief Gets the set location city. If no location is currently set,
+   * an empty string is returned.
+   *
+   * \return The set location city or an empty string if no address is set.
+   */
+  inline QString getLocationCity() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getCitySettingName()).toString();
+  }
+
+  /**
+   * \brief Gets the set location state. If no location is currently set,
+   * an empty string is returned.
+   *
+   * \return The set location state or an empty string if no address is set.
+   */
+  inline QString getLocationState() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getStateSettingName()).toString();
+  }
+
+  /**
+   * \brief Gets the set location zipcode. If no zipcode is currently set,
+   * 0 is returned.
+   *
+   * \return The set location zipcode or 0 if no address is set.
+   */
+  inline int getLocationZipcode() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getZipCodeSettingName()).toInt();
   }
 
   /**

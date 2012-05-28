@@ -27,6 +27,7 @@
 #include "Logger.hpp"
 #include "AboutWidget.hpp"
 #include "LogViewer.hpp"
+#include "SetLocationDialog.hpp"
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -254,17 +255,16 @@ void MetaWindow::configurePlayerMenu(){
   else{
     QAction *setPasswordAction = new QAction(tr("Set Password"), this);
     playerMenu->addAction(setPasswordAction);
-  }
-
-  if(dataStore->hasLocation()){
-    QAction *changeLocationAction = new QAction(tr("Change Location"), this);
-    playerMenu->addAction(changeLocationAction);
-  }
-  else{
-    QAction *setLocationAction = new QAction(tr("Set Location"), this);
-    playerMenu->addAction(setLocationAction);
   }*/
 
+  QAction *setLocationAction = new QAction(tr("Set Location"), this);
+  playerMenu->addAction(setLocationAction);
+  connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
+}
+
+void MetaWindow::setPlayerLocation(){
+  SetLocationDialog *setLocationDialog = new SetLocationDialog(dataStore, this);
+  setLocationDialog->show();
 }
 
 void MetaWindow::changePlayerName(){
