@@ -44,6 +44,8 @@ public:
 
   void setMainWidget(QWidget *mainWidget);
 
+  void setNegativeButtonEnabled(bool enabled);
+
 public slots:
 
   void showLoadingText();
@@ -79,6 +81,9 @@ private:
    */
   void setupUi(QString loadingText, QString positiveText, QString negativeText);
 
+
+  /** \brief whether or not a negative button should be displayed. */
+  bool negativeButtonEnabled;
 
   //@}
 

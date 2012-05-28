@@ -43,6 +43,16 @@ public:
 
   //@}
 
+  /** @name Getter */
+  // @{
+
+  /** \brief Determines whether or not the main widget is showing */
+  inline bool isMainWidgetShowing(){
+    return mainWidgetIsShowing;
+  }
+
+  // @}
+
   /** @name Setters */
   //@{
 
@@ -76,6 +86,9 @@ private:
 
   /** @name Private Memebers */
   //@{
+
+  /** \brief Wether or not the mainwidget is showing right now. */
+  bool mainWidgetIsShowing;
 
   /** \brief Lable used to display the loading text. */
   QLabel *loadingLabel;

@@ -22,7 +22,8 @@
 namespace UDJ{
 
 WidgetWithLoader::WidgetWithLoader(QString loadingText, QWidget *parent):
-QStackedWidget(parent)
+QStackedWidget(parent),
+mainWidgetIsShowing(true)
 {
   loadingLabel = new QLabel(loadingText); 
   loadingLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -36,10 +37,12 @@ void WidgetWithLoader::setMainWidget(QWidget *mainWidget){
 
 void WidgetWithLoader::showLoadingText(){
   setCurrentWidget(loadingLabel);
+  mainWidgetIsShowing = false;
 }
 
 void WidgetWithLoader::showMainWidget(){
   setCurrentWidget(mainWidget);
+  mainWidgetIsShowing = true;
 }
 
 } //end namespace UDJ

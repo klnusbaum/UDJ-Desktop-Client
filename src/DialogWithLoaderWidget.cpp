@@ -37,6 +37,16 @@ DialogWithLoaderWidget::DialogWithLoaderWidget(
   setupUi(loadingText, positiveButtonText, negativeButtonText);
 }
 
+void DialogWithLoaderWidget::setNegativeButtonEnabled(bool enabled){
+  negativeButtonEnabled = enabled;
+  if(negativeButtonEnabled && loaderWidget->isMainWidgetShowing()){
+    negativeButton->show();
+  }
+  else{
+    negativeButton->hide();
+  }
+}
+
 void DialogWithLoaderWidget::showLoadingText(){
   loaderWidget->showLoadingText();
   negativeButton->hide();
@@ -45,7 +55,9 @@ void DialogWithLoaderWidget::showLoadingText(){
 
 void DialogWithLoaderWidget::showMainWidget(){
   loaderWidget->showMainWidget();
-  negativeButton->show();
+  if(negativeButtonEnabled){
+    negativeButton->show();
+  }
   positiveButton->show();
 }
 
