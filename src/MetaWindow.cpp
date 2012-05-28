@@ -229,9 +229,7 @@ void MetaWindow::setupMenus(){
   musicMenu->addSeparator();
   musicMenu->addAction(quitAction);
 
-  if(dataStore->hasPlayerId()){
-    configurePlayerMenu();
-  }
+  configurePlayerMenu();
 
   QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(viewLogAction);

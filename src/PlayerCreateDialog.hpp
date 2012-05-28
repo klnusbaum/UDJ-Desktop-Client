@@ -19,10 +19,8 @@
 #ifndef PLAYER_CREATE_DIALOG_HPP
 #define PLAYER_CREATE_DIALOG_HPP
 
-#include <QDialog>
+#include "DialogWithLoaderWidget.hpp"
 
-class QPushButton;
-class QCheckBox;
 
 namespace UDJ{
 
@@ -30,7 +28,7 @@ class PlayerCreationWidget;
 class DataStore;
 
 /** \brief Dialog for creating a player. */
-class PlayerCreateDialog : public QDialog{
+class PlayerCreateDialog : public DialogWithLoaderWidget{
 Q_OBJECT
 public:
   /** @name Constructors */
@@ -68,9 +66,6 @@ private:
   /** \brief Widget used for actual creation of player */
   PlayerCreationWidget *createWidget;
 
-  /** \brief button used for initiating the login procedure. */
-  QPushButton *createButton;
-
   /** \brief DataStore backing the client */
   DataStore *dataStore;
 
@@ -86,14 +81,6 @@ private:
 
   //@}
 
-private slots:
-  /** @name Private Slots */
-  //@{
-
-  /** \brief Closes the dialog */
-  void closeDialog();
-
-  //@}
 };
 
 

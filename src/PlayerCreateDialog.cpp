@@ -19,8 +19,6 @@
 
 #include "PlayerCreateDialog.hpp"
 #include "PlayerCreationWidget.hpp"
-#include <QPushButton>
-#include <QGridLayout>
 #include <QApplication>
 #include "DataStore.hpp"
 
@@ -29,7 +27,13 @@ namespace UDJ{
 
 
 PlayerCreateDialog::PlayerCreateDialog(DataStore *dataStore, QWidget *parent, Qt::WindowFlags f)
-  :QDialog(parent, f),
+  :DialogWithLoaderWidget(
+      tr("Creating Player..."),
+      tr("Create Player"),
+      tr("Cancel"),
+      true,
+      parent, 
+      f),
   dataStore(dataStore)
 {
   setWindowTitle(tr("Player Setup"));
@@ -38,7 +42,7 @@ PlayerCreateDialog::PlayerCreateDialog(DataStore *dataStore, QWidget *parent, Qt
 }
 
 void PlayerCreateDialog::accept(){
-  createButton->hide();
+  showLoadingText();
   createWidget->doCreation();
 }
 
@@ -47,15 +51,12 @@ void PlayerCreateDialog::reject(){
   QApplication::quit();
 }
 
-void PlayerCreateDialog::closeDialog(){
-  done(QDialog::Accepted);
-}
 
 void PlayerCreateDialog::setupUi(){
   createWidget = new PlayerCreationWidget(dataStore, this);
-  createButton = new QPushButton(tr("Create Player"), this);
-  createButton->setDefault(true);
-  createButton->setAutoDefault(true);
+  setMainWidget(createWidget);
+
+  setNegativeButtonEnabled(false);
 
   connect(
     createWidget, 
@@ -66,19 +67,8 @@ void PlayerCreateDialog::setupUi(){
   connect(
     createWidget,
     SIGNAL(playerCreateFailed()),
-    createButton,
-    SLOT(show()));
-
-  connect(
-    createButton,
-    SIGNAL(clicked()),
     this,
-    SLOT(accept()));
-
-  QGridLayout *layout = new QGridLayout;
-  layout->addWidget(createWidget, 0,0,3,3);
-  layout->addWidget(createButton, 3,1);
-  setLayout(layout);
+    SLOT(showMainWidget()));
 }
 
 
