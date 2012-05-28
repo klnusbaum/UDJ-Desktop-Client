@@ -49,6 +49,7 @@ SET(SOURCES
   AboutWidget.cpp
   AddressWidget.cpp
   SetLocationDialog.cpp
+  DialogWithLoaderWidget.cpp
 )
 
 

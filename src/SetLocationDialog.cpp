@@ -18,12 +18,8 @@
  */
 
 #include "SetLocationDialog.hpp"
-#include "WidgetWithLoader.hpp"
 #include "DataStore.hpp"
 #include "AddressWidget.hpp"
-#include "Logger.hpp"
-#include <QPushButton>
-#include <QGridLayout>
 #include <QMessageBox>
 
 
@@ -31,7 +27,12 @@ namespace UDJ{
 
 
 SetLocationDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::WindowFlags f)
-  :QDialog(parent, f),
+  :DialogWithLoaderWidget(
+    tr("Setting Player Location..."),
+    tr("Set Location"),
+    tr("Cancel"),
+    parent,
+    f),
   dataStore(dataStore)
 {
   setWindowTitle(tr("Set Player Location"));
@@ -47,7 +48,7 @@ SetLocationDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::
 }
 
 void SetLocationDialog::onChangeLocationError(const QString& errMessage){
-  loaderContainer->showMainWidget();
+  this->showMainWidget();
   QMessageBox::critical(
     this,
     tr("Couldn't Change Location"),
@@ -56,10 +57,9 @@ void SetLocationDialog::onChangeLocationError(const QString& errMessage){
 }
 
 void SetLocationDialog::accept(){
-  Logger::instance()->log("in accept for setting location dialog");
   QString badInputs = addressWidget->getBadInputs();
   if(badInputs == ""){
-    loaderContainer->showLoadingText();
+    this->showLoadingText();
     dataStore->setPlayerLocation(
       addressWidget->getStreetAddress(),
       addressWidget->getCity(),
@@ -77,54 +77,20 @@ void SetLocationDialog::accept(){
   }
 }
 
-void SetLocationDialog::closeDialog(){
-  done(QDialog::Accepted);
-}
-
 void SetLocationDialog::setupUi(){
-  QWidget* containerWidget = new QWidget(this);
   if(dataStore->hasLocation()){
     addressWidget = new AddressWidget(
-      containerWidget,
+      0,
       dataStore->getLocationStreetAddress(),
       dataStore->getLocationCity(),
       dataStore->getLocationState(),
       QString::number(dataStore->getLocationZipcode()));
   }
   else{
-    addressWidget = new AddressWidget(containerWidget);
+    addressWidget = new AddressWidget();
   }
 
-  setLocationButton = new QPushButton(tr("Set Location"), containerWidget);
-  cancelButton = new QPushButton(tr("Cancel"), containerWidget);
-  setLocationButton->setDefault(true);
-  setLocationButton->setAutoDefault(true);
-
-  connect(
-    setLocationButton,
-    SIGNAL(clicked()),
-    this,
-    SLOT(accept()));
-
-  connect(
-    cancelButton,
-    SIGNAL(clicked()),
-    this,
-    SLOT(reject()));
-
-  QGridLayout *layout = new QGridLayout;
-  layout->addWidget(addressWidget, 0,0,3,3);
-  layout->addWidget(cancelButton, 4,1);
-  layout->addWidget(setLocationButton, 4,2);
-  containerWidget->setLayout(layout);
-
-  loaderContainer = new WidgetWithLoader(tr("Setting Location..."), this);
-  loaderContainer->setMainWidget(containerWidget);
-  loaderContainer->showMainWidget();
-
-  QGridLayout *containerLayout = new QGridLayout();
-  containerLayout->addWidget(loaderContainer,0,0,1,1);
-  setLayout(containerLayout);
+  setMainWidget(addressWidget);
 }
 
 

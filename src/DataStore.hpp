@@ -221,6 +221,16 @@ public:
     return settings.contains(getPasswordSettingName());
   }
 
+  /**
+   * \brief Retreives the password for the player.
+   *
+   * @return The password for the player, if none is set a blank string is returned.
+   */
+  inline QString getPlayerPassword() const{
+    QSettings settings(
+      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    return settings.value(getPasswordSettingName()).toString();
+  }
 
   /**
    * \brief Retrieves a string describing the location of the player.

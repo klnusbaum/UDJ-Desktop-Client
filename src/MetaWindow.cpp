@@ -242,26 +242,30 @@ void MetaWindow::setupMenus(){
 void MetaWindow::configurePlayerMenu(){
   QMenu *playerMenu = menuBar()->addMenu(tr("&Player"));
 
-  QAction *changeNameAction = new QAction(tr("Change Name"), this);
+  changeNameAction = new QAction(tr("Change Name"), this);
   playerMenu->addAction(changeNameAction);
-  connect(changeNameAction, SIGNAL(triggered()), this, SLOT(changePlayerName()));
 
-  QAction *setLocationAction = new QAction(tr("Set Location"), this);
+  setLocationAction = new QAction(tr("Set Location"), this);
   playerMenu->addAction(setLocationAction);
+
+  /*setPasswordAction = new QAction(tr("Set Password"), this);
+  playerMenu->addAction(setPasswordAction);
+
+  removePasswordAction = new QAction(tr("Remove Password"), this);
+  playerMenu->addAction(removePasswordAction);
+  removePasswordAction->setEnabled(dataStore->hasPlayerPassword());*/
+
+  connect(changeNameAction, SIGNAL(triggered()), this, SLOT(changePlayerName()));
   connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
-
-  /*if(dataStore->hasPlayerPassword()){
-    QAction *changePasswordAction = new QAction(tr("Change Password"), this);
-    playerMenu->addAction(changePasswordAction);
-    QAction *removePasswordAction = new QAction(tr("Remove Password"), this);
-    playerMenu->addAction(removePasswordAction);
-  }
-  else{
-    QAction *setPasswordAction = new QAction(tr("Set Password"), this);
-    playerMenu->addAction(setPasswordAction);
-  }*/
-
+  //connect(setPasswordAction, SIGNAL(triggered()), this, SLOT(setPlayerPassword()));
+  //connect(removePasswordAction, SIGNAL(triggered()), this, SLOT(removePasswordAction()));
 }
+
+/*
+void MetaWindow::setPlayerPassword(){
+  SetPasswordDialog *setPasswordDialog = new SetPasswordDialog(dataStore, this);
+
+}*/
 
 void MetaWindow::setPlayerLocation(){
   SetLocationDialog *setLocationDialog = new SetLocationDialog(dataStore, this);

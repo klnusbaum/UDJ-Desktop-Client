@@ -19,17 +19,15 @@
 #ifndef SET_LOCATION_DIALOG_HPP
 #define SET_LOCATION_DIALOG_HPP
 
-#include <QDialog>
-class QPushButton;
+#include "DialogWithLoaderWidget.hpp"
 
 namespace UDJ{
 
 class AddressWidget;
-class WidgetWithLoader;
 class DataStore;
 
 /** \brief Dialog for creating a player. */
-class SetLocationDialog : public QDialog{
+class SetLocationDialog : public DialogWithLoaderWidget{
 Q_OBJECT
 public:
   /** @name Constructors */
@@ -65,15 +63,6 @@ private:
   /** \brief Actuall widget used for setting the address. */
   AddressWidget *addressWidget;
 
-  /** \brief Widget used for containing the address widget.*/
-  WidgetWithLoader *loaderContainer;
-
-  /** \brief button used for initiating the setting of the location. */
-  QPushButton *setLocationButton;
-
-  /** \brief button used for canceling the setting of the location. */
-  QPushButton *cancelButton;
-
   /** \brief DataStore backing the client */
   DataStore *dataStore;
 
@@ -92,9 +81,6 @@ private:
 private slots:
   /** @name Private Slots */
   //@{
-
-  /** \brief Closes the dialog */
-  void closeDialog();
 
   /**
    * \brief Handles location change errors

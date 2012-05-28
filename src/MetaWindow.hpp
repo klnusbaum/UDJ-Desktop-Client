@@ -157,9 +157,19 @@ private slots:
   void onPlayerNameChangeError(const QString& errMessage);
 
   /**
-   * \brief Preforms necessary actions in order to start changing the player's location.
+   * \brief Preforms necessary actions in order to start setting the player's location.
    */
   void setPlayerLocation();
+
+  /**
+   * \brief Performs necessary actions in order to start setting the player's password.
+   */
+  //void setPlayerPassword();
+
+  /**
+   * \brief Performs necessary actions in order to start removing the player's password.
+   */
+  //void removePlayerPassword();
 
   //@}
 
@@ -187,6 +197,26 @@ private:
 
   /** \brief Triggers display of the about widget */
   QAction *viewAboutAction;
+
+  /**
+   * \brief Triggers the changing of the player name.
+   */
+  QAction *changeNameAction;
+
+  /**
+   * \brief Triggers the setting of the player location.
+   */
+  QAction *setLocationAction;
+
+  /**
+   * \brief Triggers the setting of the player password.
+   */
+  QAction *setPasswordAction;
+
+  /**
+   * \brief Triggers the removal of the player password.
+   */
+  QAction *removePasswordAction;
 
 //  QFileSystemWatcher* fileWatcher;
 
