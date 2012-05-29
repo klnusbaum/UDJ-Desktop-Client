@@ -66,6 +66,19 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
+    SIGNAL(playerPasswordSet(const QString&)),
+    this,
+    SLOT(onPlayerPasswordSet(const QString&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onPlayerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+
+  connect(
+    serverConnection,
     SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, int)),
     this,
     SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, int)));
@@ -216,6 +229,24 @@ void DataStore::setupDB(){
     setupQuery.exec(getCreateActivePlaylistViewQuery()),
     setupQuery)
 
+}
+
+void DataStore::setPlayerPassword(const QString& newPassword){
+  serverConnection->setPlayerPassword(newPassword);
+}
+
+void DataStore::onPlayerPasswordSet(const QString& password){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerPasswordSettingName(), password);
+  emit playerPasswordSet();
+}
+
+void DataStore::onPlayerPasswordSetError(
+  const QString& errMessage,
+  int /*errorCode*/,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
+  emit playerPasswordSetError(errMessage);
 }
 
 void DataStore::setPlayerLocation(
@@ -531,6 +562,7 @@ void DataStore::createNewPlayer(
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
+  settings.setValue(getPlayerPasswordSettingName(), password);
   serverConnection->createPlayer(name, password);
 }
 
@@ -544,6 +576,7 @@ void DataStore::createNewPlayer(
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
+  settings.setValue(getPlayerPasswordSettingName(), password);
   settings.setValue(getAddressSettingName(), streetAddress);
   settings.setValue(getCitySettingName(), city);
   settings.setValue(getStateSettingName(), state);

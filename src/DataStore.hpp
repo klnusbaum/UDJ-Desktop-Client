@@ -101,6 +101,13 @@ public:
     QProgressDialog* progress=0);
 
   /**
+   * \brief Sets the player's password
+   *
+   * \param newPassword The password that should be set for the player. Should be non-blank.
+   */
+  void setPlayerPassword(const QString& newPassword);
+
+  /**
    * \brief Set player location.
    *
    * \param streetAddress The street address of the location to be set.
@@ -218,7 +225,7 @@ public:
   inline bool hasPlayerPassword() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.contains(getPasswordSettingName());
+    return settings.contains(getPlayerPasswordSettingName());
   }
 
   /**
@@ -229,7 +236,7 @@ public:
   inline QString getPlayerPassword() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getPasswordSettingName()).toString();
+    return settings.value(getPlayerPasswordSettingName()).toString();
   }
 
   /**
@@ -749,6 +756,16 @@ public:
   }
 
   /**
+   * \brief Name of the setting used to store the password being used for the player.
+   *
+   * @return Name of the setting used to store the password being used for the player.
+   */
+  static const QString& getPlayerPasswordSettingName(){
+    static const QString playerPasswordSettingName = "playerPassword";
+    return playerPasswordSettingName;
+  }
+
+  /**
    * \brief Gets the name of the player address setting.
    *
    * @return The name of the player address setting.
@@ -939,6 +956,18 @@ signals:
 
 /** @name Signals */
 //@{
+
+  /**
+   * \brief Emitted when the player's password is set.
+   */
+  void playerPasswordSet():
+
+  /**
+   * \brief Emitter when there is an error setting the player's password.
+   *
+   * \param errMessage A message describing the error.
+   */
+  playerPasswordSetError(const QString& errMessage);
 
   /**
    * \brief Emitted when the players location has been set.
@@ -1278,6 +1307,26 @@ private:
 /** @name Private Slots */
 //@{
 private slots:
+
+  /**
+   * \brief Preforms appropriate tasks when a player's password is set.
+   *
+   * \brief password The password that has been set on the server.
+   */
+  void onPlayerPasswordSet(const QString& password);
+
+  /**
+   * \brief Preforms appropriate tasks when there was an error setting the player's location.
+   *
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onPlayerPasswordSetError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
 
   /**
    * \brief Preforms appropriate tasks when a players location was succesfully set.
