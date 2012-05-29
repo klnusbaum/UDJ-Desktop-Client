@@ -274,7 +274,8 @@ void MetaWindow::configurePlayerMenu(){
 
 void MetaWindow::removePlayerPassword(){
   QMessageBox::StandardButton response = QMessageBox::question(
-      this, tr("Remove password"), tr("Are you sure you want to remove the player password"));
+      this, tr("Remove password"), tr("Are you sure you want to remove the player password"),
+      QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
   if(response == QMessageBox::Ok){
     connect(
       dataStore,
