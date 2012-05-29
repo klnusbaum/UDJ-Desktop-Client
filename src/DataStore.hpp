@@ -960,14 +960,14 @@ signals:
   /**
    * \brief Emitted when the player's password is set.
    */
-  void playerPasswordSet():
+  void playerPasswordSet();
 
   /**
    * \brief Emitter when there is an error setting the player's password.
    *
    * \param errMessage A message describing the error.
    */
-  playerPasswordSetError(const QString& errMessage);
+  void playerPasswordSetError(const QString& errMessage);
 
   /**
    * \brief Emitted when the players location has been set.

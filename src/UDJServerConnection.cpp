@@ -126,6 +126,16 @@ void UDJServerConnection::createPlayer(const QByteArray& payload){
   /*QNetworkReply *reply =*/ netAccessManager->put(createPlayerRequest, payload);
 }
 
+void UDJServerConnection::setPlayerPassword(const QString& newPassword){
+  QNetworkRequest setPasswordRequest(getPlayerPasswordUrl());
+  setPasswordRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QUrl params;
+  params.addQueryItem("password", newPassword);
+  QByteArray payload = params.encodedQuery();
+  QNetworkReply *reply = netAccessManager->post(setPasswordRequest, payload);
+  reply->setProperty(getPlayerPasswordPropertyName(), newPassword);
+}
+
 void UDJServerConnection::setPlayerLocation(
   const QString& streetAddress,
   const QString& city,
@@ -242,6 +252,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getPlayerLocationUrl().path()){
     handleLocationSetReply(reply);
   }
+  else if(reply->request().url().path() == getPlayerPasswordUrl().path()){
+    handlePlayerPasswordSetReply(reply);
+  }
   else{
     Logger::instance()->log("Recieved unknown response");
     Logger::instance()->log(reply->request().url().path());
@@ -278,6 +291,20 @@ void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){
   }
 }
 
+void UDJServerConnection::handlePlayerPasswordSetReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit playerPasswordSet(reply->property(getPlayerPasswordPropertyName()).toString());
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Set player password error " + responseData);
+    emit playerPasswordSetError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+}
+
 void UDJServerConnection::handleNameSetReply(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit playerNameChanged(reply->property(getPlayerNamePropertyName()).toString());
@@ -289,9 +316,10 @@ void UDJServerConnection::handleNameSetReply(QNetworkReply *reply){
   else{
     QString responseData = QString(reply->readAll());
     Logger::instance()->log("Change player name got error " + responseData);
-    emit playerNameChangeError(responseData,
-        reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
-        reply->rawHeaderPairs());
+    emit playerNameChangeError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
   }
 }
 
@@ -453,6 +481,12 @@ QUrl UDJServerConnection::getPlayerLocationUrl() const{
   return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
       QString::number(playerId) + "/location");
 }
+
+QUrl UDJServerConnection::getPlayerPasswordUrl() const{
+  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+      QString::number(playerId) + "/password");
+}
+
 
 
 bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{

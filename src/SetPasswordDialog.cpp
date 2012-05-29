@@ -27,7 +27,7 @@
 namespace UDJ{
 
 
-SetPasswordDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::WindowFlags f)
+SetPasswordDialog::SetPasswordDialog(DataStore *dataStore, QWidget *parent, Qt::WindowFlags f)
   :DialogWithLoaderWidget(
     tr("Setting Player Password..."),
     tr("Set Password"),
@@ -49,7 +49,7 @@ SetPasswordDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::
 
 }
 
-void SetLocationDialog::onPlayerPasswordSetError(const QString& errMessage){
+void SetPasswordDialog::onPlayerPasswordSetError(const QString& errMessage){
   this->showMainWidget();
   QMessageBox::critical(
     this,
@@ -58,11 +58,11 @@ void SetLocationDialog::onPlayerPasswordSetError(const QString& errMessage){
   );
 }
 
-void SetLocationDialog::accept(){
-  password = passwordEdit->text();
+void SetPasswordDialog::accept(){
+  QString password = passwordEdit->text();
   if(password!=""){
     this->showLoadingText();
-    dataStore->setPlayerPassword(password)
+    dataStore->setPlayerPassword(password);
   }
   else{
     QMessageBox::critical(
@@ -73,7 +73,7 @@ void SetLocationDialog::accept(){
   }
 }
 
-void SetLocationDialog::setupUi(){
+void SetPasswordDialog::setupUi(){
   QWidget *passwordWidget = new QWidget();
   passwordEdit = new QLineEdit(dataStore->getPlayerPassword());
   QFormLayout *layout = new QFormLayout();

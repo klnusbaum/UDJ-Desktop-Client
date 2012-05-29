@@ -42,7 +42,17 @@ public:
    * \param parent The parent widget.
    * \param f Window flags.
    */
-  SetLocationDialog(DataStore *dataStore, QWidget *parent=0, Qt::WindowFlags f=0);
+  SetPasswordDialog(DataStore *dataStore, QWidget *parent=0, Qt::WindowFlags f=0);
+
+  //@}
+
+public slots:
+
+  /** @name Overridden slots from QDialog */
+  //@{
+
+  /** \brief . */
+  virtual void accept();
 
   //@}
 

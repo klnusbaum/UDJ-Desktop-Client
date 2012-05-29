@@ -164,7 +164,7 @@ private slots:
   /**
    * \brief Performs necessary actions in order to start setting the player's password.
    */
-  //void setPlayerPassword();
+  void setPlayerPassword();
 
   /**
    * \brief Performs necessary actions in order to start removing the player's password.

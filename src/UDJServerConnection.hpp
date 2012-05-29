@@ -115,6 +115,13 @@ public slots:
   );
 
   /**
+   * \brief Tells the server to change the player's password.
+   *
+   * \param newPassword New password for the player.
+   */
+  void setPlayerPassword(const QString& newPassword);
+
+  /**
    * \brief Tells the server to change the players name to the new name.
    *
    * \param newName New name for the player.
@@ -220,7 +227,26 @@ signals:
   void authFailed(const QString errMessage);
 
   /**
-   * \brief Emitted when chaning the player's location is succesfully set.
+   * \brief Emitted when the player's password is succesfully set.
+   *
+   * \param password The password that was set for the player.
+   */
+  void playerPasswordSet(const QString& password);
+
+  /**
+   * \brief Emitted when there was an error setting the player's password.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerPasswordSetError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Emitted when the player's location is succesfully set.
    *
    * \param streetAddress Street address of the set location.
    * \param city City of the set location.
@@ -234,7 +260,7 @@ signals:
     int zipcode);
 
   /**
-   * \brief Emitted when there was an error changing the player's location.
+   * \brief Emitted when there was an error setting the player's location.
    *
    * @param errMessage A message describing the error.
    * @param errorCode The http status code that describes the error.
@@ -494,6 +520,13 @@ private:
   void handleRecievedVolumeSet(QNetworkReply *reply);
 
   /**
+   * \brief Handle a response from the server regarding the setting of the player's password.
+   *
+   * @param reply Response from the server.
+   */
+  void handlePlayerPasswordSetReply(QNetworkReply *reply);
+
+  /**
    * \brief Handle a response from the server regarding the setting of the player location.
    *
    * @param reply Response from the server.
@@ -513,6 +546,13 @@ private:
    * @param request Request to prepare.
    */
   void prepareJSONRequest(QNetworkRequest &request);
+
+  /**
+   * \brief Gets the url used for accessing the player's password.
+   *
+   * \return The url used for accessing the player's password.
+   */
+  QUrl getPlayerPasswordUrl() const;
 
   /**
    * \brief Gets the url used for accessing the player's name.
@@ -697,6 +737,16 @@ private:
   static const char* getPlayerNamePropertyName(){
     static const char* playerNamePropertyName = "player_name";
     return playerNamePropertyName;
+  }
+
+  /**
+   * \brief Gets the property name for a player password property.
+   *
+   * \return The property name for a player password property.
+   */
+  static const char* getPlayerPasswordPropertyName(){
+    static const char* playerPasswordPropertyName = "playerPassword";
+    return playerPasswordPropertyName;
   }
 
   /**
