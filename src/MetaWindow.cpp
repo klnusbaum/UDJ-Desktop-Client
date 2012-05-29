@@ -283,7 +283,7 @@ void MetaWindow::removePlayerPassword(){
       SLOT(onPlayerPasswordRemoved()));
     connect(
       dataStore,
-      SIGNAL(playerPasswordRemoveError()),
+      SIGNAL(playerPasswordRemoveError(const QString&)),
       this,
       SLOT(onPlayerPasswordRemoveError()));
     dataStore->removePlayerPassword();

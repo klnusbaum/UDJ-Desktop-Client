@@ -49,6 +49,11 @@ PlayerDashboard::PlayerDashboard(DataStore *dataStore, QWidget *parent):
     SIGNAL(playerPasswordSet()),
     this,
     SLOT(setPlayerInfo()));
+  connect(
+    dataStore,
+    SIGNAL(playerPasswordRemoved()),
+    this,
+    SLOT(setPlayerInfo()));
 }
 
 void PlayerDashboard::setupUi(){
