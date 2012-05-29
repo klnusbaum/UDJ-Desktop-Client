@@ -34,7 +34,7 @@ be very straight forward. Simply use cmake to configure the project (we recommen
 source build). You can turn on debug messages by setting the `UDJ_DEBUG_BUILD` variable to `ON`.
 
 #### Note for CMake 2.8.8
-There is a regression in CMake 2.8.8 that gives the DeployQt4.cmake some issues. Applying this patch
+There is a regression in CMake 2.8.8 that gives the DeployQt4.cmake some issues. Applying this [patch][deploypatch]
 to it should fix the issue. Alternatively you can simply change the line in DeployQt4.cmake that says
 
     function(resolve_qt4_paths paths_var)
@@ -76,3 +76,4 @@ the [UDJ mailing list][mailing].
 [taglib]:http://developer.kde.org/~wheeler/taglib.html
 [brew]:http://mxcl.github.com/homebrew/
 [mailing]:mailto:udjdev@bazaarsolutions.com
+[deploypatch]:https://s3.amazonaws.com/udj_misc/0001-DeployQt4-Set-executable_path-if-actually-passed.patch
