@@ -152,7 +152,7 @@ void PlaybackWidget::stateChanged(
   {
     Logger::instance()->log("Playback error: " + mediaObject->errorString());
     if(mediaObject->errorType() == Phonon::FatalError){
-      QMessageBox::critical(this, "Bad Song", "Ooops. Looks like we're having some trouble playing the current song. Can you pick another song?");
+      playNextSong();
     }
   }
 
