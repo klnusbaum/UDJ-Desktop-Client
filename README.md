@@ -33,6 +33,21 @@ If you've installed all of your libraries and cmake in default locations, config
 be very straight forward. Simply use cmake to configure the project (we recommend an out of 
 source build). You can turn on debug messages by setting the `UDJ_DEBUG_BUILD` variable to `ON`.
 
+#### Note for CMake 2.8.8
+There is a regression in CMake 2.8.8 that gives the DeployQt4.cmake some issues. Applying this patch
+to it should fix the issue. Alternatively you can simply change the line in DeployQt4.cmake that says
+
+    function(resolve_qt4_paths paths_var)
+      set(executable_path ${ARGV1})
+
+to
+
+    function(resolve_qt4_paths paths_var)
+      if(ARGC GREATER 1)
+         set(executable_path ${ARGV1})
+      endif()
+
+
 ### Building
 CMake will generate different projects base on your host system. On OSX and Linux the default is 
 a makefile based project. Hence a simple issue of the `make` command will build the project 
