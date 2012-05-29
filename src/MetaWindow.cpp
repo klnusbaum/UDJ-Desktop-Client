@@ -78,6 +78,18 @@ MetaWindow::MetaWindow(
     PlayerCreateDialog *createDialog = new PlayerCreateDialog(dataStore, this);
     createDialog->show();
   }
+
+  connect(
+    dataStore,
+    SIGNAL(playerPasswordSet()),
+    this,
+    SLOT(enableRemovePassword()));
+
+  connect(
+    dataStore,
+    SIGNAL(playerPasswordRemoved()),
+    this,
+    SLOT(disableRemovePassword()));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -250,16 +262,57 @@ void MetaWindow::configurePlayerMenu(){
   setPasswordAction = new QAction(tr("Set Password"), this);
   playerMenu->addAction(setPasswordAction);
 
-  /*removePasswordAction = new QAction(tr("Remove Password"), this);
+  removePasswordAction = new QAction(tr("Remove Password"), this);
   playerMenu->addAction(removePasswordAction);
-  removePasswordAction->setEnabled(dataStore->hasPlayerPassword());*/
+  removePasswordAction->setEnabled(dataStore->hasPlayerPassword());
 
   connect(changeNameAction, SIGNAL(triggered()), this, SLOT(changePlayerName()));
   connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
   connect(setPasswordAction, SIGNAL(triggered()), this, SLOT(setPlayerPassword()));
-  //connect(removePasswordAction, SIGNAL(triggered()), this, SLOT(removePasswordAction()));
+  connect(removePasswordAction, SIGNAL(triggered()), this, SLOT(removePlayerPassword()));
 }
 
+void MetaWindow::removePlayerPassword(){
+  QMessageBox::StandardButton response = QMessageBox::question(
+      this, tr("Remove password"), tr("Are you sure you want to remove the player password"));
+  if(response == QMessageBox::Ok){
+    connect(
+      dataStore,
+      SIGNAL(playerPasswordRemoved()),
+      this,
+      SLOT(onPlayerPasswordRemoved()));
+    connect(
+      dataStore,
+      SIGNAL(playerPasswordRemoveError()),
+      this,
+      SLOT(onPlayerPasswordRemoveError()));
+    dataStore->removePlayerPassword();
+  }
+}
+
+void MetaWindow::disconnectPlayerPasswordRemoveSignals(){
+    disconnect(
+      dataStore,
+      SIGNAL(playerPasswordRemoved()),
+      this,
+      SLOT(onPlayerPasswordRemoved()));
+    disconnect(
+      dataStore,
+      SIGNAL(playerPasswordRemoveError(const QString&)),
+      this,
+      SLOT(onPlayerPasswordRemoveError()));
+}
+
+
+void MetaWindow::onPlayerPasswordRemoved(){
+  disconnectPlayerPasswordRemoveSignals();
+}
+
+void MetaWindow::onPlayerPasswordRemoveError(){
+  disconnectPlayerPasswordRemoveSignals();
+  QMessageBox::critical(this, tr("Error Removing Password"), tr("Oops. We couldn't remove the "
+      "player's password. We're super sorry. Can you try it again in a little bit?"));
+}
 
 void MetaWindow::setPlayerPassword(){
   SetPasswordDialog *setPasswordDialog = new SetPasswordDialog(dataStore, this);
@@ -392,5 +445,12 @@ void MetaWindow::displayAboutWidget(){
   about->show();
 }
 
+void MetaWindow::enableRemovePassword(){
+  removePasswordAction->setEnabled(true);
+}
+
+void MetaWindow::disableRemovePassword(){
+  removePasswordAction->setEnabled(false);
+}
 
 } //end namespace

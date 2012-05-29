@@ -101,6 +101,11 @@ public:
     QProgressDialog* progress=0);
 
   /**
+   * \brief Removes the password on the player.
+   */
+  void removePlayerPassword();
+
+  /**
    * \brief Sets the player's password
    *
    * \param newPassword The password that should be set for the player. Should be non-blank.

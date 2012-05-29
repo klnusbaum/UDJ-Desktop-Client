@@ -169,7 +169,27 @@ private slots:
   /**
    * \brief Performs necessary actions in order to start removing the player's password.
    */
-  //void removePlayerPassword();
+  void removePlayerPassword();
+
+  /**
+   * \brief Preforms necessary actions when the player password was sucesfully removed.
+   */
+  void onPlayerPasswordRemoved();
+
+  /**
+   * \brief Preforms necessary actions when there was an error removing the player password.
+   */
+  void onPlayerPasswordRemoveError();
+
+  /**
+   * \brief Enables the ability to remove the player password.
+   */
+  void enableRemovePassword();
+
+  /**
+   * \brief Disables the ability to remove the player password.
+   */
+  void disableRemovePassword();
 
   //@}
 
@@ -276,6 +296,12 @@ private:
    * name change operation.
    */
   void disconnectNameChangeSignals();
+
+  /**
+   * \brief Disconnects any signals that may have been setup when initiating a player
+   * password removal operation.
+   */
+  void disconnectPlayerPasswordRemoveSignals();
 
   //@}
 

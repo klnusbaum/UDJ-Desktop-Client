@@ -231,6 +231,10 @@ void DataStore::setupDB(){
 
 }
 
+void DataStore::removePlayerPassword(){
+
+}
+
 void DataStore::setPlayerPassword(const QString& newPassword){
   serverConnection->setPlayerPassword(newPassword);
 }
