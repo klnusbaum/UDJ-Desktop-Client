@@ -66,8 +66,13 @@ MetaWindow::MetaWindow(
     QSettings::UserScope,
     DataStore::getSettingsOrg(),
     DataStore::getSettingsApp());
-  restoreGeometry(settings.value("metaWindowGeometry").toByteArray());
-  restoreState(settings.value("metaWindowState").toByteArray());
+  if(settings.contains("metaWindowGeometry")){
+    restoreGeometry(settings.value("metaWindowGeometry").toByteArray());
+    restoreState(settings.value("metaWindowState").toByteArray());
+  }
+  else{
+    setWindowState(Qt::WindowMaximized);
+  }
   if(dataStore->hasPlayerId()){
     dataStore->setPlayerState(DataStore::getPlayingState());
     if(dataStore->hasUnsyncedSongs()){
