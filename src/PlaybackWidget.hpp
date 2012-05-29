@@ -147,6 +147,9 @@ private:
   /** \brief Pauses playback */
   QAction *pauseAction;
 
+  /** \brief Skips to the next song */
+  QAction *skipAction;
+
   /** \brief Used to display info of the currently playing song. */
   QLabel *songInfo;
 
