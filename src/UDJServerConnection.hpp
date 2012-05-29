@@ -232,6 +232,24 @@ signals:
   void authFailed(const QString errMessage);
 
   /**
+   * \brief Emitted when the player's password is succesfully removed.
+   */
+  void playerPasswordRemoved();
+
+  /**
+   * \brief Emitted when there was an error removing the player's password.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerPasswordRemoveError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
+  /**
    * \brief Emitted when the player's password is succesfully set.
    *
    * \param password The password that was set for the player.
@@ -525,6 +543,13 @@ private:
   void handleRecievedVolumeSet(QNetworkReply *reply);
 
   /**
+   * \brief Handle a response from the server regarding the removing of the player's password.
+   *
+   * @param reply Response from the server.
+   */
+  void handlePlayerPasswordRemoveReply(QNetworkReply *reply);
+
+  /**
    * \brief Handle a response from the server regarding the setting of the player's password.
    *
    * @param reply Response from the server.
@@ -644,6 +669,22 @@ private:
    * \return True if the reply is a response to modifying the active playlist. False otherwise.
    */
   bool isModActivePlaylistReply(const QNetworkReply *reply) const;
+
+  /**
+   * \brief Determines if the reply is a response to a request that the player's password be set.
+   *
+   * \param reply The network reply in question.
+   * \return True if the reply is a response to setting the player's password. False otherwise.
+   */
+  bool isPasswordSetReply(const QNetworkReply* reply) const;
+
+  /**
+   * \brief Determines if the reply is a response to a request that the player's password be removed.
+   *
+   * \param reply The network reply in question.
+   * \return True if the reply is a response to removing the player's password. False otherwise.
+   */
+  bool isPasswordRemoveReply(const QNetworkReply* reply) const;
 
   /**
    * \brief Determines if a given reply has the same Http Status code as the one specified.

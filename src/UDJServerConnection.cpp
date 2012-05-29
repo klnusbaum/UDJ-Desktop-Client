@@ -127,7 +127,9 @@ void UDJServerConnection::createPlayer(const QByteArray& payload){
 }
 
 void UDJServerConnection::removePlayerPassword(){
-
+  QNetworkRequest removePasswordRequest(getPlayerPasswordUrl());
+  removePasswordRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  /*QNetworkReply *reply =*/ netAccessManager->deleteResource(removePasswordRequest);
 }
 
 void UDJServerConnection::setPlayerPassword(const QString& newPassword){
@@ -256,8 +258,11 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getPlayerLocationUrl().path()){
     handleLocationSetReply(reply);
   }
-  else if(reply->request().url().path() == getPlayerPasswordUrl().path()){
+  else if(isPasswordSetReply(reply)){
     handlePlayerPasswordSetReply(reply);
+  }
+  else if(isPasswordRemoveReply(reply)){
+    handlePlayerPasswordRemoveReply(reply);
   }
   else{
     Logger::instance()->log("Recieved unknown response");
@@ -294,6 +299,21 @@ void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){
     //TODO handle error
   }
 }
+
+void UDJServerConnection::handlePlayerPasswordRemoveReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit playerPasswordRemoved();
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Player password remove error " + responseData);
+    emit playerPasswordRemoveError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+}
+
 
 void UDJServerConnection::handlePlayerPasswordSetReply(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
@@ -515,6 +535,15 @@ bool UDJServerConnection::isModActivePlaylistReply(const QNetworkReply *reply) c
     && reply->property(getSongsAddedPropertyName()).isValid();
 }
 
+bool UDJServerConnection::isPasswordSetReply(const QNetworkReply *reply) const{
+  return reply->request().url().path() == getPlayerPasswordUrl().path() &&
+    reply->operation() == QNetworkAccessManager::PostOperation;
+}
+
+bool UDJServerConnection::isPasswordRemoveReply(const QNetworkReply *reply) const{
+  return reply->request().url().path() == getPlayerPasswordUrl().path() &&
+    reply->operation() == QNetworkAccessManager::DeleteOperation;
+}
 
 
 }//end namespace
