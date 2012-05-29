@@ -115,6 +115,11 @@ public slots:
   );
 
   /**
+   * \brief Tesll the server to remove the player's password.
+   */
+  void removePlayerPassword();
+
+  /**
    * \brief Tells the server to change the player's password.
    *
    * \param newPassword New password for the player.

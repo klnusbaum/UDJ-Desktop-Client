@@ -126,6 +126,10 @@ void UDJServerConnection::createPlayer(const QByteArray& payload){
   /*QNetworkReply *reply =*/ netAccessManager->put(createPlayerRequest, payload);
 }
 
+void UDJServerConnection::removePlayerPassword(){
+
+}
+
 void UDJServerConnection::setPlayerPassword(const QString& newPassword){
   QNetworkRequest setPasswordRequest(getPlayerPasswordUrl());
   setPasswordRequest.setRawHeader(getTicketHeaderName(), ticket_hash);

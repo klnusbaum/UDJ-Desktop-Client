@@ -963,6 +963,18 @@ signals:
 //@{
 
   /**
+   * \brief Emitted when the player's password has been removed.
+   */
+  void playerPasswordRemoved();
+
+  /**
+   * \brief Emitted when there is an error removing the player's password.
+   *
+   * \param errMessage An error message describing what happened.
+   */
+  void playerPasswordRemoveError(const QString& errMessage);
+
+  /**
    * \brief Emitted when the player's password is set.
    */
   void playerPasswordSet();
@@ -1312,6 +1324,23 @@ private:
 /** @name Private Slots */
 //@{
 private slots:
+
+  /**
+   * \brief Preforms appropriate tasks when a player's password has been removed.
+   */
+  void onPlayerPasswordRemoved();
+
+  /**
+   * \brief Preforms appropriate tasks when there was an error removing the player's password.
+   *
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onPlayerPasswordRemoveError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Preforms appropriate tasks when a player's password is set.

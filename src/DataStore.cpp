@@ -91,6 +91,18 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
+    SIGNAL(playerPasswordRemoved()),
+    this,
+    SLOT(onPlayerPasswordRemoved()));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerPasswordRemoveError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onPlayerPasswordRemoveError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
     SIGNAL(playerNameChanged(const QString&)),
     this,
     SLOT(onPlayerNameChanged(const QString&)));
@@ -232,8 +244,24 @@ void DataStore::setupDB(){
 }
 
 void DataStore::removePlayerPassword(){
-
+  serverConnection->removePlayerPassword();
 }
+
+void DataStore::onPlayerPasswordRemoved(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.remove(getPlayerPasswordSettingName());
+  emit playerPasswordRemoved();
+}
+
+void DataStore::onPlayerPasswordRemoveError(
+  const QString& errMessage,
+  int /*errorCode*/,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
+  //TODO handle reauth error
+  emit playerPasswordRemoveError(errMessage);
+}
+
 
 void DataStore::setPlayerPassword(const QString& newPassword){
   serverConnection->setPlayerPassword(newPassword);
