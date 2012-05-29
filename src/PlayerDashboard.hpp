@@ -67,10 +67,13 @@ private:
   /** \brief The DataStore backing the client */
   DataStore *dataStore;
 
-  /** \brief Lable for name */
+  /** \brief Lable for player name */
   QLabel *nameLabel;
 
-  /** \brief Lable for location */
+  /** \brief Label for player password */
+  QLabel *passwordLabel;
+
+  /** \brief Label for player location */
   QLabel *locationLabel;
 
   //@}

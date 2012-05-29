@@ -44,22 +44,33 @@ PlayerDashboard::PlayerDashboard(DataStore *dataStore, QWidget *parent):
     SIGNAL(playerLocationSet()),
     this,
     SLOT(setPlayerInfo()));
+  connect(
+    dataStore,
+    SIGNAL(playerPasswordSet()),
+    this,
+    SLOT(setPlayerInfo()));
 }
 
 void PlayerDashboard::setupUi(){
   nameLabel = new QLabel();
   locationLabel = new QLabel();
+  passwordLabel = new QLabel();
 
   setPlayerInfo();
 
   QVBoxLayout *layout = new QVBoxLayout;
   layout->addWidget(nameLabel);
+  layout->addWidget(passwordLabel);
   layout->addWidget(locationLabel);
   setLayout(layout);
 }
 
 void PlayerDashboard::setPlayerInfo(){
   nameLabel->setText(tr("Player Name: ") + dataStore->getPlayerName());
+  passwordLabel->setText(tr("Password: No Password"));
+  if(dataStore->hasPlayerPassword()){
+    passwordLabel->setText(tr("Password: ") + dataStore->getPlayerPassword());
+  }
   locationLabel->setText(tr("Location: Not Set"));
   if(dataStore->hasLocation()){
     locationLabel->setText(tr("Location: ") + dataStore->getLocationString());
