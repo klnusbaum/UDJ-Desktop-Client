@@ -54,7 +54,7 @@ be fixed by applying [this patch][findphononpatch] to the FindQt4.cmake file.
 Alternatively, you can simply change your FindQt4.cmake file yourself like so. Find
 the line that says:
 
-       SET( QT_PHONON_BACKEND_PLUGINS phonon_qt7 )
+    SET( QT_PHONON_BACKEND_PLUGINS phonon_qt7 )
 
 and change it to:
 
