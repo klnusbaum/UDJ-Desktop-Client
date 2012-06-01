@@ -238,19 +238,19 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
     handleCreatePlayerReply(reply);
   }
   else if(isGetActivePlaylistReply(reply)){
-    handleRecievedActivePlaylist(reply);
+    handleReceivedActivePlaylist(reply);
   }
   else if(reply->request().url().path() == getCurrentSongUrl().path()){
-    handleRecievedCurrentSongSet(reply);
+    handleReceivedCurrentSongSet(reply);
   }
   else if(reply->request().url().path() == getLibModUrl().path()){
-    handleRecievedLibMod(reply);
+    handleReceivedLibMod(reply);
   }
   else if(reply->request().url().path() == getVolumeUrl().path()){
-    handleRecievedVolumeSet(reply);
+    handleReceivedVolumeSet(reply);
   }
   else if(isModActivePlaylistReply(reply)){
-    handleRecievedPlaylistMod(reply);
+    handleReceivedPlaylistMod(reply);
   }
   else if(reply->request().url().path() == getPlayerNameUrl().path()){
     handleNameSetReply(reply);
@@ -265,7 +265,7 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
     handlePlayerPasswordRemoveReply(reply);
   }
   else{
-    Logger::instance()->log("Recieved unknown response");
+    Logger::instance()->log("Received unknown response");
     Logger::instance()->log(reply->request().url().path());
   }
   reply->deleteLater();
@@ -365,7 +365,7 @@ void UDJServerConnection::handleLocationSetReply(QNetworkReply *reply){
 }
 
 
-void UDJServerConnection::handleRecievedLibMod(QNetworkReply *reply){
+void UDJServerConnection::handleReceivedLibMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     QVariant songsAdded = reply->property(getSongsAddedPropertyName());
     QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
@@ -405,7 +405,7 @@ void UDJServerConnection::handleCreatePlayerReply(QNetworkReply *reply){
   }
 }
 
-void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
+void UDJServerConnection::handleReceivedActivePlaylist(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit newActivePlaylist(JSONHelper::getActivePlaylistFromJSON(reply));
   }
@@ -420,7 +420,7 @@ void UDJServerConnection::handleRecievedActivePlaylist(QNetworkReply *reply){
   }
 }
 
-void UDJServerConnection::handleRecievedPlaylistMod(QNetworkReply *reply){
+void UDJServerConnection::handleReceivedPlaylistMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit activePlaylistModified(
       JSONHelper::extractSongLibIds(reply->property(getSongsAddedPropertyName()).toByteArray()),
@@ -438,7 +438,7 @@ void UDJServerConnection::handleRecievedPlaylistMod(QNetworkReply *reply){
   }
 }
 
-void UDJServerConnection::handleRecievedCurrentSongSet(QNetworkReply *reply){
+void UDJServerConnection::handleReceivedCurrentSongSet(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit currentSongSet();
   }
@@ -453,7 +453,7 @@ void UDJServerConnection::handleRecievedCurrentSongSet(QNetworkReply *reply){
   }
 }
 
-void UDJServerConnection::handleRecievedVolumeSet(QNetworkReply *reply){
+void UDJServerConnection::handleReceivedVolumeSet(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit volumeSetOnServer();
   }

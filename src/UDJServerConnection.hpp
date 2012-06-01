@@ -488,7 +488,7 @@ private:
    *
    * \param the response from the server.
    */
-  void handleRecievedLibMod(QNetworkReply *reply);
+  void handleReceivedLibMod(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding player creation.
@@ -502,7 +502,7 @@ private:
    *
    * @param reply Response from the server.
    */
-  void handleRecievedActivePlaylist(QNetworkReply *reply);
+  void handleReceivedActivePlaylist(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding the addition of a song
@@ -510,7 +510,7 @@ private:
    *
    * @param reply Response from the server.
    */
-  void handleRecievedActivePlaylistAdd(QNetworkReply *reply);
+  void handleReceivedActivePlaylistAdd(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding the removal of a song 
@@ -518,7 +518,7 @@ private:
    *
    * @param reply Response from the server.
    */
-  void handleRecievedActivePlaylistRemove(QNetworkReply *reply);
+  void handleReceivedActivePlaylistRemove(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding the setting of the 
@@ -526,21 +526,21 @@ private:
    *
    * @param reply Response from the server.
    */
-  void handleRecievedCurrentSongSet(QNetworkReply *reply);
+  void handleReceivedCurrentSongSet(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding a modification of the playlist.
    *
    * @param reply Response from the server.
    */
-  void handleRecievedPlaylistMod(QNetworkReply *reply);
+  void handleReceivedPlaylistMod(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding the setting of the player volume.
    *
    * @param reply Response from the server.
    */
-  void handleRecievedVolumeSet(QNetworkReply *reply);
+  void handleReceivedVolumeSet(QNetworkReply *reply);
 
   /**
    * \brief Handle a response from the server regarding the removing of the player's password.
