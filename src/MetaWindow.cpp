@@ -96,11 +96,11 @@ MetaWindow::MetaWindow(
     SIGNAL(playerPasswordRemoved()),
     this,
     SLOT(disableRemovePassword()));
-  connect(
+  /*connect(
     dataStore,
     SIGNAL(playerCreated()),
     this,
-    SLOT(checkForITunes()));
+    SLOT(checkForITunes()));*/
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
