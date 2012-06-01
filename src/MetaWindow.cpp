@@ -43,6 +43,7 @@
 #include <QSplitter>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QDesktopServices>
 
 
 namespace UDJ{
@@ -95,6 +96,11 @@ MetaWindow::MetaWindow(
     SIGNAL(playerPasswordRemoved()),
     this,
     SLOT(disableRemovePassword()));
+  connect(
+    dataStore,
+    SIGNAL(playerCreated()),
+    this,
+    SLOT(checkForITunes()));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -122,16 +128,20 @@ void MetaWindow::closeEvent(QCloseEvent *event){
   }
 }
 
-void MetaWindow::addMusicToLibrary(){
-  //TODO: Check to see if musicDir is different than then current music dir
-  QString musicDir = QFileDialog::getExistingDirectory(this,
-    tr("Pick folder to add"),
-    QDir::homePath(),
-    QFileDialog::ShowDirsOnly);
-  Logger::instance()->log("got directory: " + musicDir);
-  if(musicDir == ""){
-    return;
+void MetaWindow::checkForITunes(){
+  QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
+  QDir iTunesDir = QDir(musicDir).filePath("iTunes");
+  if(iTunesDir.exists()){
+    QMessageBox::StandardButton response = QMessageBox::question(
+      this, "Import iTunes Library", "Looks like you've got iTunes installed. Would you like"
+      " us to import your iTunes Library?", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    if(response == QMessageBox::Yes){
+      scanMusicDir(iTunesDir.path());
+    }
   }
+}
+
+void MetaWindow::scanMusicDir(const QString& musicDir){
   QList<Phonon::MediaSource> musicToAdd =
     MusicFinder::findMusicInDir(musicDir);
   if(musicToAdd.isEmpty()){
@@ -149,6 +159,18 @@ void MetaWindow::addMusicToLibrary(){
     syncLibrary();
   }
   addingProgress->close();
+}
+
+void MetaWindow::addMusicToLibrary(){
+  QString musicDir = QFileDialog::getExistingDirectory(this,
+    tr("Pick folder to add"),
+    QDir::homePath(),
+    QFileDialog::ShowDirsOnly);
+  Logger::instance()->log("got directory: " + musicDir);
+  if(musicDir == ""){
+    return;
+  }
+  scanMusicDir(musicDir);
 }
 
 void MetaWindow::addSongToLibrary(){
