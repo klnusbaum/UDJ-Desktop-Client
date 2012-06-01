@@ -191,6 +191,11 @@ private slots:
    */
   void disableRemovePassword();
 
+  /**
+   * \brief Checks to see if the user has an iTunes directory that we can scan for music.
+   */
+  void checkForITunes();
+
   //@}
 
 private:
@@ -284,6 +289,13 @@ private:
 
   /** \brief Configures the menu for changing player settings. */
   void configurePlayerMenu();
+
+  /** 
+   * \brief Scans a given music directory for music.
+   * 
+   * \param musicDir The directory to scan for music.
+   */
+  void scanMusicDir(const QString& musicDir);
 
   /**
    * \brief Disconnects any signals that may have been setup at the beginning

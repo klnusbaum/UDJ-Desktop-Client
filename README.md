@@ -33,6 +33,40 @@ If you've installed all of your libraries and cmake in default locations, config
 be very straight forward. Simply use cmake to configure the project (we recommend an out of 
 source build). You can turn on debug messages by setting the `UDJ_DEBUG_BUILD` variable to `ON`.
 
+#### Note for CMake 2.8.8
+There is a regression in CMake 2.8.8 that gives the DeployQt4.cmake some issues. Applying this [patch][deploypatch]
+to it should fix the issue. Alternatively you can simply change the line in DeployQt4.cmake that says
+
+    function(resolve_qt4_paths paths_var)
+      set(executable_path ${ARGV1})
+
+to
+
+    function(resolve_qt4_paths paths_var)
+      if(ARGC GREATER 1)
+         set(executable_path ${ARGV1})
+      endif()
+
+#### Note for building on Windows with CMake 2.8.8 and below
+There is a deficiency in the FindQt4.cmake module for CMake 2.8.8 and below
+that does not allow it to find the phonon_ds9 backend on windows. This can
+be fixed by applying [this patch][findphononpatch] to the FindQt4.cmake file.
+Alternatively, you can simply change your FindQt4.cmake file yourself like so. Find
+the line that says:
+
+    SET( QT_PHONON_BACKEND_PLUGINS phonon_qt7 )
+
+and change it to:
+
+
+    IF(APPLE)
+      SET( QT_PHONON_BACKEND_PLUGINS phonon_qt7 )
+    ELSEIF(WIN32)
+      SET( QT_PHONON_BACKEND_PLUGINS phonon_ds9 )
+    ENDIF()
+
+
+
 ### Building
 CMake will generate different projects base on your host system. On OSX and Linux the default is 
 a makefile based project. Hence a simple issue of the `make` command will build the project 
@@ -61,3 +95,5 @@ the [UDJ mailing list][mailing].
 [taglib]:http://developer.kde.org/~wheeler/taglib.html
 [brew]:http://mxcl.github.com/homebrew/
 [mailing]:mailto:udjdev@bazaarsolutions.com
+[deploypatch]:https://github.com/downloads/klnusbaum/UDJ-Desktop-Client/0001-DeployQt4-Set-executable_path-if-actually-passed.patch
+[findphononpatch]:https://github.com/downloads/klnusbaum/UDJ-Desktop-Client/0001-phonon-backend-tweak.patch

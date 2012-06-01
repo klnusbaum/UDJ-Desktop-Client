@@ -189,6 +189,7 @@ void PlaybackWidget::setupUi(){
   QToolBar *bar = new QToolBar;
   bar->addAction(playAction);
   bar->addAction(pauseAction);
+  bar->addAction(skipAction);
 
   volumeSlider = new Phonon::VolumeSlider(this);
   volumeSlider->setAudioOutput(audioOutput);
@@ -223,6 +224,7 @@ void PlaybackWidget::play(){
   mediaObject->play();
   playAction->setEnabled(false);
   pauseAction->setEnabled(true);
+  skipAction->setEnabled(true);
 }
 
 void PlaybackWidget::pause(){
@@ -230,6 +232,7 @@ void PlaybackWidget::pause(){
   mediaObject->pause();
   playAction->setEnabled(true);
   pauseAction->setEnabled(false);
+  skipAction->setEnabled(false);
 }
 
 void PlaybackWidget::onPlayerStateChanged(const QString& newState){
@@ -247,12 +250,16 @@ void PlaybackWidget::createActions(){
     tr("Play"), this);
   playAction->setShortcut(tr("Ctrl+P"));
   playAction->setEnabled(false);
+
   pauseAction = new QAction(style()->standardIcon(QStyle::SP_MediaPause),
     tr("Pause"), this);
   pauseAction->setShortcut(tr("Ctrl+A"));
 
+  skipAction = new QAction(style()->standardIcon(QStyle::SP_MediaSkipForward), tr("Skip"), this);
+
   connect(playAction, SIGNAL(triggered()), dataStore, SLOT(playPlayer()));
   connect(pauseAction, SIGNAL(triggered()), dataStore, SLOT(pausePlayer()));
+  connect(skipAction, SIGNAL(triggered()), this, SLOT(playNextSong()));
 }
 
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
