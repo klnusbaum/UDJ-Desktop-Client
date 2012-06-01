@@ -123,6 +123,9 @@ void LibraryView::deleteSongs(){
 
 void LibraryView::filterContents(const QString& filter){
   proxyModel->setFilterFixedString(filter);
+  while(libraryModel->canFetchMore()){
+    libraryModel->fetchMore();
+  }
 }
 
 void LibraryView::addSongToPlaylist(const QModelIndex& index){
