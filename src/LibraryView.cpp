@@ -62,6 +62,10 @@ LibraryView::LibraryView(DataStore *dataStore, QWidget* parent):
     SIGNAL(activated(const QModelIndex&)),
     this,
     SLOT(addSongToPlaylist(const QModelIndex&)));
+
+  while(libraryModel->canFetchMore()){
+    libraryModel->fetchMore();
+  }
 }
 
 void LibraryView::configureColumns(){

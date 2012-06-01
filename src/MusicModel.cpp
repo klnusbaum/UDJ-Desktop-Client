@@ -40,9 +40,6 @@ void MusicModel::refresh(){
 void MusicModel::refresh(QString newQuery){
   query = newQuery;
   setQuery(newQuery, dataStore->getDatabaseConnection());
-  while(canFetchMore()){
-    fetchMore();
-  }
 }
 
 QVariant MusicModel::data(const QModelIndex& item, int role) const{
