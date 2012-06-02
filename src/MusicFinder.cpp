@@ -33,6 +33,11 @@ public:
     if(ch.startsWith("file://")){
       QUrl songUrl(ch);
       QString file = songUrl.path();
+      #ifdef IS_WINDOWS_BUILD
+      Logger::instance()->log("Windows build, removing leading slash");
+      file = file.remove(0,1);
+      #endif
+      Logger::instance()->log("Checking path: " + file);
       QFileInfo info(file);
       if(info.isFile()){
         foundFiles.append(Phonon::MediaSource(file));
