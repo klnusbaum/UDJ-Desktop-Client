@@ -96,11 +96,11 @@ MetaWindow::MetaWindow(
     SIGNAL(playerPasswordRemoved()),
     this,
     SLOT(disableRemovePassword()));
-  /*connect(
+  connect(
     dataStore,
     SIGNAL(playerCreated()),
     this,
-    SLOT(checkForITunes()));*/
+    SLOT(checkForITunes()));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -131,21 +131,30 @@ void MetaWindow::closeEvent(QCloseEvent *event){
 void MetaWindow::checkForITunes(){
   QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
   QDir iTunesDir = QDir(musicDir).filePath("iTunes");
-  if(iTunesDir.exists()){
+  if(iTunesDir.exists("iTunes Music Library.xml")){
     QMessageBox::StandardButton response = QMessageBox::question(
       this, "Import iTunes Library", "Looks like you've got iTunes installed. Would you like"
-      " us to import your iTunes Library?", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+      " us to try to import your iTunes Library?",
+      QMessageBox::Yes | QMessageBox::No,
+      QMessageBox::Yes);
     if(response == QMessageBox::Yes){
-      scanMusicDir(iTunesDir.path());
+      QList<Phonon::MediaSource> musicToAdd =
+        MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"));
+      Logger::instance()->log("Size of itunes was: " + QString::number(musicToAdd.size()));
+      addMediaSources(musicToAdd);
     }
+  }
+  else{
+    Logger::instance()->log(iTunesDir.filePath("iTunes Music Library.xml") + " doesn't exist");
   }
 }
 
-void MetaWindow::scanMusicDir(const QString& musicDir){
-  QList<Phonon::MediaSource> musicToAdd =
-    MusicFinder::findMusicInDir(musicDir);
+void MetaWindow::addMediaSources(const QList<Phonon::MediaSource>& musicToAdd){
   if(musicToAdd.isEmpty()){
-    QMessageBox::information(this, "No Music Found", "Sorry, but we couldn't find any music that we know how to play.");
+    QMessageBox::information(
+        this, 
+        "No Music Found", 
+        "Sorry, but we couldn't find any music that we know how to play.");
     return;
   }
 
@@ -170,7 +179,9 @@ void MetaWindow::addMusicToLibrary(){
   if(musicDir == ""){
     return;
   }
-  scanMusicDir(musicDir);
+  QList<Phonon::MediaSource> musicToAdd =
+    MusicFinder::findMusicInDir(musicDir);
+  addMediaSources(musicToAdd);
 }
 
 void MetaWindow::addSongToLibrary(){

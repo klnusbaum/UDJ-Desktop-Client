@@ -34,6 +34,20 @@ public:
   //@{
 
   /**
+   * \brief Finds all the music in a given iTunes library.
+   *
+   * This function parses the given iTunes library file and returns
+   * a list of Phonon MediaSources representing all of the songs
+   * which it found in the given iTunes library.
+   *
+   * @param itunesLibFileName The iTunes library file.
+   * @return A list of MediaSources corresponding to all the songs found in the iTunes library.
+   */
+
+  static QList<Phonon::MediaSource> findItunesMusic(const QString& itunesLibFileName);
+
+
+  /**
    * \brief Finds all the music in a given directory.
    *
    * Recusrively searchs the given directory and all subdirectories looking

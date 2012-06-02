@@ -18,11 +18,44 @@
  */
 #include "MusicFinder.hpp"
 #include "Logger.hpp"
-#include <QRegExp>
-#include <phonon/backendcapabilities.h>
 #include "ConfigDefs.hpp"
+#include <QRegExp>
+#include <QXmlSimpleReader>
+#include <QXmlDefaultHandler>
+#include <phonon/backendcapabilities.h>
 
 namespace UDJ{
+
+class iTunesHandler : public QXmlDefaultHandler{
+
+public:
+  bool characters(const QString& ch){
+    if(ch.startsWith("file://")){
+      QUrl songUrl(ch);
+      QString file = songUrl.path();
+      QFileInfo info(file);
+      if(info.isFile()){
+        foundFiles.append(Phonon::MediaSource(file));
+      }
+    }
+    return true;
+  }
+
+  QList<Phonon::MediaSource> foundFiles;
+
+};
+
+
+QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLibFileName){
+  iTunesHandler handler;
+  QFile itunesLibFile(itunesLibFileName);
+  QXmlSimpleReader itunesReader;
+  QXmlInputSource *source = new QXmlInputSource(&itunesLibFile);
+  itunesReader.setContentHandler(&handler);
+  itunesReader.setErrorHandler(&handler);
+  itunesReader.parse(source);
+  return handler.foundFiles;
+}
 
 QList<Phonon::MediaSource> MusicFinder::findMusicInDir(const QString& musicDir){
   QRegExp fileMatcher = getMusicFileMatcher();

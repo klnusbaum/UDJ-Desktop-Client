@@ -291,11 +291,11 @@ private:
   void configurePlayerMenu();
 
   /** 
-   * \brief Scans a given music directory for music.
+   * \brief Attemps to add the given media sources to the library.
    * 
-   * \param musicDir The directory to scan for music.
+   * \param musicToAdd A list of media sources to be added to the library.
    */
-  void scanMusicDir(const QString& musicDir);
+  void addMediaSources(const QList<Phonon::MediaSource>& musicToAdd);
 
   /**
    * \brief Disconnects any signals that may have been setup at the beginning

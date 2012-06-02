@@ -30,7 +30,7 @@ set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 FIND_PACKAGE(Qt4 4.4.3 
-  COMPONENTS QtMain QtCore QtGui Phonon QtSql QtNetwork REQUIRED)
+  COMPONENTS QtMain QtCore QtGui Phonon QtSql QtNetwork QtXml REQUIRED)
 
 include(UseQt4)
 
