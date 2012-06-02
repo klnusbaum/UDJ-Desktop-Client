@@ -33,7 +33,7 @@ public:
     if(ch.startsWith("file://")){
       QUrl songUrl(ch);
       QString file = songUrl.path();
-      #ifdef IS_WINDOWS_BUILD
+      #if IS_WINDOWS_BUILD
       Logger::instance()->log("Windows build, removing leading slash");
       file = file.remove(0,1);
       #endif
@@ -120,7 +120,7 @@ QString MusicFinder::getMusicFileExtFilter(){
 }
 
 QStringList MusicFinder::availableMusicTypes(){
-  #ifdef IS_APPLE_BUILD
+  #if IS_APPLE_BUILD
   Logger::instance()->log("On mac, just saying mp3s and m4as");
   QStringList toReturn;
   toReturn << "mp3" << "m4a";

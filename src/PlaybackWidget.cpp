@@ -30,7 +30,7 @@
 #include "Logger.hpp"
 #include <QMessageBox>
 
-#ifdef IS_WINDOWS_BUILD
+#if IS_WINDOWS_BUILD
 #include <mpegfile.h>
 void removeTags(UDJ::DataStore::song_info_t& song){
   static int fileCount =0;
@@ -164,7 +164,7 @@ void PlaybackWidget::playNextSong(){
   if(nextSong.source.type() != Phonon::MediaSource::Empty
       && nextSong.source.type() != Phonon::MediaSource::Invalid)
   {
-    #ifdef IS_WINDOWS_BUILD
+    #if IS_WINDOWS_BUILD
     removeTags(nextSong);
     #endif
     mediaObject->play();
