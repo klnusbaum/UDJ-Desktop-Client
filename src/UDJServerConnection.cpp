@@ -28,23 +28,6 @@
 
 namespace UDJ{
 
-/**
- * Sometimes the semicolons just don't get encoded. This is incorrect
- * because the URL starndard clearly states that semicolons are reserved 
- * characters. So we just go threw and encode the semicolons ourself.
- */
-QByteArray encodeSemiColons(QByteArray toScrub){
-  QString string(toScrub);
-  string.replace(";", "%3B");
-  return string.toUtf8();
-}
-
-QByteArray stripBadEncodings(QByteArray toStrip){
-  QString string(toStrip);
-  string.remove(QRegExp("%[0-1](\\d|[A-F]|[a-f])"));
-  return string.toUtf8();
-}
-
 UDJServerConnection::UDJServerConnection(QObject *parent):QObject(parent),
   ticket_hash(""),
   user_id(-1),
@@ -82,16 +65,7 @@ void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
   QByteArray deleteJSON = JSONHelper::getJSONForLibDelete(songsToDelete);
   Logger::instance()->log("Lib mod add JSON: " + QString(addJSON));
   Logger::instance()->log("Lib mod delete JSON: " + QString(deleteJSON));
-  QUrl params;
-  params.addQueryItem("to_add", addJSON);
-  params.addQueryItem("to_delete", deleteJSON);
-  QByteArray payload = params.encodedQuery();
-  //Need to encode semi colons since the encoded query function doesn't
-  //take care of them.
-  payload = encodeSemiColons(payload);
-  //The encodedQuery sometimes miscodes certain characters. This strips them.
-  payload = stripBadEncodings(payload);
-
+  QByteArray payload = "to_add=" + addJSON.replace("%", "%25").replace("&", "%26").replace("=", "%3D") + "&to_delete=" + deleteJSON;
   Logger::instance()->log("Lib mod payload: " + QString(payload));
   QNetworkReply *reply = netAccessManager->post(modRequest, payload);
   reply->setProperty(getSongsAddedPropertyName(), addJSON);
