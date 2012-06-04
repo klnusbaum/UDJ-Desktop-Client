@@ -1003,7 +1003,7 @@ void DataStore::doReauthAction(const ReauthAction& action){
 void DataStore::onAuthFail(const QString& /*errMessage*/){
   isReauthing=false;
   Logger::instance()->log("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
-  //TODO need to do something here
+  emit hardAuthFailure();
 }
 
 void DataStore::initReauth(){

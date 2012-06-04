@@ -963,6 +963,11 @@ signals:
 //@{
 
   /**
+   * \brief Emitted when the given user credentials do not work with the server.
+   */
+  void hardAuthFailure();
+
+  /**
    * \brief Emitted when the player's password has been removed.
    */
   void playerPasswordRemoved();
