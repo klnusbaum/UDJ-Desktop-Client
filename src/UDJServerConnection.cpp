@@ -26,6 +26,12 @@
 #include <QSet>
 
 
+QByteArray stripControllCharacters(const QByteArray& toStrip){
+  QString stripString = QString::fromUtf8(toStrip);
+  stripString = stripString.replace("[\\x00-\\x1f]", "");
+  return stripString.toUtf8();
+}
+
 namespace UDJ{
 
 UDJServerConnection::UDJServerConnection(QObject *parent):QObject(parent),
@@ -63,12 +69,15 @@ void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
   modRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   QByteArray addJSON = JSONHelper::getJSONForLibAdd(songsToAdd);
   QByteArray deleteJSON = JSONHelper::getJSONForLibDelete(songsToDelete);
-  Logger::instance()->log("Lib mod add JSON: " + QString(addJSON));
-  Logger::instance()->log("Lib mod delete JSON: " + QString(deleteJSON));
+  Logger::instance()->log("Lib mod add JSON: " + QString::fromUtf8(addJSON));
+  Logger::instance()->log("Lib mod delete JSON: " + QString::fromUtf8(deleteJSON));
+  addJSON = stripControllCharacters(addJSON);
+  //Don't use Qt URL functions to encode. They do weird stuff that we don't
+  //want like attempt to encode unicode characters in url encoding style
   QByteArray payload = "to_add=" + 
-    addJSON.replace("%", "%25").replace("&", "%26").replace("=", "%3D").replace(";", "%3B")
+    addJSON.replace("%", "%25").replace("&", "%26").replace("=", "%3D").replace(";", "%3B").replace("\x02","")
     + "&to_delete=" + deleteJSON;
-  Logger::instance()->log("Lib mod payload: " + QString(payload));
+  Logger::instance()->log("Lib mod payload: " + QString::fromUtf8(payload));
   QNetworkReply *reply = netAccessManager->post(modRequest, payload);
   reply->setProperty(getSongsAddedPropertyName(), addJSON);
   reply->setProperty(getSongsDeletedPropertyName(), deleteJSON);
@@ -358,7 +367,7 @@ void UDJServerConnection::handleReceivedLibMod(QNetworkReply *reply){
   else{
     Logger::instance()->log("Got bad lib mod");
     QByteArray response = reply->readAll();
-    QString responseMsg = QString(response);
+    QString responseMsg = QString::fromUtf8(response);
     emit libModError("error: " + responseMsg,
         reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
         reply->rawHeaderPairs());
