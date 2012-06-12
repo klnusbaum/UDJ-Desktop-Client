@@ -1113,6 +1113,13 @@ private:
   void setupDB();
 
   /**
+   * \brief Deletes a single song from the active playlist.
+   *
+   * \param toDelete The library id of the song to delete from the playlist.
+   */
+  void deleteSongFromPlaylist(library_song_id_t toDelete);
+
+  /**
    * \brief Deletes all the entries in the active playlist table.
    */
   void clearActivePlaylist();

@@ -546,6 +546,8 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
   currentSongId =
     nextSongQuery.value(3).value<library_song_id_t>();
 
+  deleteSongFromPlaylist(currentSongId);
+
   Logger::instance()->log("Setting current song with id: " + QString::number(currentSongId));
   serverConnection->setCurrentSong(currentSongId);
 
@@ -558,6 +560,18 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
 
   return toReturn;
 
+}
+
+void DataStore::deleteSongFromPlaylist(library_song_id_t toDelete){
+  QSqlQuery deleteSongQuery(
+    "DELETE FROM " + getActivePlaylistTableName() +
+    " WHERE " + 
+    getActivePlaylistLibIdColName() + " = " + QString::number(toDelete) + ";", 
+    database);
+  EXEC_SQL(
+    "Deleting song from playlist failed",
+    deleteSongQuery.exec(),
+    deleteSongQuery)
 }
 
 void DataStore::setCurrentSong(const library_song_id_t& songToPlay){

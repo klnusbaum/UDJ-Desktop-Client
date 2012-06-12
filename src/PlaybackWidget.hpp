@@ -129,6 +129,18 @@ private:
   /** \brief Initializes UI. */
   void setupUi();
 
+  /** 
+   * \brief Informs the user the song that they just tried to play doesn't work.
+   */
+  void informBadSong();
+
+  /**
+   * \brief Sets the song info in the widget.
+   *
+   * \param newSong The info that should be set in the widget.
+   */
+   void setSongInfo(const DataStore::song_info_t& newSong);
+
   //@}
 
   /** @name Private Memeber */
@@ -139,6 +151,12 @@ private:
 
   /** \brief The current state of music playback. */
   PlaybackState currentPlaybackState;
+
+  /** \brief The title of the current song being played. */
+  QString currentSongTitle;
+
+  /** \brief The artist of the current song being played. */
+  QString currentSongArtist;
 
 
   /** \brief Causes playback to start */

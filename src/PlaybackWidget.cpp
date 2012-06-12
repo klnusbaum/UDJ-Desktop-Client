@@ -74,6 +74,8 @@ namespace UDJ{
 PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
   QWidget(parent), dataStore(dataStore), currentPlaybackState(PLAYING)
 {
+  currentSongTitle = "";
+  currentSongArtist = "";
   audioOutput = new Phonon::AudioOutput(Phonon::MusicCategory, this);
   mediaObject = new Phonon::MediaObject(this);
   createActions();
@@ -152,10 +154,22 @@ void PlaybackWidget::stateChanged(
   {
     Logger::instance()->log("Playback error: " + mediaObject->errorString());
     if(mediaObject->errorType() == Phonon::FatalError){
+      informBadSong();
       playNextSong();
     }
   }
+}
 
+void PlaybackWidget::informBadSong(){
+  QMessageBox* msgBox = new QMessageBox(this);
+  msgBox->setAttribute(Qt::WA_DeleteOnClose);
+  msgBox->setStandardButtons(QMessageBox::Ok);
+  msgBox->setWindowTitle("Couldn't Play Song");
+  msgBox->setText(tr("Sorry, but we couldn't figure out how to play \"")
+    + currentSongTitle + "\"");
+  msgBox->setIcon(QMessageBox::Information);
+  msgBox->setModal(false);
+  msgBox->open();
 }
 
 void PlaybackWidget::playNextSong(){
@@ -164,11 +178,11 @@ void PlaybackWidget::playNextSong(){
   if(nextSong.source.type() != Phonon::MediaSource::Empty
       && nextSong.source.type() != Phonon::MediaSource::Invalid)
   {
+    setSongInfo(nextSong);
     #if IS_WINDOWS_BUILD
     removeTags(nextSong);
     #endif
     mediaObject->play();
-    songInfo->setText(nextSong.title + " - " + nextSong.artist);
   }
 }
 
@@ -263,6 +277,8 @@ void PlaybackWidget::createActions(){
 }
 
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
+  setSongInfo(newSong);
+  Logger::instance()->log("Just set current title to " + currentSongTitle);
   #ifdef WIN32
   //Phonon on windows doesn't like compressed id3 tags. so we have to
   //uncrompress them. Tis a bitch.
@@ -270,7 +286,6 @@ void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   #endif
   Logger::instance()->log("in set new source");
   mediaObject->setCurrentSource(newSong.source);
-  songInfo->setText(newSong.title + " - " + newSong.artist);
   if(dataStore->getPlayingState() == DataStore::getPausedState()){
     dataStore->playPlayer();
   }
@@ -286,6 +301,12 @@ void PlaybackWidget::clearWidget(){
   timeLabel->setText("--:--");
 }
 
+
+void PlaybackWidget::setSongInfo(const DataStore::song_info_t& newSong){
+  currentSongTitle = newSong.title;
+  currentSongArtist = newSong.artist;
+  songInfo->setText(newSong.title + " - " + newSong.artist);
+}
 
 
 } //end namespace UDJ
