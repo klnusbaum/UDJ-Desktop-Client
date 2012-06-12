@@ -1,0 +1,21 @@
+.TH UDJ 1 "June 8, 2012" "version 0.5" "UDJ"
+.SH NAME
+UDJ \- A social music player
+
+.SH SYNPOSIS
+.B udj
+
+.SH DESCRIPTION
+UDJ is a social music player. It allows you and your friends to collaboratively select which music is playing, 
+in real time. Whether you're at a party, in a bar or restaurant, or just hanging out, UDJ is the perfect way 
+for everyone to participate in the music selection.
+.PP
+First start the UDJ music player and import your music library. Once you do that, music can be added to your 
+current playlist from any UDJ client you want (including this one). Your friends can also contribute to the 
+music selection process as well from any of their client programs. UDJ will always play the currently most popular song.
+
+.SH AUTHORS:
+Kurtis Nusbaum - klnusbaum@bazaarsolutions.com
+
+.SH BUGS:
+Bugs can be reported on the UDJ Desktop Client github issue tracker https://github.com/klnusbaum/UDJ-Desktop-Client/issues
