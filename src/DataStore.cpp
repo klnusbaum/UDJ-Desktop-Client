@@ -1042,6 +1042,15 @@ QByteArray DataStore::getHeaderValue(
 }
 
 
+bool DataStore::getDontShowPlaybackErrorSetting(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  return settings.value(getDontShowPlaybackErrorSettingName(), false ).toBool();
+}
+
+void DataStore::setDontShowPlaybackError(bool checked){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getDontShowPlaybackErrorSettingName(), checked);
+}
 
 
 void DataStore::saveCredentials(

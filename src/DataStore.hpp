@@ -378,6 +378,10 @@ public:
    */
   static void clearSavedCredentials();
 
+  static bool getDontShowPlaybackErrorSetting();
+
+  static void setDontShowPlaybackError(bool checked);
+
   //@}
 
 
@@ -860,11 +864,17 @@ public:
     return settingsApp;
   }
 
+  static const QString& getDontShowPlaybackErrorSettingName(){
+    static const QString dontShowPlaybackErrorSettingName = "dontshowplaybackerror";
+    return dontShowPlaybackErrorSettingName;
+  }
+
  //@}
 
 /** @name Public slots */
 //@{
 public slots:
+
 
   /**
    * \brief Syncs the current state of the library with the server.
