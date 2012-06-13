@@ -66,7 +66,7 @@ void LoginWidget::setupUi(){
   passwordLabel->setBuddy(passwordBox);
 
 
-  saveCreds = new QCheckBox(tr("Remmember me"));
+  saveCreds = new QCheckBox(tr("Remember me"));
   connect(
     saveCreds,
     SIGNAL(toggled(bool)),
