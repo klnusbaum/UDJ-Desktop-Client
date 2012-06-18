@@ -51,7 +51,7 @@ SET(SOURCES
   SetLocationDialog.cpp
   SetPasswordDialog.cpp
   DialogWithLoaderWidget.cpp
-  ErrorMessage.cpp
+  PlaybackErrorMessage.cpp
 )
 
 

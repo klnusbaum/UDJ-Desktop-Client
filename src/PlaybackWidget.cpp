@@ -29,7 +29,7 @@
 #include <QFile>
 #include "Logger.hpp"
 #include <QMessageBox>
-#include "ErrorMessage.hpp"
+#include "PlaybackErrorMessage.hpp"
 
 #if IS_WINDOWS_BUILD
 #include <mpegfile.h>
@@ -162,22 +162,8 @@ void PlaybackWidget::stateChanged(
 }
 
 void PlaybackWidget::informBadSong(){
-  /*QMessageBox* msgBox = new QMessageBox(this);
-  msgBox->setAttribute(Qt::WA_DeleteOnClose);
-  msgBox->setStandardButtons(QMessageBox::Ok);
-  msgBox->setWindowTitle("Couldn't Play Song");
-  msgBox->setText();
-  msgBox->setIcon(QMessageBox::Information);
-  msgBox->setModal(false);
-  msgBox->open();*/
-  /*
-  QErrorMessage *errorMessage = new QErrorMessage(this);
-  errorMessage->showMessage(
-    tr("Sorry, but we couldn't figure out how to play \"")
-    + currentSongTitle + "\".");
-  */
   if(!DataStore::getDontShowPlaybackErrorSetting()){
-    ErrorMessage *errorMessage = new ErrorMessage("Couldn't Play Song", 
+    PlaybackErrorMessage *errorMessage = new PlaybackErrorMessage("Couldn't Play Song", 
       tr("Sorry, but we couldn't figure out how to play \"")
       + currentSongTitle + "\".", this);
       errorMessage->show();

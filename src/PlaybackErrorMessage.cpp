@@ -17,7 +17,7 @@
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ErrorMessage.hpp"
+#include "PlaybackErrorMessage.hpp"
 #include <QCheckBox>
 #include <QPushButton>
 #include <QLabel>
@@ -27,7 +27,7 @@
 
 namespace UDJ{
 
-ErrorMessage::ErrorMessage(const QString& title, const QString& message, 
+PlaybackErrorMessage::PlaybackErrorMessage(const QString& title, const QString& message, 
   QWidget *parent, Qt::WindowFlags f):
   QDialog(parent, f)
 {
@@ -61,7 +61,7 @@ ErrorMessage::ErrorMessage(const QString& title, const QString& message,
 }
 
 
-void ErrorMessage::dontShowAgainChecked(bool checked){
+void PlaybackErrorMessage::dontShowAgainChecked(bool checked){
   DataStore::setDontShowPlaybackError(checked);
 }
 

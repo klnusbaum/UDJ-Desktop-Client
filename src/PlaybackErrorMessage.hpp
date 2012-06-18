@@ -30,10 +30,10 @@ namespace UDJ{
 class DataStore;
 
 
-class ErrorMessage : public QDialog{
+class PlaybackErrorMessage : public QDialog{
 Q_OBJECT
 public:
-  ErrorMessage(const QString& title, const QString& message, 
+  PlaybackErrorMessage(const QString& title, const QString& message, 
   QWidget *parent=0, Qt::WindowFlags f=0);
 
   //@}
