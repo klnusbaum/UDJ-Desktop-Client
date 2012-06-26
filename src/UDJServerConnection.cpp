@@ -281,7 +281,12 @@ void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){
     emit playerStateSet(reply->property(getStatePropertyName()).toString());
   }
   else{
-    //TODO handle error
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Player state set error " + responseData);
+    emit playerStateSetError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
   }
 }
 

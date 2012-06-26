@@ -322,6 +322,21 @@ signals:
   void playerStateSet(const QString& newState);
 
   /**
+   * \brief Emitted when there was an error changing the players state.
+   *
+   * @param The state that was attempted to be set.
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerStateSetError(
+    const QString& desiredState,
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
+  /**
    * \brief Emitted when a set of songs was succesfully synced on the server.
    *
    * \param syncedIds The set of ids that were succesfully synced to the server.
