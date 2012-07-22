@@ -101,9 +101,15 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${MACOSX_BUNDLE_RESOU
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MACOSX_BUNDLE_ICON} ${MACOSX_BUNDLE_RESOURCES})
 endif()
 
+set(UDJ_EXTRA_LIBS "")
+if(WIN32)
+  list(APPEND UDJ_EXTRA_LIBS ${LIBVLC_LIBRARY})
+  list(APPEND UDJ_EXTRA_LIBS ${PHONON_LIBRARY})
+endif(WIN32)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES} ${MOC_SOURCES} ${RESOURCES_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${TAGLIB})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${TAGLIB} ${UDJ_EXTRA_LIBS})
 
 if(APPLE)
   set(CMAKE_INSTALL_PREFIX "/Applications")
@@ -124,16 +130,37 @@ endif()
 
 
 IF(WIN32)
-#We need to look for and include the openssl libs because some asshole made
-#openssl export controlled and isn't installed by default on windows
-  FIND_PACKAGE(OpenSSL)
-  if(NOT OPENSSL_FOUND)
-    message(fatal_error "Cannot find OpenSSL. This is required on windows")
-  endif()
+  #We need to look for and include the openssl libs because some asshole made
+  #openssl export controlled and isn't installed by default on windows
+  FIND_PACKAGE(OpenSSL REQUIRED)
   get_filename_component(OPENSSL_ROOT ${OPENSSL_INCLUDE_DIR} PATH)
-  set(SSL_LIBS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
+  set(SSL_LIBS_DLLS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
 
-  INSTALL(FILES ${SSL_LIBS} DESTINATION ${BIN_INSTALL_DIR})
+  INSTALL(FILES ${SSL_LIBS_DLLS} DESTINATION ${BIN_INSTALL_DIR})
+
+
+  #Do some fancy foot work to get phonon vlc working on widnows, this is so stupid and I hate it.
+  #custom built phonon lib
+  get_filename_component(PHONON_ROOT ${PHONON_INCLUDE_DIR} PATH)
+  set(PHONON_LIB_DLLS "${PHONON_ROOT}/bin/phonon.dll")
+  INSTALL(FILES ${PHONON_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
+
+
+  #vlc libs
+  get_filename_component(LIBVLC_ROOT ${LIBVLC_LIBRARY} PATH)
+  set(VLC_LIB_DLLS "${LIBVLC_ROOT}/libvlc.dll")
+  INSTALL(FILES ${VLC_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
+
+
+  #And finally the friggen PHONON_VLC_DLL
+  find_file(PHONON_VLC_DLL phonon_vlc.dll
+    HINT "$ENV{PHONON_VLC_ROOT_DIR}bin/phonon_backend"
+  )
+  if(NOT PHONON_VLC_DLL)
+    message(FATAL_ERROR "Could not find phonon vlc backend")
+  else(NOT PHONON_VLC_DLL)
+    message(STATUS "Found Phonon VLC Backend DLL: ${PHONON_VLC_DLL}")
+  endif(NOT PHONON_VLC_DLL)
 endif()
 
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
@@ -191,10 +218,10 @@ set(UDJ_QT_PLUGINS "qsqlite")
 if(APPLE)
   list(APPEND UDJ_QT_PLUGINS phonon_qt7)
 elseif(WIN32)
-  list(APPEND UDJ_QT_PLUGINS phonon_ds9)
+  list(APPEND UDJ_QT_PLUGINS ${PHONON_VLC_DLL})
 endif()
 
 if(APPLE OR WIN32)
   include(DeployQt4)
-  install_qt4_executable("${EXECUTABLE}" "${UDJ_QT_PLUGINS}")
+  install_qt4_executable("${EXECUTABLE}" "${UDJ_QT_PLUGINS}" )
 endif()
