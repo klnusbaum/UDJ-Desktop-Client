@@ -104,7 +104,7 @@ endif()
 set(UDJ_EXTRA_LIBS "")
 if(WIN32)
   list(APPEND UDJ_EXTRA_LIBS ${LIBVLC_LIBRARY})
-  list(APPEND UDJ_EXTRA_LIBS ${PHONON_LIBRARY})
+  list(APPEND UDJ_EXTRA_LIBS ${PHONON_LIBS})
 endif(WIN32)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
@@ -140,10 +140,6 @@ IF(WIN32)
 
 
   #Do some fancy foot work to get phonon vlc working on widnows, this is so stupid and I hate it.
-  #custom built phonon lib
-  get_filename_component(PHONON_ROOT ${PHONON_INCLUDE_DIR} PATH)
-  set(PHONON_LIB_DLLS "${PHONON_ROOT}/bin/phonon.dll")
-  INSTALL(FILES ${PHONON_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
 
 
   #vlc libs
@@ -152,7 +148,7 @@ IF(WIN32)
   INSTALL(FILES ${VLC_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
 
 
-  #And finally the friggen PHONON_VLC_DLL
+  #And the friggen PHONON_VLC_DLL
   find_file(PHONON_VLC_DLL phonon_vlc.dll
     HINT "$ENV{PHONON_VLC_ROOT_DIR}bin/phonon_backend"
   )
