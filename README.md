@@ -28,6 +28,9 @@ can be downloaded from the [taglib website][taglib]. On OSX, taglib can easily b
 via [homebrew][brew]. On Linux, most distributions have the taglib library in their 
 repository. On Windows, shit is tough. I'll try to add some instructions on that later.
 
+4. (Windows Only) OpenSSL is not bundled with Windows for severally reasons (all of which piss off the lead developer).
+A binary distribution for windows can be found [here][win-openssl].
+
 ### Configuring
 If you've installed all of your libraries and cmake in default locations, configuring should
 be very straight forward. Simply use cmake to configure the project (we recommend an out of 
@@ -97,3 +100,4 @@ the [UDJ mailing list][mailing].
 [mailing]:mailto:udjdev@bazaarsolutions.com
 [deploypatch]:https://github.com/downloads/klnusbaum/UDJ-Desktop-Client/0001-DeployQt4-Set-executable_path-if-actually-passed.patch
 [findphononpatch]:https://github.com/downloads/klnusbaum/UDJ-Desktop-Client/0001-phonon-backend-tweak.patch
+[win-openssl]:http://www.openssl.org/related/binaries.html
