@@ -178,7 +178,7 @@ void PlaybackWidget::playNextSong(){
   {
     setSongInfo(nextSong);
     #if IS_WINDOWS_BUILD
-    removeTags(nextSong);
+    //removeTags(nextSong);
     #endif
     mediaObject->play();
   }

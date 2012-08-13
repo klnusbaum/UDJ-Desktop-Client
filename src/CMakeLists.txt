@@ -57,6 +57,7 @@ SET(SOURCES
 
 include_directories("${PROJECT_BINARY_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PHONON_INCLUDE_DIR}")
 
 if(APPLE AND CMAKE_INSTALL_PREFIX MATCHES "/usr/local")
   set(CMAKE_INSTALL_PREFIX "/Applications")
@@ -103,12 +104,12 @@ endif()
 
 set(UDJ_EXTRA_LIBS "")
 if(WIN32)
-  list(APPEND UDJ_EXTRA_LIBS ${LIBVLC_LIBRARY})
   list(APPEND UDJ_EXTRA_LIBS ${PHONON_LIBS})
 endif(WIN32)
 
+message(STATUS "EXTRA ${UDJ_EXTRA_LIBS}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES} ${MOC_SOURCES} ${RESOURCES_SOURCES})
+add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${MOC_SOURCES} ${RESOURCES_SOURCES})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${TAGLIB} ${UDJ_EXTRA_LIBS})
 
 if(APPLE)
