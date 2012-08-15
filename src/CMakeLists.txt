@@ -133,31 +133,31 @@ endif()
 IF(WIN32)
   #We need to look for and include the openssl libs because some asshole made
   #openssl export controlled and isn't installed by default on windows
-  FIND_PACKAGE(OpenSSL REQUIRED)
-  get_filename_component(OPENSSL_ROOT ${OPENSSL_INCLUDE_DIR} PATH)
-  set(SSL_LIBS_DLLS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
-
-  INSTALL(FILES ${SSL_LIBS_DLLS} DESTINATION ${BIN_INSTALL_DIR})
+  FIND_PACKAGE(OpenSSLCross REQUIRED)
+#   get_filename_component(OPENSSL_ROOT ${OPENSSL_INCLUDE_DIR} PATH)
+#   set(SSL_LIBS_DLLS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
+#
+#   INSTALL(FILES ${SSL_LIBS_DLLS} DESTINATION ${BIN_INSTALL_DIR})
 
 
   #Do some fancy foot work to get phonon vlc working on widnows, this is so stupid and I hate it.
 
 
   #vlc libs
-  get_filename_component(LIBVLC_ROOT ${LIBVLC_LIBRARY} PATH)
-  set(VLC_LIB_DLLS "${LIBVLC_ROOT}/libvlc.dll")
-  INSTALL(FILES ${VLC_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
+#   get_filename_component(LIBVLC_ROOT ${LIBVLC_LIBRARY} PATH)
+#   set(VLC_LIB_DLLS "${LIBVLC_ROOT}/libvlc.dll")
+#   INSTALL(FILES ${VLC_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
 
 
   #And the friggen PHONON_VLC_DLL
-  find_file(PHONON_VLC_DLL phonon_vlc.dll
-    HINT "$ENV{PHONON_VLC_ROOT_DIR}bin/phonon_backend"
-  )
-  if(NOT PHONON_VLC_DLL)
-    message(FATAL_ERROR "Could not find phonon vlc backend")
-  else(NOT PHONON_VLC_DLL)
-    message(STATUS "Found Phonon VLC Backend DLL: ${PHONON_VLC_DLL}")
-  endif(NOT PHONON_VLC_DLL)
+#   find_file(PHONON_VLC_DLL phonon_vlc.dll
+#     HINT "$ENV{PHONON_VLC_ROOT_DIR}bin/phonon_backend"
+#   )
+#   if(NOT PHONON_VLC_DLL)
+#     message(FATAL_ERROR "Could not find phonon vlc backend")
+#   else(NOT PHONON_VLC_DLL)
+#     message(STATUS "Found Phonon VLC Backend DLL: ${PHONON_VLC_DLL}")
+#   endif(NOT PHONON_VLC_DLL)
 endif()
 
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
