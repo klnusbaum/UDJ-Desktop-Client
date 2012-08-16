@@ -43,6 +43,8 @@ endif(WIN32)
 
 include(UseQt4)
 
+include(UDJCPack.cmake)
+
 SET(CMAKE_AUTOMOC TRUE)
 
 FIND_LIBRARY(TAGLIB "tag" PATH)

@@ -36,6 +36,7 @@
 
 !define NSI_PATH "${SOURCE_PATH}/admin/win/nsi"
 
+
 ;-----------------------------------------------------------------------------
 ; Installer version
 ;-----------------------------------------------------------------------------
@@ -94,11 +95,11 @@ ReserveFile "${NSISDIR}\Plugins\InstallOptions.dll"
 !define MUI_ABORTWARNING
 !define MUI_ICON ${NSI_PATH}\installer.ico
 !define MUI_UNICON ${NSI_PATH}\installer.ico
-!define MUI_WELCOMEFINISHPAGE_BITMAP ${NSI_PATH}\welcome.bmp
+!define MUI_WELCOMEFINISHPAGE_BITMAP ${NSI_PATH}\welcome.png
 !define MUI_WELCOMEPAGE_TITLE "@CPACK_PACKAGE_NAME@ ${VERSION} Setup$\r$\nInstaller"
 !define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation.$\r$\n$\r$\n$_CLICK"
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP ${NSI_PATH}\page_header.bmp
+!define MUI_HEADERIMAGE_BITMAP ${NSI_PATH}\page_header.jpg
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !define MUI_FINISHPAGE_TITLE "@CPACK_PACKAGE_NAME@ Install Completed"
 !define MUI_FINISHPAGE_LINK "Click here to visit the @CPACK_PACKAGE_NAME@ website."
@@ -278,7 +279,7 @@ Section "UDJ Player" SEC_UDJ_PLAYER
    !endif
    !ifndef INSTALL_PATH
         ;Main executable.
-        File "${BUILD_PATH}\UDJ.exe"
+        File "${BUILD_PATH}\src\UDJ.exe"
 
    !endif
 
