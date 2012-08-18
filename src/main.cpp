@@ -34,6 +34,7 @@ int main(int argc, char* argv[]){
   //QIcon windowIcon("udjlauncher.svg");
   //QApplication::setWindowIcon(windowIcon);
   app.setApplicationName("Udj");
+  app.setApplicationVersion(UDJ_VERSION);
   app.setQuitOnLastWindowClosed(true);
   UDJ::LoginDialog loginDialog;
   loginDialog.show(); 

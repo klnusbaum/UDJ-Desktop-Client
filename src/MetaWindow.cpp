@@ -45,6 +45,10 @@
 #include <QInputDialog>
 #include <QDesktopServices>
 
+#if IS_WINDOWS_BUILD
+#include <qtsparkle/Updater>
+#endif
+
 
 namespace UDJ{
 
@@ -101,6 +105,12 @@ MetaWindow::MetaWindow(
     SIGNAL(playerCreated()),
     this,
     SLOT(checkForITunes()));
+
+  #if IS_WINDOWS_BUILD
+  qtsparkle::Updater*  updater = new qtsparkle::Updater(
+   QUrl(UDJ_WINDOWS_UPDATE_URL), this);
+  #endif
+
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
