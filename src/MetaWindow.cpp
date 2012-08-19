@@ -275,7 +275,7 @@ void MetaWindow::createActions(){
   viewAboutAction = new QAction(tr("About"), this);
   #if IS_WINDOWS_BUILD
   checkUpdateAction = new QAction(tr("Check For Updates"), this);
-  connect(checkUpdateAction, SIGNAL(triggerd()), updater, SLOT(CheckNow()));
+  connect(checkUpdateAction, SIGNAL(triggered()), updater, SLOT(CheckNow()));
   #endif
   connect(addMusicAction, SIGNAL(triggered()), this, SLOT(addMusicToLibrary()));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
