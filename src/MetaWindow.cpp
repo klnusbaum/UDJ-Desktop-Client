@@ -45,9 +45,6 @@
 #include <QInputDialog>
 #include <QDesktopServices>
 
-#if IS_WINDOWS_BUILD
-#include <qtsparkle/Updater>
-#endif
 
 
 namespace UDJ{
@@ -64,6 +61,11 @@ MetaWindow::MetaWindow(
   isQuiting(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
+  #if IS_WINDOWS_BUILD
+  updater = new qtsparkle::Updater(
+  QUrl(UDJ_WINDOWS_UPDATE_URL), this);
+  #endif
+
   createActions();
   setupUi();
   setupMenus();
@@ -105,11 +107,6 @@ MetaWindow::MetaWindow(
     SIGNAL(playerCreated()),
     this,
     SLOT(checkForITunes()));
-
-  #if IS_WINDOWS_BUILD
-  qtsparkle::Updater*  updater = new qtsparkle::Updater(
-   QUrl(UDJ_WINDOWS_UPDATE_URL), this);
-  #endif
 
 }
 
@@ -276,6 +273,10 @@ void MetaWindow::createActions(){
   viewLogAction = new QAction(tr("View &Log"), this);
   viewLogAction->setShortcut(tr("Ctrl+L"));
   viewAboutAction = new QAction(tr("About"), this);
+  #if IS_WINDOWS_BUILD
+  checkUpdateAction = new QAction(tr("Check For Updates"), this);
+  connect(checkUpdateAction, SIGNAL(triggerd()), updater, SLOT(CheckNow()));
+  #endif
   connect(addMusicAction, SIGNAL(triggered()), this, SLOT(addMusicToLibrary()));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
   connect(addSongAction, SIGNAL(triggered()), this, SLOT(addSongToLibrary()));
@@ -295,6 +296,9 @@ void MetaWindow::setupMenus(){
   QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(viewLogAction);
   helpMenu->addAction(viewAboutAction);
+  #if IS_WINDOWS_BUILD
+  helpMenu->addAction(checkUpdateAction);
+  #endif
 
 }
 

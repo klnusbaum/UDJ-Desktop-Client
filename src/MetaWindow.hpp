@@ -25,6 +25,9 @@
 #include <QSqlTableModel>
 #include "UDJServerConnection.hpp"
 #include "PlaybackWidget.hpp"
+#if IS_WINDOWS_BUILD
+#include <qtsparkle/Updater>
+#endif
 
 class QTabWidget;
 class QPushButton;
@@ -243,6 +246,13 @@ private:
    */
   QAction *removePasswordAction;
 
+  #if IS_WINDOWS_BUILD
+  /**
+   * \brief Checks to se if there is an update available for the player.
+   */
+  QAction* checkUpdateAction;
+  #endif
+
 //  QFileSystemWatcher* fileWatcher;
 
 
@@ -273,6 +283,8 @@ private:
   /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;
 
+  qtsparkle::Updater* updater;
+   
   //@}
 
   /** @name Private Functions */
