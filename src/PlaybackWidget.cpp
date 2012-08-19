@@ -100,7 +100,7 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
     SLOT(setVolume(qreal)));
 
 
-  connect(mediaObject, SIGNAL(tick(qint64)), this, SLOT(tick(qint64)));
+  connect(mediaObject, SIGNAL(tick(qint64, DataStore::song_info_t)), this, SLOT(tick(qint64, DataStore::song_info_t)));
   connect(mediaObject, SIGNAL(stateChanged(Phonon::State, Phonon::State)),
     this, SLOT(stateChanged(Phonon::State, Phonon::State)));
   connect(mediaObject, SIGNAL(currentSourceChanged(Phonon::MediaSource)),
@@ -133,9 +133,9 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
 
 }
 
-void PlaybackWidget::tick(qint64 time){
+void PlaybackWidget::tick(qint64 time, const DataStore::song_info_t& newSong){
   QTime tickTime(0, (time/60000)%60, (time/1000)%60);
-  timeLabel->setText(tickTime.toString("mm:ss"));
+  timeLabel->setText(tickTime.toString("mm:ss")+"/"+newSong.duration);
 }
 
 void PlaybackWidget::sourceChanged(const Phonon::MediaSource &/*source*/){

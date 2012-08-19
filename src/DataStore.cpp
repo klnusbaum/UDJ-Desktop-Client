@@ -578,7 +578,8 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
   QSqlQuery getSongQuery(
     "SELECT " + getLibFileColName() + ", " +
     getLibSongColName() + ", " +
-    getLibArtistColName() + " FROM " +
+    getLibArtistColName() + ", " +
+    getLibDurationColName() + " FROM " +
     getActivePlaylistViewName() + " WHERE " + 
     getActivePlaylistLibIdColName() + " = " + QString::number(songToPlay) + ";", 
     database);
@@ -596,7 +597,8 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
     song_info_t toEmit = {
       Phonon::MediaSource(filePath),
       getSongQuery.value(1).toString(),
-      getSongQuery.value(2).toString()
+      getSongQuery.value(2).toString(),
+      getSongQuery.value(3).toString()
     };
     emit manualSongChange(toEmit);
   }
@@ -832,7 +834,8 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     QSqlQuery getSongQuery(
       "SELECT " + getLibFileColName() + ", " +
       getLibSongColName() + ", " +
-      getLibArtistColName() + " FROM " +
+      getLibArtistColName() + ", " + 
+      getLibDurationColName() + " FROM " +
       getActivePlaylistViewName() + " WHERE " + 
       getActivePlaylistLibIdColName() + " = " + QString::number(retrievedCurrentId) + ";", 
       database);
@@ -848,7 +851,8 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
       song_info_t toEmit = {
         Phonon::MediaSource(filePath),
         getSongQuery.value(1).toString(),
-        getSongQuery.value(2).toString()
+        getSongQuery.value(2).toString(),
+	getSongQuery.value(3).toString()
       };
       emit manualSongChange(toEmit);
     }

@@ -61,6 +61,7 @@ public:
     Phonon::MediaSource source;
     QString title;
     QString artist;
+    QString duration;
   } song_info_t;
 
   //@}
