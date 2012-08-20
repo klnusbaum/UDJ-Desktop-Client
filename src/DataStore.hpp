@@ -176,7 +176,7 @@ public:
    *
    * @return The id of the player.
    */
-  inline const player_id_t getPlayerId() const{
+  inline player_id_t getPlayerId() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getPlayerIdSettingName()).value<player_id_t>();
@@ -1166,7 +1166,7 @@ private:
    * @return True if the file is already in the library, false 
    * otherwise.
    */
-  void alreadyHaveSongInLibrary(const QString& fileName);
+  bool alreadyHaveSongInLibrary(const QString& fileName);
 
   /**
    * \brief Gets the value of a header.
