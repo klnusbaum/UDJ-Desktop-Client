@@ -59,7 +59,6 @@ SET(SOURCES
 
 include_directories("${PROJECT_BINARY_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PHONON_INCLUDE_DIR}")
 
 if(APPLE AND CMAKE_INSTALL_PREFIX MATCHES "/usr/local")
   set(CMAKE_INSTALL_PREFIX "/Applications")
