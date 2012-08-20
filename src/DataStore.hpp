@@ -1148,12 +1148,25 @@ private:
   void doReauthAction(const ReauthAction& action);
 
   /**
-   * \brief Adds a single song to the music library.
+   * \brief Adds a single song to the music library. Note that if
+   * the file to be added is already in the library and not 
+   * deleted this function will not add it again.
    *
    * @param song Song to be added to the library.
    * @param addQuery Prepared statmemnt ready to be used for adding
    */
   void addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery& addQuery);
+
+  
+  /**
+   * \brief Checks to see if a particular song is already in 
+   * the library and not deleted.
+   *
+   * @param fileName The file to be checked.
+   * @return True if the file is already in the library, false 
+   * otherwise.
+   */
+  void alreadyHaveSongInLibrary(const QString& fileName);
 
   /**
    * \brief Gets the value of a header.
