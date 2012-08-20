@@ -9,6 +9,9 @@ sudo zypper dist-upgrade
 
 3. Install package
 sudo zypper install ccache 
+sudo zypper install mingw32-libopenssl-devel
+sudo zypper install mingw32-phonon
+sudo zypper install wget
 
 4. Get all the packages needed for compiling
 sudo zypper source-install --build-deps-only mingw32-tomahawk-unstable
@@ -17,7 +20,21 @@ sudo zypper source-install --build-deps-only mingw32-tomahawk-unstable
 sudo zypper source-install --build-deps-only mingw32-tomahawk-player-installer
 
 6. Also install the packages here:
-http://download.tomahawk-player.org/packman/mingw:32/openSUSE_12.1/x86_64/
+Go to this URL: http://download.tomahawk-player.org/packman/mingw:32/openSUSE_12.1/x86_64/
+Download the 2 packages on them
+install them: sudo zypper install <FILENAME>
 
-7. Configure using:
+7. Create a build directory
+mkdir build/
+cd build/
+
+8. Configure using:
 cmake -DCMAKE_TOOLCHAIN_FILE=admin_win_Toolchain-mingw32-openSUSE.cmake ..
+
+9. Install the special vlc
+cd ../admin/win/
+./update-vlc.sh
+
+10. Make Package
+cd ../../build/
+make package
