@@ -530,6 +530,7 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
     "SELECT " + getLibFileColName() + ", " + 
     getLibSongColName() + ", " +
     getLibArtistColName() + ", " +
+    getLibDurationColName() + ", " +
     getActivePlaylistLibIdColName() +" FROM " +
     getActivePlaylistViewName() + " LIMIT 1;", 
     database);
@@ -544,7 +545,7 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
     return toReturn;
   }
   currentSongId =
-    nextSongQuery.value(3).value<library_song_id_t>();
+    nextSongQuery.value(4).value<library_song_id_t>();
 
   deleteSongFromPlaylist(currentSongId);
 
@@ -552,10 +553,12 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
   serverConnection->setCurrentSong(currentSongId);
 
   QString filePath = nextSongQuery.value(0).toString();
+  QTime qtime(0, nextSongQuery.value(3).toInt()/60, nextSongQuery.value(3).toInt()%60);
   song_info_t toReturn = {
     Phonon::MediaSource(filePath),
     nextSongQuery.value(1).toString(),
-    nextSongQuery.value(2).toString()
+    nextSongQuery.value(2).toString(),
+    qtime.toString("mm:ss")
   };
 
   return toReturn;
@@ -594,11 +597,12 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
     currentSongId = songToPlay;
     serverConnection->setCurrentSong(songToPlay);
     Logger::instance()->log("Retrieved Artist " + getSongQuery.value(2).toString());
+    QTime qtime(0, getSongQuery.value(3).toInt()/60, getSongQuery.value(3).toInt()%60);
     song_info_t toEmit = {
       Phonon::MediaSource(filePath),
       getSongQuery.value(1).toString(),
       getSongQuery.value(2).toString(),
-      getSongQuery.value(3).toString()
+      qtime.toString("mm:ss")
     };
     emit manualSongChange(toEmit);
   }
@@ -848,11 +852,12 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
       Logger::instance()->log("Got file, for manual song set");
       QString filePath = getSongQuery.value(0).toString();
       currentSongId = retrievedCurrentId;
+      QTime qtime(0, getSongQuery.value(3).toInt()/60, getSongQuery.value(3).toInt()%60);
       song_info_t toEmit = {
         Phonon::MediaSource(filePath),
         getSongQuery.value(1).toString(),
         getSongQuery.value(2).toString(),
-	getSongQuery.value(3).toString()
+	qtime.toString("mm:ss")
       };
       emit manualSongChange(toEmit);
     }
