@@ -77,6 +77,7 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
 {
   currentSongTitle = "";
   currentSongArtist = "";
+  currentSongDuration = "";
   audioOutput = new Phonon::AudioOutput(Phonon::MusicCategory, this);
   mediaObject = new Phonon::MediaObject(this);
   createActions();
@@ -135,7 +136,7 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
 
 void PlaybackWidget::tick(qint64 time){
   QTime tickTime(0, (time/60000)%60, (time/1000)%60);
-  timeLabel->setText(tickTime.toString("mm:ss"));
+  timeLabel->setText(tickTime.toString("mm:ss")+"/"+currentSongDuration);
 }
 
 void PlaybackWidget::sourceChanged(const Phonon::MediaSource &/*source*/){
@@ -303,6 +304,7 @@ void PlaybackWidget::clearWidget(){
 void PlaybackWidget::setSongInfo(const DataStore::song_info_t& newSong){
   currentSongTitle = newSong.title;
   currentSongArtist = newSong.artist;
+  currentSongDuration = newSong.duration;
   songInfo->setText(newSong.title + " - " + newSong.artist);
 }
 

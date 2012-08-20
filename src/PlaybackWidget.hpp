@@ -158,6 +158,8 @@ private:
   /** \brief The artist of the current song being played. */
   QString currentSongArtist;
 
+  /** \brief The duration of the current song being played. */
+  QString currentSongDuration;
 
   /** \brief Causes playback to start */
   QAction *playAction;
