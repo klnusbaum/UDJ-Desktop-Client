@@ -283,8 +283,10 @@ private:
   /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;
 
+#if IS_WINDOWS_BUILD
   qtsparkle::Updater* updater;
-   
+#endif
+
   //@}
 
   /** @name Private Functions */
