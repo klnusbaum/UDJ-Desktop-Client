@@ -720,7 +720,7 @@ private:
    * @return The port number to be used for communicating with the server.
    */
   static const QString & getServerPortNumber(){
-    static const QString serverPortNumber = "4898";
+    static const QString serverPortNumber = "4897";
     return serverPortNumber;
   }
 
