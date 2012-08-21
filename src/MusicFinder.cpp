@@ -19,6 +19,7 @@
 #include "MusicFinder.hpp"
 #include "Logger.hpp"
 #include "ConfigDefs.hpp"
+#include "DataStore.hpp"
 #include <QRegExp>
 #include <QXmlSimpleReader>
 #include <QXmlDefaultHandler>
@@ -50,8 +51,20 @@ public:
 
 };
 
+QList<Phonon::MediaSource> MusicFinder::filterDuplicateSongs(
+  const QList<Phonon::MediaSource>& songsToFilter, const DataStore* dataStore)
+{
+  QList<Phonon::MediaSource> toReturn;
+  Phonon::MediaSource song;
+  Q_FOREACH(song, songsToFilter){
+    if(!dataStore->alreadyHaveSongInLibrary(song.fileName())){
+      toReturn.append(song);
+    }
+  }
+  return toReturn;
+}
 
-QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLibFileName){
+QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLibFileName, const DataStore* dataStore){
   iTunesHandler handler;
   QFile itunesLibFile(itunesLibFileName);
   QXmlSimpleReader itunesReader;
@@ -59,12 +72,12 @@ QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLib
   itunesReader.setContentHandler(&handler);
   itunesReader.setErrorHandler(&handler);
   itunesReader.parse(source);
-  return handler.foundFiles;
+  return filterDuplicateSongs(handler.foundFiles, dataStore);
 }
 
-QList<Phonon::MediaSource> MusicFinder::findMusicInDir(const QString& musicDir){
+QList<Phonon::MediaSource> MusicFinder::findMusicInDir(const QString& musicDir, const DataStore* dataStore){
   QRegExp fileMatcher = getMusicFileMatcher();
-  return findMusicInDirWithMatcher(musicDir, fileMatcher);
+  return filterDuplicateSongs(findMusicInDirWithMatcher(musicDir, fileMatcher), dataStore);
 }
 
 QList<Phonon::MediaSource> MusicFinder::findMusicInDirWithMatcher(

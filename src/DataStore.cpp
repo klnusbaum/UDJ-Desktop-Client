@@ -400,14 +400,6 @@ void DataStore::addMusicToLibrary(
 
 void DataStore::addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery &addQuery){
   QString fileName = song.fileName();
-  if(alreadyHaveSongInLibrary(fileName)){
-    return;
-  }
-
-
-
-
-
   QString songName;
   QString artistName;
   QString albumName;
@@ -460,12 +452,12 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery &add
     library_song_id_t)
 }
 
-bool DataStore::alreadyHaveSongInLibrary(const QString& fileName){
+bool DataStore::alreadyHaveSongInLibrary(const QString& fileName) const{
   QSqlQuery existsQuery(database);
   existsQuery.prepare(
     "SELECT * FROM "+getLibraryTableName()+ " WHERE " + 
-    getLibIsDeletedColName() + "=0 && " + 
-    getLibFileColName() + "='"+fileName+"';"
+    getLibIsDeletedColName() + "=0 and " + 
+    getLibFileColName() + "=\""+fileName+"\";"
   );
 
   EXEC_SQL(
@@ -473,7 +465,7 @@ bool DataStore::alreadyHaveSongInLibrary(const QString& fileName){
     existsQuery.exec(),
     existsQuery)
 
-  return existsQuery.size() > 0;
+  return existsQuery.next();
 
 }
 

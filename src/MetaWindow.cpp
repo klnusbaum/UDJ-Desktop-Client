@@ -146,7 +146,7 @@ void MetaWindow::checkForITunes(){
       QMessageBox::Yes);
     if(response == QMessageBox::Yes){
       QList<Phonon::MediaSource> musicToAdd =
-        MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"));
+        MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"), dataStore);
       Logger::instance()->log("Size of itunes was: " + QString::number(musicToAdd.size()));
       addMediaSources(musicToAdd);
     }
@@ -161,7 +161,7 @@ void MetaWindow::addMediaSources(const QList<Phonon::MediaSource>& musicToAdd){
     QMessageBox::information(
         this, 
         "No Music Found", 
-        "Sorry, but we couldn't find any music that we know how to play.");
+        "Sorry, but we couldn't find any new music that we know how to play in that folder.");
     return;
   }
 
@@ -187,7 +187,7 @@ void MetaWindow::addMusicToLibrary(){
     return;
   }
   QList<Phonon::MediaSource> musicToAdd =
-    MusicFinder::findMusicInDir(musicDir);
+    MusicFinder::findMusicInDir(musicDir, dataStore);
   addMediaSources(musicToAdd);
 }
 
@@ -198,6 +198,13 @@ void MetaWindow::addSongToLibrary(){
       QDir::homePath(),
       tr("Audio Files ") + MusicFinder::getMusicFileExtFilter());
   if(fileName == ""){
+    return;
+  }
+  if(dataStore->alreadyHaveSongInLibrary(fileName)){
+    QMessageBox::information(
+        this, 
+        "Already In Library", 
+        "You already have that song in your music library");
     return;
   }
   QList<Phonon::MediaSource> songList;
