@@ -558,7 +558,7 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
   nextSongQuery.next();
   if(!nextSongQuery.isValid()){
     currentSongId = -1;
-    song_info_t toReturn = {Phonon::MediaSource(""), "", "" };
+    song_info_t toReturn = {Phonon::MediaSource(""), "", "", "" };
     return toReturn;
   }
   currentSongId =
