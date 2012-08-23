@@ -22,6 +22,10 @@
 #include "ConfigDefs.hpp"
 #include "Logger.hpp"
 
+#if IS_APPLE_BUILD
+#include "UDJApp_Mac.h"
+#endif
+
 #ifdef HAS_CUSTOM_CA_CERT
 #include <QSslConfiguration>
 #include <QSslCertificate>
@@ -29,6 +33,9 @@
 #endif
 
 int main(int argc, char* argv[]){
+  #if IS_APPLE_BUILD
+  UDJ::macMain();
+  #endif
 
   QApplication app(argc, argv);
   //QIcon windowIcon("udjlauncher.svg");
