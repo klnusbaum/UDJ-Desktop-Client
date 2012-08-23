@@ -56,10 +56,10 @@ SET(SOURCES
   PlaybackErrorMessage.cpp
 )
 
-IF(APPLE)
-  SET( SOURCES ${SOURCES} mac/UDJApp_Mac.mm)
-  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/mac)
-ENDIF(APPLE)
+#IF(APPLE)
+#SET( SOURCES ${SOURCES} mac/UDJApp_Mac.mm)
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/mac)
+#ENDIF(APPLE)
 
 include_directories("${PROJECT_BINARY_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/src")

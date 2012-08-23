@@ -14,42 +14,22 @@
 #import <AppKit/NSNibDeclarations.h>
 #import <Sparkle/SUUpdater.h>
 
-//#include "audio/audioengine.h"
 #include <QDebug>
 #include <QApplication>
 #include <QObject>
 #include <QMetaObject>
 
 
-@interface MacApplication :NSApplication {
-
-}
-
-// SUUpdaterDelegate
-- (void)updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update;
-
-@end
-
-@implementation MacApplication
-
-- (void)updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update
-{
-    AudioEngine::instance()->stop();
-    delete AudioEngine::instance();
-}
-
-@end
-
-
-void UDJ::macMain() {
+void macMain() {
   [[NSAutoreleasePool alloc] init];
   // Creates and sets the magic global variable so QApplication will find it.
   //[MacApplication sharedApplication];
-  [MacApplication sharedApplication];
+  [NSApplication sharedApplication];
   // Creates and sets the magic global variable for Sparkle.
   [[SUUpdater sharedUpdater] setDelegate: NSApp];
 }
 
-void UDJ::checkForUpdates() {
+void checkForUpdates() {
   [[SUUpdater sharedUpdater] checkForUpdates: NSApp];
 }
+

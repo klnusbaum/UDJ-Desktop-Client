@@ -20,9 +20,7 @@
 #define UDJAPP_MAC_H
 
 
-namespace UDJ{
-  void macMain();
-  void checkForUdpates();
-}
+void macMain();
+void checkForUdpates();
 
 #endif

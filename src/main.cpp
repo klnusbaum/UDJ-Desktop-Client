@@ -23,7 +23,7 @@
 #include "Logger.hpp"
 
 #if IS_APPLE_BUILD
-#include "UDJApp_Mac.h"
+//#include "UDJApp_Mac.h"
 #endif
 
 #ifdef HAS_CUSTOM_CA_CERT
@@ -34,7 +34,7 @@
 
 int main(int argc, char* argv[]){
   #if IS_APPLE_BUILD
-  UDJ::macMain();
+  //macMain();
   #endif
 
   QApplication app(argc, argv);
