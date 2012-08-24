@@ -91,6 +91,9 @@ private:
   /** \brief Label giving registration information. */
   QLabel *registerText;
 
+  /** \brief Label giving forgotten password information. */
+  QLabel *forgotPasswordText;
+
   /** \brief Actual display for the login widget. */
   QWidget *loginDisplay;
 

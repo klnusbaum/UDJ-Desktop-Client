@@ -71,6 +71,9 @@ void LoginWidget::setupUi(){
   registerText = new QLabel(tr("No account? <a href=\"https://www.udjplayer.com/registration/register/\">Register here</a>"));
   registerText->setOpenExternalLinks(true);
 
+  forgotPasswordText = new QLabel(tr("<a href=\"https://www.udjplayer.com/recover/\">Forgot your password?</a>"));
+  forgotPasswordText->setOpenExternalLinks(true);
+
   connect(
     saveCreds,
     SIGNAL(toggled(bool)),
@@ -85,7 +88,8 @@ void LoginWidget::setupUi(){
   layout->addWidget(passwordLabel,2,0);
   layout->addWidget(passwordBox,2,1);
   layout->addWidget(saveCreds, 3, 1);
-  layout->addWidget(registerText, 4, 0, 1, 2, Qt::AlignCenter);
+  layout->addWidget(forgotPasswordText, 4, 0, 1, 2, Qt::AlignCenter);
+  layout->addWidget(registerText, 5, 0, 1, 2, Qt::AlignCenter);
 
 
 
