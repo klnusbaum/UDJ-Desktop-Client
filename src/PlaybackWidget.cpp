@@ -270,7 +270,9 @@ void PlaybackWidget::createActions(){
   skipAction = new QAction(style()->standardIcon(QStyle::SP_MediaSkipForward), tr("Skip"), this);
 
   connect(playAction, SIGNAL(triggered()), dataStore, SLOT(playPlayer()));
+  connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
   connect(pauseAction, SIGNAL(triggered()), dataStore, SLOT(pausePlayer()));
+  connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
   connect(skipAction, SIGNAL(triggered()), this, SLOT(playNextSong()));
 }
 

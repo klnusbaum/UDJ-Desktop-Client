@@ -64,6 +64,12 @@ private slots:
   /** @name Private Slots */
   //@{
 
+   /** \brief Enables playback. */
+   void play();
+
+   /** \brief Pauses playback. */
+   void pause();
+
   /**
    * \brief Handles whenever the state of the primary
    * MediaObject is changed. 
@@ -116,12 +122,6 @@ private:
 
   /** @name Private Functions */
   //@{
-
-   /** \brief Enables playback. */
-   void play();
-
-   /** \brief Pauses playback. */
-   void pause();
 
   /** \brief Sets up all the actions used by the MetaWindow. */
   void createActions();

@@ -51,7 +51,8 @@ public:
     GET_ACTIVE_PLAYLIST,
     SET_CURRENT_SONG,
     MOD_PLAYLIST,
-    SET_CURRENT_VOLUME
+    SET_CURRENT_VOLUME,
+    SET_PLAYER_STATE
   };
 
   /**
@@ -875,6 +876,11 @@ public:
 //@{
 public slots:
 
+  /**
+   * \brief Starts the datstore automatically refreshing the playlist.
+   */
+  void startPlaylistAutoRefresh();
+
 
   /**
    * \brief Syncs the current state of the library with the server.
@@ -971,6 +977,13 @@ signals:
 
 /** @name Signals */
 //@{
+
+  /**
+   * \brief Emitted when there was an error setting the player's state.
+   *
+   * @param errMessage A message descibing the error.
+   */
+  void playerStateSetError(const QString& errMessage);
 
   /**
    * \brief Emitted when the player's password has been removed.
@@ -1500,12 +1513,6 @@ private slots:
           const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief Takes appropriate action when the player state is changed.
-   */
-  void onPlayerStateChanged(const QString& newState);
-
-
-  /**
    * \brief Takes appropriate action when modifiying the library on the server fails.
    *
    * @param errMessage A message describing the error.
@@ -1574,6 +1581,18 @@ private slots:
    * @param headers The headers from the http response that indicated a failure.
    */
   void onSetVolumeFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Takes appropriate action when setting the state of the player fails.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void onPlayerStateSetFail(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

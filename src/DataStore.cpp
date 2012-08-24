@@ -156,12 +156,6 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerStateSet(const QString&)),
-    this,
-    SLOT(onPlayerStateChanged(const QString&)));
-
-  connect(
-    serverConnection,
     SIGNAL(libModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
     SLOT(onLibModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
@@ -242,6 +236,29 @@ void DataStore::setupDB(){
     setupQuery)
 
 }
+
+void DataStore::startPlaylistAutoRefresh(){
+  activePlaylistRefreshTimer->start();
+}
+
+void DataStore::onPlayerStateSetFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  if(isTicketAuthError(errorCode, headers)){
+    Logger::instance()->log("Got the ticket-hash challenge");
+    reauthActions.insert(SET_PLAYER_STATE);
+    initReauth();
+  }
+  else{
+    emit playerStateSetError(errMessage);
+  }
+
+
+
+}
+
 
 void DataStore::removePlayerPassword(){
   serverConnection->removePlayerPassword();
@@ -352,7 +369,11 @@ void DataStore::playPlayer(){
 }
 
 void DataStore::setPlayerState(const QString& newState){
-  serverConnection->setPlayerState(newState);
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  if(newState != settings.value(getPlayerStateSettingName())){
+    settings.setValue(getPlayerStateSettingName(), newState);
+    serverConnection->setPlayerState(newState);
+  }
 }
 
 
@@ -824,7 +845,13 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     emit volumeChanged(retrievedVolume/10.0);
   }
 
-  onPlayerStateChanged(newPlaylist["state"].toString());
+  QString retrievedState = newPlaylist["state"].toString();
+  if(retrievedState != getPlayerState()){
+    QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    settings.setValue(getPlayerStateSettingName(), retrievedState);
+    emit playerStateChanged(retrievedState);
+  }
+
 
   library_song_id_t retrievedCurrentId =
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
@@ -908,7 +935,6 @@ void DataStore::onPlayerCreate(const player_id_t& issuedId){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerIdSettingName(), QVariant::fromValue(issuedId));
   serverConnection->setPlayerId(issuedId);
-  setPlayerState(getPlayingState());
   emit playerCreated();
 }
 
@@ -918,23 +944,6 @@ void DataStore::onPlayerCreationFailed(const QString& errMessage, int /*errorCod
   //TODO do other stuff as well. like do reauth
   emit playerCreationFailed(errMessage);
 }
-
-
-void DataStore::onPlayerStateChanged(const QString& newState){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  if(newState != settings.value(getPlayerStateSettingName())){
-    settings.setValue(getPlayerStateSettingName(), newState);
-    emit playerStateChanged(newState);
-  }
-
-  //If this player state change is the result of starting up the player for the first time
-  //we need to do a few things
-  if(!activePlaylistRefreshTimer->isActive()){
-    refreshActivePlaylist();
-    activePlaylistRefreshTimer->start();
-  }
-}
-
 
 void DataStore::onLibModError(
     const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
@@ -1011,6 +1020,8 @@ void DataStore::doReauthAction(const ReauthAction& action){
       QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
       serverConnection->setVolume((int)(getPlayerVolume() * 10));
       break;
+    case SET_PLAYER_STATE:
+      serverConnection->setPlayerState(getPlayerState());
   }
 }
 

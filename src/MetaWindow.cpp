@@ -76,6 +76,7 @@ MetaWindow::MetaWindow(
   }
   if(dataStore->hasPlayerId()){
     dataStore->setPlayerState(DataStore::getPlayingState());
+    dataStore->startPlaylistAutoRefresh();
     if(dataStore->hasUnsyncedSongs()){
       syncLibrary();
     }
@@ -101,6 +102,11 @@ MetaWindow::MetaWindow(
     SIGNAL(playerCreated()),
     this,
     SLOT(checkForITunes()));
+  connect(
+    dataStore,
+    SIGNAL(playerCreated()),
+    dataStore,
+    SLOT(startPlaylistAutoRefresh()));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
