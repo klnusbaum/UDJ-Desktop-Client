@@ -129,7 +129,7 @@ public:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const int& zipcode);
+    const QString& zipcode);
 
   /**
    * \brief Gets the json needed for creating a player.
@@ -150,7 +150,7 @@ public:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const int& zipcode,
+    const QString& zipcode,
     bool &success);
 
   /**

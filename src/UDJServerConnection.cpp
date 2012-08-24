@@ -79,8 +79,10 @@ void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
     + "&to_delete=" + deleteJSON;
   Logger::instance()->log("Lib mod payload: " + QString::fromUtf8(payload));
   QNetworkReply *reply = netAccessManager->post(modRequest, payload);
+  Logger::instance()->log("Issued request" + QString::fromUtf8(payload));
   reply->setProperty(getSongsAddedPropertyName(), addJSON);
   reply->setProperty(getSongsDeletedPropertyName(), deleteJSON);
+  Logger::instance()->log("Set reply properties" + QString::fromUtf8(payload));
 }
 
 void UDJServerConnection::createPlayer(
@@ -97,7 +99,7 @@ void UDJServerConnection::createPlayer(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  const int& zipcode)
+  const QString& zipcode)
 {
   const QByteArray playerJSON = JSONHelper::getCreatePlayerJSON(playerName, password,
       streetAddress, city, state, zipcode);
@@ -131,32 +133,23 @@ void UDJServerConnection::setPlayerLocation(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  int zipcode
+  const QString& zipcode
 )
 {
   QNetworkRequest setLocationRequest(getPlayerLocationUrl());
   setLocationRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   QUrl params;
   params.addQueryItem("address", streetAddress);
-  params.addQueryItem("city", city);
-  params.addQueryItem("state", state);
-  params.addQueryItem("zipcode", QString::number(zipcode));
+  params.addQueryItem("locality", city);
+  params.addQueryItem("region", state);
+  params.addQueryItem("postal_code", zipcode);
+  params.addQueryItem("country", "United States");
   QByteArray payload = params.encodedQuery();
   QNetworkReply *reply = netAccessManager->post(setLocationRequest, payload);
   reply->setProperty(getLocationAddressPropertyName(), streetAddress);
   reply->setProperty(getLocationCityPropertyName(), city);
   reply->setProperty(getLocationStatePropertyName(), state);
   reply->setProperty(getLocationZipcodePropertyName(), zipcode);
-}
-
-void UDJServerConnection::setPlayerName(const QString& newName){
-  QNetworkRequest setNameRequest(getPlayerNameUrl());
-  setNameRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
-  QUrl params;
-  params.addQueryItem("name", newName);
-  QByteArray payload = params.encodedQuery();
-  QNetworkReply *reply = netAccessManager->post(setNameRequest, payload);
-  reply->setProperty(getPlayerNamePropertyName(), newName);
 }
 
 void UDJServerConnection::getActivePlaylist(){
@@ -219,7 +212,7 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getPlayerStateUrl().path()){
     handleSetStateReply(reply);
   }
-  else if(isPlayerCreateUrl(reply->request().url().path())){
+  else if(reply->request().url().path() == getCreatePlayerUrl().path()){
     handleCreatePlayerReply(reply);
   }
   else if(isGetActivePlaylistReply(reply)){
@@ -236,9 +229,6 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   }
   else if(isModActivePlaylistReply(reply)){
     handleReceivedPlaylistMod(reply);
-  }
-  else if(reply->request().url().path() == getPlayerNameUrl().path()){
-    handleNameSetReply(reply);
   }
   else if(reply->request().url().path() == getPlayerLocationUrl().path()){
     handleLocationSetReply(reply);
@@ -314,31 +304,13 @@ void UDJServerConnection::handlePlayerPasswordSetReply(QNetworkReply *reply){
   }
 }
 
-void UDJServerConnection::handleNameSetReply(QNetworkReply *reply){
-  if(isResponseType(reply, 200)){
-    emit playerNameChanged(reply->property(getPlayerNamePropertyName()).toString());
-  }
-  else if(isResponseType(reply, 409)){
-    Logger::instance()->log("Change player name got 409");
-    emit playerNameChangeError("Name already in use.", 409, reply->rawHeaderPairs());
-  }
-  else{
-    QString responseData = QString(reply->readAll());
-    Logger::instance()->log("Change player name got error " + responseData);
-    emit playerNameChangeError(
-      responseData,
-      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
-      reply->rawHeaderPairs());
-  }
-}
-
 void UDJServerConnection::handleLocationSetReply(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
     emit playerLocationSet(
       reply->property(getLocationAddressPropertyName()).toString(),
       reply->property(getLocationCityPropertyName()).toString(),
       reply->property(getLocationStatePropertyName()).toString(),
-      reply->property(getLocationZipcodePropertyName()).toInt());
+      reply->property(getLocationZipcodePropertyName()).toString());
   }
   else{
     QString responseData = QString(reply->readAll());
@@ -352,6 +324,7 @@ void UDJServerConnection::handleLocationSetReply(QNetworkReply *reply){
 
 void UDJServerConnection::handleReceivedLibMod(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
+    Logger::instance()->log("got good lib mod reply");
     QVariant songsAdded = reply->property(getSongsAddedPropertyName());
     QVariant songsDeleted = reply->property(getSongsDeletedPropertyName());
     QSet<library_song_id_t> addedIds = JSONHelper::getLibIds(songsAdded.toByteArray());
@@ -361,6 +334,7 @@ void UDJServerConnection::handleReceivedLibMod(QNetworkReply *reply){
     emit libSongsSyncedToServer(allSynced);
   }
   else if(isResponseType(reply, 409)){
+    Logger::instance()->log("got 409 lib mod reply");
     QSet<library_song_id_t> alreadyExistingIds = JSONHelper::convertLibIdArray(reply->readAll());
     emit libSongsSyncedToServer(alreadyExistingIds);
   }
@@ -463,44 +437,35 @@ QUrl UDJServerConnection::getCurrentSongUrl() const{
 }
 
 QUrl UDJServerConnection::getCreatePlayerUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/player");
+  return QUrl(getServerUrlPath()+ "players/player");
 }
 
 QUrl UDJServerConnection::getPlayerStateUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+  return QUrl(getServerUrlPath()+ "players/" + 
       QString::number(playerId) + "/state");
 }
 
 QUrl UDJServerConnection::getLibModUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+  return QUrl(getServerUrlPath()+ "/players/" + 
       QString::number(playerId) + "/library");
 }
 
 QUrl UDJServerConnection::getVolumeUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+  return QUrl(getServerUrlPath()+ "players/" + 
       QString::number(playerId) + "/volume");
 }
 
-QUrl UDJServerConnection::getPlayerNameUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
-      QString::number(playerId) + "/name");
-}
-
 QUrl UDJServerConnection::getPlayerLocationUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+  return QUrl(getServerUrlPath()+ "players/" + 
       QString::number(playerId) + "/location");
 }
 
 QUrl UDJServerConnection::getPlayerPasswordUrl() const{
-  return QUrl(getServerUrlPath()+ "users/" + QString::number(user_id) + "/players/" + 
+  return QUrl(getServerUrlPath()+ "players/" + 
       QString::number(playerId) + "/password");
 }
 
 
-
-bool UDJServerConnection::isPlayerCreateUrl(const QString& path) const{
-  return (path == "/udj/users/" + QString::number(user_id) + "/players/player");
-}
 
 bool UDJServerConnection::isResponseType(QNetworkReply *reply, int code){
   return reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == code;

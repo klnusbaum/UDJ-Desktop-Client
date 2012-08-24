@@ -79,9 +79,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, int)),
+    SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, const QString&)),
     this,
-    SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, int)));
+    SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, const QString&)));
 
   connect(
     serverConnection,
@@ -100,18 +100,6 @@ DataStore::DataStore(
     SIGNAL(playerPasswordRemoveError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
     SLOT(onPlayerPasswordRemoveError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
-
-  connect(
-    serverConnection,
-    SIGNAL(playerNameChanged(const QString&)),
-    this,
-    SLOT(onPlayerNameChanged(const QString&)));
-
-  connect(
-    serverConnection,
-    SIGNAL(playerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
-    this,
-    SLOT(onPlayerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -285,7 +273,7 @@ void DataStore::setPlayerLocation(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  int zipcode
+  const QString& zipcode
 )
 {
   serverConnection->setPlayerLocation(streetAddress, city, state, zipcode);
@@ -295,7 +283,7 @@ void DataStore::onPlayerLocationSet(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  int zipcode
+  const QString& zipcode
 )
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
@@ -315,34 +303,6 @@ void DataStore::onPlayerLocationSetError(
   emit playerLocationSetError(errMessage);
 }
 
-void DataStore::setPlayerName(const QString& newName){
-  serverConnection->setPlayerName(newName);
-}
-
-void DataStore::onPlayerNameChanged(const QString& newName){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerNameSettingName(), newName);
-  emit playerNameChanged(newName);
-}
-
-void DataStore::onPlayerNameChangeError(
-  const QString& /*errMessage*/,
-  int errorCode,
-  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
-{
-  //TODO if reauth error, should reauth
-  if(errorCode == 409){
-    emit playerNameChangeError(tr(
-      "You already have a player with that name."
-    ));
-  }
-  else{
-  emit playerNameChangeError(tr(
-    "We seem to be having some techincal difficulties and couldn't change "
-    "the name of your player. Try again in a little bit."
-  ));
-  }
-}
 void DataStore::pausePlayer(){
   setPlayerState(getPausedState());
 }
@@ -641,7 +601,7 @@ void DataStore::createNewPlayer(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  const int& zipcode)
+  const QString& zipcode)
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
@@ -691,7 +651,7 @@ void DataStore::syncLibrary(){
   while(needAddSongs.next()){
     currentRecord = needAddSongs.record();
     QVariantMap songToAdd;
-    songToAdd["id"] = currentRecord.value(getLibIdColName());
+    songToAdd["id"] = currentRecord.value(getLibIdColName()).toString();
     QString title = currentRecord.value(getLibSongColName()).toString();
     title.truncate(199);
     songToAdd["title"] = title;
@@ -721,7 +681,7 @@ void DataStore::syncLibrary(){
   QVariantList songsToDelete;
   while(needDeleteSongs.next()){
     currentRecord = needDeleteSongs.record();
-    songsToDelete.append(currentRecord.value(getLibIdColName()));
+    songsToDelete.append(currentRecord.value(getLibIdColName()).toString());
   }
 
   Logger::instance()->log("Found " + QString::number(songsToDelete.size()) + " songs which need deleting");

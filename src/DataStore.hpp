@@ -141,15 +141,8 @@ public:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
-
-  /**
-   * \brief Set player name.
-   *
-   * \param The new name the player should have.
-   */
-  void setPlayerName(const QString& newName);
 
   /**
    * \brief Set player state.
@@ -960,7 +953,7 @@ public slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const int& zipcode);
+    const QString& zipcode);
 
   /** 
    * \brief Sets the current song to the speicified song.
@@ -1409,7 +1402,7 @@ private slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
 
   /**
@@ -1420,26 +1413,6 @@ private slots:
    * \param headers HTTP headers accompianing in the error response.
    */
   void onPlayerLocationSetError(
-    const QString& errMessage,
-    int errorCode,
-    const QList<QNetworkReply::RawHeaderPair>& headers);
-
-  /**
-   * \brief Preforms appropriate tasks when a players name was succesfully changed on the
-   * server.
-   *
-   * \param newName The new name of the player.
-   */
-  void onPlayerNameChanged(const QString& newName);
-
-  /**
-   * \brief Preforms appropriate tasks when there was an error changing the player name.
-   *
-   * \param errMessage A message describing the error.
-   * \param errorCode HTTP error code describing error.
-   * \param headers HTTP headers accompianing in the error response.
-   */
-  void onPlayerNameChangeError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

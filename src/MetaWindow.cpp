@@ -312,9 +312,6 @@ void MetaWindow::setupMenus(){
 void MetaWindow::configurePlayerMenu(){
   QMenu *playerMenu = menuBar()->addMenu(tr("&Player"));
 
-  changeNameAction = new QAction(tr("Change Name"), this);
-  playerMenu->addAction(changeNameAction);
-
   setLocationAction = new QAction(tr("Set Location"), this);
   playerMenu->addAction(setLocationAction);
 
@@ -325,7 +322,6 @@ void MetaWindow::configurePlayerMenu(){
   playerMenu->addAction(removePasswordAction);
   removePasswordAction->setEnabled(dataStore->hasPlayerPassword());
 
-  connect(changeNameAction, SIGNAL(triggered()), this, SLOT(changePlayerName()));
   connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
   connect(setPasswordAction, SIGNAL(triggered()), this, SLOT(setPlayerPassword()));
   connect(removePasswordAction, SIGNAL(triggered()), this, SLOT(removePlayerPassword()));
@@ -383,51 +379,6 @@ void MetaWindow::setPlayerLocation(){
   SetLocationDialog *setLocationDialog = new SetLocationDialog(dataStore, this);
   setLocationDialog->show();
 }
-
-void MetaWindow::changePlayerName(){
-  bool gotNewName;
-  QString newName = QInputDialog::getText(this, tr("Set Player Name"),
-    tr("New Player Name:"), QLineEdit::Normal, "", &gotNewName);
-  if(gotNewName && !newName.isEmpty()){
-    connect(
-      dataStore,
-      SIGNAL(playerNameChanged(const QString&)),
-      this,
-      SLOT(onPlayerNameChanged()));
-    connect(
-      dataStore,
-      SIGNAL(playerNameChangeError(const QString&)),
-      this,
-      SLOT(onPlayerNameChangeError(const QString&)));
-    dataStore->setPlayerName(newName);
-  }
-  else if(gotNewName){
-    QMessageBox::critical(this, "Player Name Blank", "You must provided a non-blank name for your player");
-  }
-
-}
-
-void MetaWindow::disconnectNameChangeSignals(){
-  disconnect(
-      dataStore,
-      SIGNAL(playerNameChanged(const QString&)),
-      this,
-      SLOT(onPlayerNameChanged()));
-  disconnect(
-      dataStore,
-      SIGNAL(playerNameChangeError(const QString&)),
-      this, SLOT(onPlayerNameChangeError(const QString&)));
-}
-
-void MetaWindow::onPlayerNameChanged(){
-  disconnectNameChangeSignals();
-}
-
-void MetaWindow::onPlayerNameChangeError(const QString& errMessage){
-  disconnectNameChangeSignals();
-  QMessageBox::critical(this, "Error Changing Player Name", errMessage);
-}
-
 
 void MetaWindow::displayLibrary(){
   contentStack->setCurrentWidget(libraryWidget);
