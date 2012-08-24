@@ -1,6 +1,5 @@
 /**
- * Copyright 2011 Kurtis L. Nusbaum
- * 
+ * Copyright 2011 Kurtis L. Nusbaum * 
  * This file is part of UDJ.
  * 
  * UDJ is free software: you can redistribute it and/or modify

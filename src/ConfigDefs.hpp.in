@@ -20,9 +20,11 @@
 #ifndef CONFIG_DEFS_HPP
 #define CONFIG_DEFS_HPP
 
+#define UDJ_WINDOWS_UPDATE_URL "http://www.udjplayer.com/windows/sparkle.xml"
 #define HAS_CUSTOM_CA_CERT @HAS_CUSTOM_CA_CERT@
 #define IS_APPLE_BUILD @IS_APPLE_BUILD@
 #define IS_WINDOWS_BUILD @IS_WINDOWS_BUILD@
+#define UDJ_VERSION "@PROJECT_VERSION@"
 
 #include <QUrl>
 

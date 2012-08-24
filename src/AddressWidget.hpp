@@ -61,7 +61,7 @@ public:
   QString getStreetAddress() const;
   QString getCity() const;
   QString getState() const;
-  int getZipcode() const;
+  QString getZipcode() const;
 
   QString getBadInputs() const;
   //@}

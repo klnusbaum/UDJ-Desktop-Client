@@ -25,6 +25,9 @@
 #include <QSqlTableModel>
 #include "UDJServerConnection.hpp"
 #include "PlaybackWidget.hpp"
+#if IS_WINDOWS_BUILD
+#include <qtsparkle/Updater>
+#endif
 
 class QTabWidget;
 class QPushButton;
@@ -140,23 +143,6 @@ private slots:
   void syncError(const QString& errMessage);
 
   /**
-   * \brief Initiates the process for changing the players name.
-   */
-  void changePlayerName();
-
-  /**
-   * \brief Preforms necessary actions when a players name is succesfully changed.
-   */
-  void onPlayerNameChanged();
-
-  /**
-   * \brief Preforms necessary actions when changing a players name failed.
-   *
-   * \param errMessage A message describing the error.
-   */
-  void onPlayerNameChangeError(const QString& errMessage);
-
-  /**
    * \brief Preforms necessary actions in order to start setting the player's location.
    */
   void setPlayerLocation();
@@ -165,6 +151,12 @@ private slots:
    * \brief Performs necessary actions in order to start setting the player's password.
    */
   void setPlayerPassword();
+
+  /**
+   * \brief Scans the iTunes library for any music that can be added to the music library and
+   * attempts to add them.
+   */
+  void scanItunesLibrary();
 
   /**
    * \brief Performs necessary actions in order to start removing the player's password.
@@ -223,15 +215,11 @@ private:
   /** \brief Triggers display of the about widget */
   QAction *viewAboutAction;
 
-  /**
-   * \brief Triggers the changing of the player name.
-   */
-  QAction *changeNameAction;
-
-  /**
-   * \brief Triggers the setting of the player location.
-   */
+  /** \brief Triggers the setting of the player location.  */
   QAction *setLocationAction;
+
+  /** \brief Triggers rescanning of the iTunes Library. */
+  QAction *rescanItunesAction;
 
   /**
    * \brief Triggers the setting of the player password.
@@ -242,6 +230,13 @@ private:
    * \brief Triggers the removal of the player password.
    */
   QAction *removePasswordAction;
+
+  #if IS_WINDOWS_BUILD
+  /**
+   * \brief Checks to se if there is an update available for the player.
+   */
+  QAction* checkUpdateAction;
+  #endif
 
 //  QFileSystemWatcher* fileWatcher;
 
@@ -273,6 +268,10 @@ private:
   /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;
 
+#if IS_WINDOWS_BUILD
+  qtsparkle::Updater* updater;
+#endif
+
   //@}
 
   /** @name Private Functions */
@@ -290,9 +289,12 @@ private:
   /** \brief Configures the menu for changing player settings. */
   void configurePlayerMenu();
 
-  /** 
+  /** \brief Determines whether or not the user had an iTunes library. */
+  bool hasItunesLibrary();
+
+  /**
    * \brief Attemps to add the given media sources to the library.
-   * 
+   *
    * \param musicToAdd A list of media sources to be added to the library.
    */
   void addMediaSources(const QList<Phonon::MediaSource>& musicToAdd);
@@ -302,12 +304,6 @@ private:
    * of a library sync operation.
    */
   void disconnectSyncSignals();
-
-  /**
-   * \brief Disconnects any signals that may have been setup when initiating a player
-   * name change operation.
-   */
-  void disconnectNameChangeSignals();
 
   /**
    * \brief Disconnects any signals that may have been setup when initiating a player

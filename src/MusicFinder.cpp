@@ -19,6 +19,7 @@
 #include "MusicFinder.hpp"
 #include "Logger.hpp"
 #include "ConfigDefs.hpp"
+#include "DataStore.hpp"
 #include <QRegExp>
 #include <QXmlSimpleReader>
 #include <QXmlDefaultHandler>
@@ -50,8 +51,20 @@ public:
 
 };
 
+QList<Phonon::MediaSource> MusicFinder::filterDuplicateSongs(
+  const QList<Phonon::MediaSource>& songsToFilter, const DataStore* dataStore)
+{
+  QList<Phonon::MediaSource> toReturn;
+  Phonon::MediaSource song;
+  Q_FOREACH(song, songsToFilter){
+    if(!dataStore->alreadyHaveSongInLibrary(song.fileName())){
+      toReturn.append(song);
+    }
+  }
+  return toReturn;
+}
 
-QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLibFileName){
+QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLibFileName, const DataStore* dataStore){
   iTunesHandler handler;
   QFile itunesLibFile(itunesLibFileName);
   QXmlSimpleReader itunesReader;
@@ -59,12 +72,12 @@ QList<Phonon::MediaSource> MusicFinder::findItunesMusic(const QString& itunesLib
   itunesReader.setContentHandler(&handler);
   itunesReader.setErrorHandler(&handler);
   itunesReader.parse(source);
-  return handler.foundFiles;
+  return filterDuplicateSongs(handler.foundFiles, dataStore);
 }
 
-QList<Phonon::MediaSource> MusicFinder::findMusicInDir(const QString& musicDir){
+QList<Phonon::MediaSource> MusicFinder::findMusicInDir(const QString& musicDir, const DataStore* dataStore){
   QRegExp fileMatcher = getMusicFileMatcher();
-  return findMusicInDirWithMatcher(musicDir, fileMatcher);
+  return filterDuplicateSongs(findMusicInDirWithMatcher(musicDir, fileMatcher), dataStore);
 }
 
 QList<Phonon::MediaSource> MusicFinder::findMusicInDirWithMatcher(
@@ -120,47 +133,10 @@ QString MusicFinder::getMusicFileExtFilter(){
 }
 
 QStringList MusicFinder::availableMusicTypes(){
-  #if IS_APPLE_BUILD
-  Logger::instance()->log("On mac, just saying mp3s and m4as");
+  //We be using vlc backend now. That means we can play ALL THE MUSICS!!!!!
   QStringList toReturn;
-  toReturn << "mp3" << "m4a";
+  toReturn << "flac" << "mp3" << "m4a" << "wav" << "ogg";
   return toReturn;
-  #else
-  QStringList mimes = Phonon::BackendCapabilities::availableMimeTypes();
-  if(mimes.size() == 0){
-    Logger::instance()->log("Didn't find any mime types");
-  }
-  Logger::instance()->log("Found mime types:");
-  Q_FOREACH(QString s, mimes){
-    Logger::instance()->log(s);
-  }
-  QStringList toReturn;
-  if(mimes.contains("audio/flac") || mimes.contains("audio/x-flac")){
-    toReturn.append("flac");
-  }
-  if(mimes.contains("audio/mp3") || mimes.contains("audio/x-mp3")){
-    toReturn.append("mp3");
-  }
-  if(mimes.contains("audio/mp4")){
-    toReturn.append("mp4");
-  }
-  if(mimes.contains("audio/m4a") 
-    || ("audio/x-m4a") 
-|| mimes.contains("applications/x-qt-m4a")){
-    toReturn.append("m4a");
-  }
-  if(mimes.contains("audio/wav") || mimes.contains("audio/x-wav")){
-    toReturn.append("wav");
-  }
-  if(mimes.contains("audio/ogg") ||
-mimes.contains("application/ogg") ||
-mimes.contains("audio/x-vorbis") || 
-mimes.contains("audio/x-vorbis+ogg"))
-{
-    toReturn.append("ogg");
-  }
-  return toReturn;
-  #endif
 }
 
 } //end namespace

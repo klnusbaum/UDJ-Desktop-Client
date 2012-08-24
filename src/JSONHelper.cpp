@@ -105,7 +105,7 @@ const QByteArray JSONHelper::getCreatePlayerJSON(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  const int& zipcode)
+  const QString& zipcode)
 {
   bool success;
   return getCreatePlayerJSON(playerName, password, streetAddress, city, state, zipcode, success);
@@ -117,7 +117,7 @@ const QByteArray JSONHelper::getCreatePlayerJSON(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  const int& zipcode,
+  const QString& zipcode,
   bool &success)
 {
   QVariantMap playerToCreate;
@@ -128,9 +128,10 @@ const QByteArray JSONHelper::getCreatePlayerJSON(
 
   QVariantMap location;
   location["address"] = streetAddress;
-  location["city"] = city;
-  location["state"] = state;
-  location["zipcode"] = zipcode;
+  location["locality"] = city;
+  location["region"] = state;
+  location["postal_code"] = zipcode;
+  location["country"] = "United States";
   playerToCreate["location"] = location;
 
   return QtJson::Json::serialize(QVariant(playerToCreate),success);

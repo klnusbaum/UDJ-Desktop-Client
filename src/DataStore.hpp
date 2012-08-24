@@ -62,6 +62,7 @@ public:
     Phonon::MediaSource source;
     QString title;
     QString artist;
+    QString duration;
   } song_info_t;
 
   //@}
@@ -86,6 +87,22 @@ public:
     QObject *parent=0);
 
   //@}
+
+  /** @name Accessors */
+  //@{
+
+  /**
+   * \brief Checks to see if a particular song is already in 
+   * the library and not deleted.
+   *
+   * @param fileName The file to be checked.
+   * @return True if the file is already in the library, false 
+   * otherwise.
+   */
+  bool alreadyHaveSongInLibrary(const QString& fileName) const;
+
+  //@}
+
 
   /** @name Modifiers */
   //@{
@@ -125,15 +142,8 @@ public:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
-
-  /**
-   * \brief Set player name.
-   *
-   * \param The new name the player should have.
-   */
-  void setPlayerName(const QString& newName);
 
   /**
    * \brief Set player state.
@@ -176,7 +186,7 @@ public:
    *
    * @return The id of the player.
    */
-  inline const player_id_t getPlayerId() const{
+  inline player_id_t getPlayerId() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getPlayerIdSettingName()).value<player_id_t>();
@@ -229,9 +239,7 @@ public:
    * @return True if the player has a password, false otherwise.
    */
   inline bool hasPlayerPassword() const{
-    QSettings settings(
-      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.contains(getPlayerPasswordSettingName());
+    return getPlayerPassword() != "";
   }
 
   /**
@@ -949,7 +957,7 @@ public slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const int& zipcode);
+    const QString& zipcode);
 
   /** 
    * \brief Sets the current song to the speicified song.
@@ -1167,6 +1175,7 @@ private:
    */
   void addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery& addQuery);
 
+  
   /**
    * \brief Gets the value of a header.
    *
@@ -1404,7 +1413,7 @@ private slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
 
   /**
@@ -1415,26 +1424,6 @@ private slots:
    * \param headers HTTP headers accompianing in the error response.
    */
   void onPlayerLocationSetError(
-    const QString& errMessage,
-    int errorCode,
-    const QList<QNetworkReply::RawHeaderPair>& headers);
-
-  /**
-   * \brief Preforms appropriate tasks when a players name was succesfully changed on the
-   * server.
-   *
-   * \param newName The new name of the player.
-   */
-  void onPlayerNameChanged(const QString& newName);
-
-  /**
-   * \brief Preforms appropriate tasks when there was an error changing the player name.
-   *
-   * \param errMessage A message describing the error.
-   * \param errorCode HTTP error code describing error.
-   * \param headers HTTP headers accompianing in the error response.
-   */
-  void onPlayerNameChangeError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

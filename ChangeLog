@@ -1,0 +1,5 @@
+Version 0.5.0
+Initial version of the UDJ Player
+
+Version 0.5.1
+Fixed playback issues for Windows player. Windows player now has an updater. 

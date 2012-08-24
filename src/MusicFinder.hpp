@@ -25,6 +25,8 @@
 
 namespace UDJ{
 
+class DataStore;
+
 /**
  * \brief A class used to find music on a machine.
  */
@@ -41,10 +43,10 @@ public:
    * which it found in the given iTunes library.
    *
    * @param itunesLibFileName The iTunes library file.
+   * @param dataStore The DataStore being used to back this instance of UDJ.
    * @return A list of MediaSources corresponding to all the songs found in the iTunes library.
    */
-
-  static QList<Phonon::MediaSource> findItunesMusic(const QString& itunesLibFileName);
+  static QList<Phonon::MediaSource> findItunesMusic(const QString& itunesLibFileName, const DataStore* dataStore);
 
 
   /**
@@ -55,9 +57,10 @@ public:
    * returns a list of MediaSources representing all of the found songs.
    *
    * @param musicDir The directory in which to search for music.
+   * @param dataStore The DataStore being used to back this instance of UDJ.
    * @return A list of MediaSources corresponding to each found song.
    */
-  static QList<Phonon::MediaSource> findMusicInDir(const QString& musicDir);
+  static QList<Phonon::MediaSource> findMusicInDir(const QString& musicDir, const DataStore* dataStore);
 
   /**
    * \brief Finds all the music in a given directory which matches certain criteria.
@@ -102,6 +105,17 @@ private:
    * @return A list of all file extensions that can be played by the client.
    */
   static QStringList availableMusicTypes();
+
+  /**
+   * Given a list of songs, this function returns the same list except all songs which
+   * are already in the library have been removed.
+   *
+   * @param songsToFilter The list of songs to be filtered.
+   * @param dataStore The DataStore backing this instance of UDJ.
+   * @return The list of songs given to the functions with all songs already in the 
+   * library removed.
+   */
+  static QList<Phonon::MediaSource> filterDuplicateSongs(const QList<Phonon::MediaSource>& songsToFilter, const DataStore* dataStore);
 
   //@}
 }; 

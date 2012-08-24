@@ -46,6 +46,7 @@
 #include <QDesktopServices>
 
 
+
 namespace UDJ{
 
 
@@ -60,6 +61,11 @@ MetaWindow::MetaWindow(
   isQuiting(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
+  #if IS_WINDOWS_BUILD
+  updater = new qtsparkle::Updater(
+  QUrl(UDJ_WINDOWS_UPDATE_URL), this);
+  #endif
+
   createActions();
   setupUi();
   setupMenus();
@@ -134,25 +140,35 @@ void MetaWindow::closeEvent(QCloseEvent *event){
   }
 }
 
-void MetaWindow::checkForITunes(){
+bool MetaWindow::hasItunesLibrary(){
   QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
   QDir iTunesDir = QDir(musicDir).filePath("iTunes");
-  if(iTunesDir.exists("iTunes Music Library.xml")){
+  return iTunesDir.exists("iTunes Music Library.xml");
+}
+
+void MetaWindow::checkForITunes(){
+  if(hasItunesLibrary()){
     QMessageBox::StandardButton response = QMessageBox::question(
       this, "Import iTunes Library", "Looks like you've got iTunes installed. Would you like"
       " us to try to import your iTunes Library?",
       QMessageBox::Yes | QMessageBox::No,
       QMessageBox::Yes);
     if(response == QMessageBox::Yes){
-      QList<Phonon::MediaSource> musicToAdd =
-        MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"));
-      Logger::instance()->log("Size of itunes was: " + QString::number(musicToAdd.size()));
-      addMediaSources(musicToAdd);
+      scanItunesLibrary();
     }
   }
   else{
-    Logger::instance()->log(iTunesDir.filePath("iTunes Music Library.xml") + " doesn't exist");
+    Logger::instance()->log("iTunes dir doesn't exist");
   }
+}
+
+void MetaWindow::scanItunesLibrary(){
+  QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
+  QDir iTunesDir = QDir(musicDir).filePath("iTunes");
+  QList<Phonon::MediaSource> musicToAdd =
+    MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"), dataStore);
+  Logger::instance()->log("Size of itunes was: " + QString::number(musicToAdd.size()));
+  addMediaSources(musicToAdd);
 }
 
 void MetaWindow::addMediaSources(const QList<Phonon::MediaSource>& musicToAdd){
@@ -160,7 +176,7 @@ void MetaWindow::addMediaSources(const QList<Phonon::MediaSource>& musicToAdd){
     QMessageBox::information(
         this, 
         "No Music Found", 
-        "Sorry, but we couldn't find any music that we know how to play.");
+        "Sorry, but we couldn't find any new music that we know how to play.");
     return;
   }
 
@@ -186,7 +202,7 @@ void MetaWindow::addMusicToLibrary(){
     return;
   }
   QList<Phonon::MediaSource> musicToAdd =
-    MusicFinder::findMusicInDir(musicDir);
+    MusicFinder::findMusicInDir(musicDir, dataStore);
   addMediaSources(musicToAdd);
 }
 
@@ -197,6 +213,13 @@ void MetaWindow::addSongToLibrary(){
       QDir::homePath(),
       tr("Audio Files ") + MusicFinder::getMusicFileExtFilter());
   if(fileName == ""){
+    return;
+  }
+  if(dataStore->alreadyHaveSongInLibrary(fileName)){
+    QMessageBox::information(
+        this, 
+        "Already In Library", 
+        "You already have that song in your music library");
     return;
   }
   QList<Phonon::MediaSource> songList;
@@ -272,17 +295,26 @@ void MetaWindow::createActions(){
   viewLogAction = new QAction(tr("View &Log"), this);
   viewLogAction->setShortcut(tr("Ctrl+L"));
   viewAboutAction = new QAction(tr("About"), this);
+  rescanItunesAction = new QAction(tr("Rescan iTunes Library"), this);
+  #if IS_WINDOWS_BUILD
+  checkUpdateAction = new QAction(tr("Check For Updates"), this);
+  connect(checkUpdateAction, SIGNAL(triggered()), updater, SLOT(CheckNow()));
+  #endif
   connect(addMusicAction, SIGNAL(triggered()), this, SLOT(addMusicToLibrary()));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
   connect(addSongAction, SIGNAL(triggered()), this, SLOT(addSongToLibrary()));
   connect(viewLogAction, SIGNAL(triggered()), this, SLOT(displayLogView()));
   connect(viewAboutAction, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
+  connect(rescanItunesAction, SIGNAL(triggered()), this, SLOT(scanItunesLibrary()));
 }
 
 void MetaWindow::setupMenus(){
   QMenu *musicMenu = menuBar()->addMenu(tr("&Music"));
   musicMenu->addAction(addMusicAction);
   musicMenu->addAction(addSongAction);
+  if(hasItunesLibrary()){
+    musicMenu->addAction(rescanItunesAction);
+  }
   musicMenu->addSeparator();
   musicMenu->addAction(quitAction);
 
@@ -291,14 +323,14 @@ void MetaWindow::setupMenus(){
   QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
   helpMenu->addAction(viewLogAction);
   helpMenu->addAction(viewAboutAction);
+  #if IS_WINDOWS_BUILD
+  helpMenu->addAction(checkUpdateAction);
+  #endif
 
 }
 
 void MetaWindow::configurePlayerMenu(){
   QMenu *playerMenu = menuBar()->addMenu(tr("&Player"));
-
-  changeNameAction = new QAction(tr("Change Name"), this);
-  playerMenu->addAction(changeNameAction);
 
   setLocationAction = new QAction(tr("Set Location"), this);
   playerMenu->addAction(setLocationAction);
@@ -310,7 +342,6 @@ void MetaWindow::configurePlayerMenu(){
   playerMenu->addAction(removePasswordAction);
   removePasswordAction->setEnabled(dataStore->hasPlayerPassword());
 
-  connect(changeNameAction, SIGNAL(triggered()), this, SLOT(changePlayerName()));
   connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
   connect(setPasswordAction, SIGNAL(triggered()), this, SLOT(setPlayerPassword()));
   connect(removePasswordAction, SIGNAL(triggered()), this, SLOT(removePlayerPassword()));
@@ -368,51 +399,6 @@ void MetaWindow::setPlayerLocation(){
   SetLocationDialog *setLocationDialog = new SetLocationDialog(dataStore, this);
   setLocationDialog->show();
 }
-
-void MetaWindow::changePlayerName(){
-  bool gotNewName;
-  QString newName = QInputDialog::getText(this, tr("Set Player Name"),
-    tr("New Player Name:"), QLineEdit::Normal, "", &gotNewName);
-  if(gotNewName && !newName.isEmpty()){
-    connect(
-      dataStore,
-      SIGNAL(playerNameChanged(const QString&)),
-      this,
-      SLOT(onPlayerNameChanged()));
-    connect(
-      dataStore,
-      SIGNAL(playerNameChangeError(const QString&)),
-      this,
-      SLOT(onPlayerNameChangeError(const QString&)));
-    dataStore->setPlayerName(newName);
-  }
-  else if(gotNewName){
-    QMessageBox::critical(this, "Player Name Blank", "You must provided a non-blank name for your player");
-  }
-
-}
-
-void MetaWindow::disconnectNameChangeSignals(){
-  disconnect(
-      dataStore,
-      SIGNAL(playerNameChanged(const QString&)),
-      this,
-      SLOT(onPlayerNameChanged()));
-  disconnect(
-      dataStore,
-      SIGNAL(playerNameChangeError(const QString&)),
-      this, SLOT(onPlayerNameChangeError(const QString&)));
-}
-
-void MetaWindow::onPlayerNameChanged(){
-  disconnectNameChangeSignals();
-}
-
-void MetaWindow::onPlayerNameChangeError(const QString& errMessage){
-  disconnectNameChangeSignals();
-  QMessageBox::critical(this, "Error Changing Player Name", errMessage);
-}
-
 
 void MetaWindow::displayLibrary(){
   contentStack->setCurrentWidget(libraryWidget);

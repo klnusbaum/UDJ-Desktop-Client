@@ -21,6 +21,8 @@ configure_file(
   "${PROJECT_BINARY_DIR}/src/ConfigDefs.hpp"
 )
 
+INCLUDE( AddAppIconMacro )
+
 SET(SOURCES 
   main.cpp 
   PlaybackWidget.cpp
@@ -54,6 +56,10 @@ SET(SOURCES
   PlaybackErrorMessage.cpp
 )
 
+#IF(APPLE)
+#SET( SOURCES ${SOURCES} mac/UDJApp_Mac.mm)
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/mac)
+#ENDIF(APPLE)
 
 include_directories("${PROJECT_BINARY_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/src")
@@ -81,10 +87,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
   endif()
 endif()
 
-set(RESOURCES_SOURCES "")
-if(MSVC)
-  list(APPEND RESOURCES_SOURCES ${PROJECT_SOURCE_DIR}/src/udj.rc)
-endif()
+set(ICON_SOURCES "")
+kde4_add_app_icon( ICON_SOURCES "${CMAKE_SOURCE_DIR}/icons/udjlauncher*.png" )
+
 
 if(APPLE)
 set(MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
@@ -92,7 +97,6 @@ set(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
 set(MACOSX_BUNDLE_COPYRIGHT "${PROJECT_COPYRIGHT_YEAR} ${PROJECT_VENDOR}")
-set(MACOSX_BUNDLE_ICON_FILE "udjlauncher.icns")
 set(MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}")
 
 set(MACOSX_BUNDLE_RESOURCES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.app/Contents/Resources")
@@ -101,9 +105,18 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${MACOSX_BUNDLE_RESOU
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MACOSX_BUNDLE_ICON} ${MACOSX_BUNDLE_RESOURCES})
 endif()
 
+set(UDJ_EXTRA_LIBS "")
+if(WIN32)
+  list(APPEND UDJ_EXTRA_LIBS  ${QTSPARKLE_LIBRARIES})
+elseif(APPLE)
+  find_library(SPARKLE Sparkle)
+  list(APPEND UDJ_EXTRA_LIBS ${SPARKLE})
+endif(WIN32)
+
+message(STATUS "EXTRA ${UDJ_EXTRA_LIBS}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES} ${MOC_SOURCES} ${RESOURCES_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${TAGLIB})
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SOURCES} ${MOC_SOURCES} ${ICON_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${PHONON_LIBS} ${TAGLIB} ${UDJ_EXTRA_LIBS})
 
 if(APPLE)
   set(CMAKE_INSTALL_PREFIX "/Applications")
@@ -124,16 +137,33 @@ endif()
 
 
 IF(WIN32)
-#We need to look for and include the openssl libs because some asshole made
-#openssl export controlled and isn't installed by default on windows
-  FIND_PACKAGE(OpenSSL)
-  if(NOT OPENSSL_FOUND)
-    message(fatal_error "Cannot find OpenSSL. This is required on windows")
-  endif()
-  get_filename_component(OPENSSL_ROOT ${OPENSSL_INCLUDE_DIR} PATH)
-  set(SSL_LIBS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
+  #We need to look for and include the openssl libs because some asshole made
+  #openssl export controlled and isn't installed by default on windows
+  FIND_PACKAGE(OpenSSLCross REQUIRED)
+#   get_filename_component(OPENSSL_ROOT ${OPENSSL_INCLUDE_DIR} PATH)
+#   set(SSL_LIBS_DLLS "${OPENSSL_ROOT}/bin/libeay32.dll" "${OPENSSL_ROOT}/bin/ssleay32.dll")
+#
+#   INSTALL(FILES ${SSL_LIBS_DLLS} DESTINATION ${BIN_INSTALL_DIR})
 
-  INSTALL(FILES ${SSL_LIBS} DESTINATION ${BIN_INSTALL_DIR})
+
+  #Do some fancy foot work to get phonon vlc working on widnows, this is so stupid and I hate it.
+
+
+  #vlc libs
+#   get_filename_component(LIBVLC_ROOT ${LIBVLC_LIBRARY} PATH)
+#   set(VLC_LIB_DLLS "${LIBVLC_ROOT}/libvlc.dll")
+#   INSTALL(FILES ${VLC_LIB_DLLS} DESTINATION ${BIN_INSTALL_DIR})
+
+
+  #And the friggen PHONON_VLC_DLL
+#   find_file(PHONON_VLC_DLL phonon_vlc.dll
+#     HINT "$ENV{PHONON_VLC_ROOT_DIR}bin/phonon_backend"
+#   )
+#   if(NOT PHONON_VLC_DLL)
+#     message(FATAL_ERROR "Could not find phonon vlc backend")
+#   else(NOT PHONON_VLC_DLL)
+#     message(STATUS "Found Phonon VLC Backend DLL: ${PHONON_VLC_DLL}")
+#   endif(NOT PHONON_VLC_DLL)
 endif()
 
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
@@ -148,53 +178,3 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libtag1c2a, libqt4-network, libqt4-sql-sqlite,
 SET(CPACK_PACKAGE_CONTACT "klnusbaum@bazaarsolutions.com")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "UDJ is a social music player that allows you and your friends to controll a single music player from your smart phones")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "SOUND")
-if(WIN32)
-  set(CPACK_GENERATOR "NSIS")
-  set(CPACK_PACKAGE_EXECUTABLES "${PROJECT_NAME}" "${PROJECT_NAME}")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME}")
-  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME} ${PROJECT_VERSION}")
-  set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
-  set(CPACK_NSIS_EXECUTABLES_DIRECTORY "${BIN_INSTALL_DIR}")
-  #set(CPACK_NSIS_MUI_ICON "${PROJECT_ICONS_DIRECTORY}/NSIS.ico")
-  #set(CPACK_PACKAGE_ICON "${PROJECT_ICONS_DIRECTORY}\\\\NSISHeader.bmp")
-  set(CPACK_NSIS_URL_INFO_ABOUT "http://${PROJECT_DOMAIN}")
-  #set(CPACK_NSIS_INSTALLED_ICON_NAME "${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
-  #set(CPACK_NSIS_MENU_LINKS "${LICENSE_FILE}" "License" "${README_FILE}" "Readme")
-  #set(CPACK_NSIS_MUI_FINISHPAGE_RUN "${CPACK_NSIS_INSTALLED_ICON_NAME}")
-endif()
-if(APPLE)
-  set(CMAKE_INSTALL_PREFIX "/Applications")
-  set(CPACK_GENERATOR "DragNDrop")
-  set(CPACK_DMG_FORMAT "UDBZ")
-  set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")
-  set(CPACK_SYSTEM_NAME "OSX")
-  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}")
-  set(CPACK_PACKAGE_ICON "${ICONS_DIR}/udjlauncher.icns")
-  #set(CPACK_DMG_DS_STORE "${ICONS_DIR}/DMGDSStore")
-  #set(CPACK_DMG_BACKGROUND_IMAGE "${ICONS_DIR}/DMGBackground.png")
-endif()
-
-include(CPack)
-
-
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "${BIN_INSTALL_DIR}")
-include(InstallRequiredSystemLibraries)
-if(APPLE)
-  set(EXECUTABLE "${PROJECT_NAME}.app")
-elseif(WIN32)
-  set(EXECUTABLE "${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
-else()
-  set(EXECUTABLE "${BIN_INSTALL_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
-endif()
-
-set(UDJ_QT_PLUGINS "qsqlite")
-if(APPLE)
-  list(APPEND UDJ_QT_PLUGINS phonon_qt7)
-elseif(WIN32)
-  list(APPEND UDJ_QT_PLUGINS phonon_ds9)
-endif()
-
-if(APPLE OR WIN32)
-  include(DeployQt4)
-  install_qt4_executable("${EXECUTABLE}" "${UDJ_QT_PLUGINS}")
-endif()

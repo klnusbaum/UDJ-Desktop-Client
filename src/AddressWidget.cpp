@@ -39,8 +39,8 @@ AddressWidget::AddressWidget(
   setupStateCombo(state);
   zipcodeEdit = new QLineEdit(zipcode);
   QFormLayout *formLayout = new QFormLayout;
-  formLayout->addRow(tr("Address:"), streetAddressEdit);
-  formLayout->addRow(tr("City:"), cityEdit);
+  formLayout->addRow(tr("Address (Optional):"), streetAddressEdit);
+  formLayout->addRow(tr("City (Optional):"), cityEdit);
   formLayout->addRow(tr("State:"), stateCombo);
   formLayout->addRow(tr("Zipcode:"), zipcodeEdit);
   setLayout(formLayout);
@@ -59,14 +59,14 @@ QString AddressWidget::getState() const{
   return stateCombo->currentText();
 }
 
-int AddressWidget::getZipcode() const{
-  return zipcodeEdit->text().toInt();
+QString AddressWidget::getZipcode() const{
+  return zipcodeEdit->text();
 }
 
 
 QString AddressWidget::getBadInputs() const{
   QString toReturn ="";
-  int errorCounter = 1;
+/*  int errorCounter = 1;
   if(streetAddressEdit->text() == ""){
     toReturn += QString::number(errorCounter++) + 
       ". You did not enter a street address.\n";
@@ -78,7 +78,7 @@ QString AddressWidget::getBadInputs() const{
   if(!getZipcodeRegex().exactMatch(zipcodeEdit->text())){
     toReturn += QString::number(errorCounter++) + 
       ". Zipcode invalid.";
-  }
+  }*/
   return toReturn;
 }
 
