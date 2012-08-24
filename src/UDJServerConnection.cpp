@@ -333,11 +333,6 @@ void UDJServerConnection::handleReceivedLibMod(QNetworkReply *reply){
     QSet<library_song_id_t> allSynced = addedIds.unite(deletedIds);
     emit libSongsSyncedToServer(allSynced);
   }
-  else if(isResponseType(reply, 409)){
-    Logger::instance()->log("got 409 lib mod reply");
-    QSet<library_song_id_t> alreadyExistingIds = JSONHelper::convertLibIdArray(reply->readAll());
-    emit libSongsSyncedToServer(alreadyExistingIds);
-  }
   else{
     Logger::instance()->log("Got bad lib mod");
     QByteArray response = reply->readAll();

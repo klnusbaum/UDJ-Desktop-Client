@@ -238,9 +238,7 @@ public:
    * @return True if the player has a password, false otherwise.
    */
   inline bool hasPlayerPassword() const{
-    QSettings settings(
-      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.contains(getPlayerPasswordSettingName());
+    return getPlayerPassword() != "";
   }
 
   /**
