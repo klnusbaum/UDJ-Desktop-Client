@@ -256,6 +256,9 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
   else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 401){
     emit authFailed(tr("Incorrect Username and password"));
   }
+  else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 501){
+    emit authFailed(tr("Your version of the UDJ player is out of date. Please check www.udjplayer.com for an update."));
+  }
   else{
     QByteArray responseData = reply->readAll();
     QString responseString = QString::fromUtf8(responseData);
