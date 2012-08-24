@@ -153,6 +153,12 @@ private slots:
   void setPlayerPassword();
 
   /**
+   * \brief Scans the iTunes library for any music that can be added to the music library and
+   * attempts to add them.
+   */
+  void scanItunesLibrary();
+
+  /**
    * \brief Performs necessary actions in order to start removing the player's password.
    */
   void removePlayerPassword();
@@ -209,10 +215,11 @@ private:
   /** \brief Triggers display of the about widget */
   QAction *viewAboutAction;
 
-  /**
-   * \brief Triggers the setting of the player location.
-   */
+  /** \brief Triggers the setting of the player location.  */
   QAction *setLocationAction;
+
+  /** \brief Triggers rescanning of the iTunes Library. */
+  QAction *rescanItunesAction;
 
   /**
    * \brief Triggers the setting of the player password.
@@ -282,9 +289,12 @@ private:
   /** \brief Configures the menu for changing player settings. */
   void configurePlayerMenu();
 
-  /** 
+  /** \brief Determines whether or not the user had an iTunes library. */
+  bool hasItunesLibrary();
+
+  /**
    * \brief Attemps to add the given media sources to the library.
-   * 
+   *
    * \param musicToAdd A list of media sources to be added to the library.
    */
   void addMediaSources(const QList<Phonon::MediaSource>& musicToAdd);

@@ -135,25 +135,35 @@ void MetaWindow::closeEvent(QCloseEvent *event){
   }
 }
 
-void MetaWindow::checkForITunes(){
+bool MetaWindow::hasItunesLibrary(){
   QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
   QDir iTunesDir = QDir(musicDir).filePath("iTunes");
-  if(iTunesDir.exists("iTunes Music Library.xml")){
+  return iTunesDir.exists("iTunes Music Library.xml");
+}
+
+void MetaWindow::checkForITunes(){
+  if(hasItunesLibrary()){
     QMessageBox::StandardButton response = QMessageBox::question(
       this, "Import iTunes Library", "Looks like you've got iTunes installed. Would you like"
       " us to try to import your iTunes Library?",
       QMessageBox::Yes | QMessageBox::No,
       QMessageBox::Yes);
     if(response == QMessageBox::Yes){
-      QList<Phonon::MediaSource> musicToAdd =
-        MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"), dataStore);
-      Logger::instance()->log("Size of itunes was: " + QString::number(musicToAdd.size()));
-      addMediaSources(musicToAdd);
+      scanItunesLibrary();
     }
   }
   else{
-    Logger::instance()->log(iTunesDir.filePath("iTunes Music Library.xml") + " doesn't exist");
+    Logger::instance()->log("iTunes dir doesn't exist");
   }
+}
+
+void MetaWindow::scanItunesLibrary(){
+  QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
+  QDir iTunesDir = QDir(musicDir).filePath("iTunes");
+  QList<Phonon::MediaSource> musicToAdd =
+    MusicFinder::findItunesMusic(iTunesDir.filePath("iTunes Music Library.xml"), dataStore);
+  Logger::instance()->log("Size of itunes was: " + QString::number(musicToAdd.size()));
+  addMediaSources(musicToAdd);
 }
 
 void MetaWindow::addMediaSources(const QList<Phonon::MediaSource>& musicToAdd){
@@ -161,7 +171,7 @@ void MetaWindow::addMediaSources(const QList<Phonon::MediaSource>& musicToAdd){
     QMessageBox::information(
         this, 
         "No Music Found", 
-        "Sorry, but we couldn't find any new music that we know how to play in that folder.");
+        "Sorry, but we couldn't find any new music that we know how to play.");
     return;
   }
 
@@ -280,6 +290,7 @@ void MetaWindow::createActions(){
   viewLogAction = new QAction(tr("View &Log"), this);
   viewLogAction->setShortcut(tr("Ctrl+L"));
   viewAboutAction = new QAction(tr("About"), this);
+  rescanItunesAction = new QAction(tr("Rescan iTunes Library"), this);
   #if IS_WINDOWS_BUILD
   checkUpdateAction = new QAction(tr("Check For Updates"), this);
   connect(checkUpdateAction, SIGNAL(triggered()), updater, SLOT(CheckNow()));
@@ -289,12 +300,16 @@ void MetaWindow::createActions(){
   connect(addSongAction, SIGNAL(triggered()), this, SLOT(addSongToLibrary()));
   connect(viewLogAction, SIGNAL(triggered()), this, SLOT(displayLogView()));
   connect(viewAboutAction, SIGNAL(triggered()), this, SLOT(displayAboutWidget()));
+  connect(rescanItunesAction, SIGNAL(triggered()), this, SLOT(scanItunesLibrary()));
 }
 
 void MetaWindow::setupMenus(){
   QMenu *musicMenu = menuBar()->addMenu(tr("&Music"));
   musicMenu->addAction(addMusicAction);
   musicMenu->addAction(addSongAction);
+  if(hasItunesLibrary()){
+    musicMenu->addAction(rescanItunesAction);
+  }
   musicMenu->addSeparator();
   musicMenu->addAction(quitAction);
 
