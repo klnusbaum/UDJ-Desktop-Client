@@ -94,13 +94,16 @@ private slots:
   /** @name Private Slots */
   //@{
 
-  /** \brief Shows the logger view */
+  /** \brief Inform the user their current credentials no longer work.  */
+  void onHardAuthFailure();
+
+  /** \brief Shows the logger view. */
   void displayLogView();
 
-  /** \brief Shows the about widget*/
+  /** \brief Shows the about widget. */
   void displayAboutWidget();
 
-  /** \brief Initiates the syncing of the library */
+  /** \brief Initiates the syncing of the library. */
   void syncLibrary();
 
   /**
@@ -267,6 +270,12 @@ private:
 
   /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;
+
+  /**
+   * \brief A flag indicating whether or not the client is currently expeiriencing a hard
+   * authentication failure.
+   */
+  bool hasHardAuthFailure;
 
 #if IS_WINDOWS_BUILD
   qtsparkle::Updater* updater;

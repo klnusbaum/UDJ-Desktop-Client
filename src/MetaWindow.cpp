@@ -58,7 +58,8 @@ MetaWindow::MetaWindow(
   QWidget *parent,
   Qt::WindowFlags flags)
   :QMainWindow(parent,flags),
-  isQuiting(false)
+  isQuiting(false),
+  hasHardAuthFailure(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
   #if IS_WINDOWS_BUILD
@@ -118,10 +119,15 @@ MetaWindow::MetaWindow(
     SIGNAL(playerCreated()),
     dataStore,
     SLOT(startPlaylistAutoRefresh()));
+  connect(
+    dataStore,
+    SIGNAL(hardAuthFailure()),
+    this,
+    SLOT(onHardAuthFailure()));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
-  if(!isQuiting){
+  if(!isQuiting && !hasHardAuthFailure){
     isQuiting = true;
     connect(
       dataStore,
@@ -488,6 +494,13 @@ void MetaWindow::enableRemovePassword(){
 
 void MetaWindow::disableRemovePassword(){
   removePasswordAction->setEnabled(false);
+}
+
+void MetaWindow::onHardAuthFailure(){
+  hasHardAuthFailure = true;
+  QMessageBox::critical(this, tr("Bad password"), tr("It appears you have changed your password "
+    "since you last logged in. Please restart UDJ with your new password."));
+  close();
 }
 
 } //end namespace
