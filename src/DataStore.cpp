@@ -64,6 +64,17 @@ DataStore::DataStore(
   activePlaylistRefreshTimer->setInterval(5000);
   setupDB();
 
+  connect(serverConnection,
+      SIGNAL(playerStateSet(const QString&)),
+      this,
+      SLOT(onPlayerStateSet(const QString&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerStateSetError(const QString&, const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onPlayerStateSetError(const QString&, const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
   connect(
     serverConnection,
     SIGNAL(playerPasswordSet(const QString&)),
@@ -229,22 +240,36 @@ void DataStore::startPlaylistAutoRefresh(){
   activePlaylistRefreshTimer->start();
 }
 
-void DataStore::onPlayerStateSetFail(
+void DataStore::onPlayerStateSet(const QString& state){
+  if(state == getInactiveState()){
+    emit playerSuccessfullySetInactive();
+  }
+}
+
+void DataStore::onPlayerStateSetError(
+    const QString& state,
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers)
 {
   if(isTicketAuthError(errorCode, headers)){
     Logger::instance()->log("Got the ticket-hash challenge");
-    reauthActions.insert(SET_PLAYER_STATE);
+    if(state != getInactiveState()){
+      reauthActions.insert(SET_PLAYER_STATE);
+    }
+    else{
+      reauthActions.insert(SET_PLAYER_INACTIVE);
+    }
     initReauth();
   }
   else{
-    emit playerStateSetError(errMessage);
+    if(state != getInactiveState()){
+      emit playerStateSetError(errMessage);
+    }
+    else{
+      emit playerSetInactiveError(errMessage);
+    }
   }
-
-
-
 }
 
 
@@ -330,10 +355,12 @@ void DataStore::playPlayer(){
 
 void DataStore::setPlayerState(const QString& newState){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  if(newState != settings.value(getPlayerStateSettingName())){
-    settings.setValue(getPlayerStateSettingName(), newState);
-    serverConnection->setPlayerState(newState);
-  }
+  settings.setValue(getPlayerStateSettingName(), newState);
+  serverConnection->setPlayerState(newState);
+}
+
+void DataStore::setPlayerInactive(){
+  serverConnection->setPlayerState(getInactiveState());
 }
 
 
@@ -1007,6 +1034,9 @@ void DataStore::doReauthAction(const ReauthAction& action){
       break;
     case SET_PLAYER_STATE:
       serverConnection->setPlayerState(getPlayerState());
+      break;
+    case SET_PLAYER_INACTIVE:
+      serverConnection->setPlayerState(getInactiveState());
       break;
   }
 }

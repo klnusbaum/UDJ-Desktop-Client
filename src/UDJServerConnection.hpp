@@ -317,11 +317,13 @@ signals:
   /**
    * \brief Emitted when there was an error changing the players state.
    *
+   * @param desiredState The state which failed to be set on the player.
    * @param errMessage A message describing the error.
    * @param errorCode The http status code that describes the error.
    * @param headers The headers from the http response that indicated a failure.
    */
   void playerStateSetError(
+    const QString& desiredState,
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

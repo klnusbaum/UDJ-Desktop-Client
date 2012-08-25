@@ -277,6 +277,7 @@ void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){
     QString responseData = QString(reply->readAll());
     Logger::instance()->log("Player state set error " + responseData);
     emit playerStateSetError(
+      reply->property(getStatePropertyName()).toString(),
       responseData,
       reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
       reply->rawHeaderPairs());

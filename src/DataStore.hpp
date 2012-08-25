@@ -52,7 +52,8 @@ public:
     SET_CURRENT_SONG,
     MOD_PLAYLIST,
     SET_CURRENT_VOLUME,
-    SET_PLAYER_STATE
+    SET_PLAYER_STATE,
+    SET_PLAYER_INACTIVE
   };
 
   /**
@@ -151,6 +152,11 @@ public:
    * \param State to which the player should be set.
    */
   void setPlayerState(const QString& newState);
+
+  /**
+   * \brief Sets the player as inactive.
+   */
+  void setPlayerInactive();
 
   /**
    * \brief Removes the given songs from the music library. 
@@ -987,6 +993,18 @@ signals:
 //@{
 
   /**
+   * \brief Emitted when the player state was succesfully changed to inactive.
+   */
+  void playerSuccessfullySetInactive();
+
+  /**
+   * \brief Emitted when there was an error setting the player inactive.
+   *
+   * @param errMessage A message descibing the error.
+   */
+  void playerSetInactiveError(const QString& errMessage);
+
+  /**
    * \brief Emitted when there was an error setting the player's state.
    *
    * @param errMessage A message descibing the error.
@@ -1365,6 +1383,30 @@ private:
 private slots:
 
   /**
+   * \brief Performs appropriate tasks when the player's state has been succesfully changed on the
+   * server.
+   *
+   * \param state The state the player was changed to on the server.
+   */
+  void onPlayerStateSet(const QString& state);
+
+  /**
+   * \brief Performs appropriate tasks when the player's state has been succesfully changed on the
+   * server.
+   *
+   * \param state The state which was attempted to be set on the player.
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onPlayerStateSetError(
+    const QString& state,
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
+  /**
    * \brief Preforms appropriate tasks when a player's password has been removed.
    */
   void onPlayerPasswordRemoved();
@@ -1574,17 +1616,6 @@ private slots:
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
 
-  /**
-   * \brief Takes appropriate action when setting the state of the player fails.
-   *
-   * @param errMessage A message describing the error.
-   * @param errorCode The http status code that describes the error.
-   * @param headers The headers from the http response that indicated a failure.
-   */
-  void onPlayerStateSetFail(
-    const QString& errMessage,
-    int errorCode,
-    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   //@}
 

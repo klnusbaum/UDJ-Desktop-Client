@@ -81,7 +81,7 @@ MetaWindow::MetaWindow(
     setWindowState(Qt::WindowMaximized);
   }
   if(dataStore->hasPlayerId()){
-    dataStore->setPlayerState(DataStore::getPlayingState());
+    dataStore->playPlayer();
     dataStore->startPlaylistAutoRefresh();
     if(dataStore->hasUnsyncedSongs()){
       syncLibrary();
@@ -111,7 +111,7 @@ MetaWindow::MetaWindow(
   connect(
     dataStore,
     SIGNAL(playerCreated()),
-    this,
+    dataStore,
     SLOT(playPlayer()));
   connect(
     dataStore,
@@ -125,13 +125,14 @@ void MetaWindow::closeEvent(QCloseEvent *event){
     isQuiting = true;
     connect(
       dataStore,
-      SIGNAL(playerStateChanged(const QString&)),
+      SIGNAL(playerSuccessfullySetInactive()),
       this,
       SLOT(close()));
+    //NOTE NOT HANDLING IF THERE WAS AN ERROR SETTING THE PLAYER INACTIVE NEED TO HANDLE THIS
     quittingProgress = new QProgressDialog("Disconnecting...", "Cancel", 0, 0, this);
     quittingProgress->setWindowModality(Qt::WindowModal);
     quittingProgress->setMinimumDuration(250);
-    dataStore->setPlayerState(DataStore::getInactiveState());
+    dataStore->setPlayerInactive();
     event->ignore();
   }
   else{
