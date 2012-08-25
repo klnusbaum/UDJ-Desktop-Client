@@ -263,10 +263,13 @@ void DataStore::onPlayerStateSetError(
     initReauth();
   }
   else{
-    if(state != getInactiveState()){
-      emit playerStateSetError(errMessage);
+    if(state == getPlayingState()){
+      emit playPlayerError(errMessage);
     }
-    else{
+    else if(state == getPausedState()){
+      emit pausePlayerError(errMessage);
+    }
+    else if(state == getInactiveState()){
       emit playerSetInactiveError(errMessage);
     }
   }

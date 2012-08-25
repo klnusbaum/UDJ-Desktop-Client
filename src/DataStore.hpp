@@ -147,13 +147,6 @@ public:
   );
 
   /**
-   * \brief Set player state.
-   *
-   * \param State to which the player should be set.
-   */
-  void setPlayerState(const QString& newState);
-
-  /**
    * \brief Sets the player as inactive.
    */
   void setPlayerInactive();
@@ -1004,12 +997,20 @@ signals:
    */
   void playerSetInactiveError(const QString& errMessage);
 
+
   /**
-   * \brief Emitted when there was an error setting the player's state.
+   * \brief Emitted when there was an error setting the player to "playing".
    *
    * @param errMessage A message descibing the error.
    */
-  void playerStateSetError(const QString& errMessage);
+  void playPlayerError(const QString& errMessage);
+
+  /**
+   * \brief Emitted when there was an error setting the player to "paused".
+   *
+   * @param errMessage A message descibing the error.
+   */
+  void pausePlayerError(const QString& errMessage);
 
   /**
    * \brief Emitted when the player's password has been removed.
@@ -1160,6 +1161,13 @@ private:
 
   /** \brief Does initial database setup */
   void setupDB();
+
+  /**
+   * \brief Set player state.
+   *
+   * \param State to which the player should be set.
+   */
+  void setPlayerState(const QString& newState);
 
   /**
    * \brief Deletes a single song from the active playlist.
