@@ -172,14 +172,11 @@ private slots:
   void removePlayerPassword();
 
   /**
-   * \brief Preforms necessary actions when the player password was sucesfully removed.
-   */
-  void onPlayerPasswordRemoved();
-
-  /**
    * \brief Preforms necessary actions when there was an error removing the player password.
+   *
+   * \param errMessage A message describing the error.
    */
-  void onPlayerPasswordRemoveError();
+  void onPlayerPasswordRemoveError(const QString& errMessage);
 
   /**
    * \brief Enables the ability to remove the player password.
@@ -318,12 +315,6 @@ private:
    * of a library sync operation.
    */
   void disconnectSyncSignals();
-
-  /**
-   * \brief Disconnects any signals that may have been setup when initiating a player
-   * password removal operation.
-   */
-  void disconnectPlayerPasswordRemoveSignals();
 
   //@}
 

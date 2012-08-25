@@ -128,6 +128,12 @@ MetaWindow::MetaWindow(
     SIGNAL(playerLocationSetError(const QString&)),
     this,
     SLOT(onPlayerLocationSetError(const QString&)));
+
+  connect(
+    dataStore,
+    SIGNAL(playerPasswordRemoveError(const QString&)),
+    this,
+    SLOT(onPlayerPasswordRemoveError(const QString&)));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -368,40 +374,11 @@ void MetaWindow::removePlayerPassword(){
       this, tr("Remove password"), tr("Are you sure you want to remove the player password"),
       QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
   if(response == QMessageBox::Ok){
-    connect(
-      dataStore,
-      SIGNAL(playerPasswordRemoved()),
-      this,
-      SLOT(onPlayerPasswordRemoved()));
-    connect(
-      dataStore,
-      SIGNAL(playerPasswordRemoveError(const QString&)),
-      this,
-      SLOT(onPlayerPasswordRemoveError()));
     dataStore->removePlayerPassword();
   }
 }
 
-void MetaWindow::disconnectPlayerPasswordRemoveSignals(){
-    disconnect(
-      dataStore,
-      SIGNAL(playerPasswordRemoved()),
-      this,
-      SLOT(onPlayerPasswordRemoved()));
-    disconnect(
-      dataStore,
-      SIGNAL(playerPasswordRemoveError(const QString&)),
-      this,
-      SLOT(onPlayerPasswordRemoveError()));
-}
-
-
-void MetaWindow::onPlayerPasswordRemoved(){
-  disconnectPlayerPasswordRemoveSignals();
-}
-
-void MetaWindow::onPlayerPasswordRemoveError(){
-  disconnectPlayerPasswordRemoveSignals();
+void MetaWindow::onPlayerPasswordRemoveError(const QString& /*errMessage*/){
   QMessageBox::critical(this, tr("Error Removing Password"), tr("Oops. We couldn't remove the "
       "player's password. We're super sorry. Can you try it again in a little bit?"));
 }

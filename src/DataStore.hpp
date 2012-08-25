@@ -55,7 +55,8 @@ public:
     SET_PLAYER_STATE,
     SET_PLAYER_INACTIVE,
     SET_PLAYER_LOCATION,
-    SET_PLAYER_PASSWORD
+    SET_PLAYER_PASSWORD,
+    REMOVE_PLAYER_PASSWORD
   };
 
   /**
@@ -1423,12 +1424,6 @@ private slots:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
-
-
-  /**
-   * \brief Preforms appropriate tasks when a player's password has been removed.
-   */
-  void onPlayerPasswordRemoved();
 
   /**
    * \brief Preforms appropriate tasks when there was an error removing the player's password.
