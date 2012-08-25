@@ -25,7 +25,7 @@ namespace UDJ{
 
 AboutWidget::AboutWidget(QWidget *parent):QWidget(parent){
   QVBoxLayout *mainLayout = new QVBoxLayout();
-  mainLayout->addWidget(new QLabel(tr("UDJ Player Client Version " + UDJ_VERSION)));
+  mainLayout->addWidget(new QLabel(tr("UDJ Player Client Version "  UDJ_VERSION)));
   mainLayout->addSpacing(1);
   mainLayout->addWidget(new QLabel(tr("Written By Kurtis Nusbaum")));
   mainLayout->addSpacing(1);
