@@ -101,7 +101,9 @@ void LoginWidget::setupUi(){
   //If we already have a player id we can't let the sign in with a different user
   //then the last one the signed in with. Otherwise bad things might happen because
   //the user they sign in as may not have permission to do things like set the player state.
-  if(DataStore::hasPlayerId()){
+  //The check for if they have a saved username or not is for people who are upgrading and may
+  //not have saved their username in older versions but have created a player.
+  if(DataStore::hasPlayerId() && DataStore::getSavedUsername() != "" ){
     QString alreadyAssociatedMessage(tr("You have already associated a player with this computer.\n"
       "This means you have to login as the player's owner."));
     usernameBox->setEnabled(false);
