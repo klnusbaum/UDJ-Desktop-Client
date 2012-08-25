@@ -3,3 +3,9 @@ Initial version of the UDJ Player
 
 Version 0.5.1
 Fixed playback issues for Windows player. Windows player now has an updater. 
+
+Version 0.6.0
+Upgrade client to work with new API
+Fixed numerous playback errors
+Fixed numerous reauthentication errors
+

@@ -19,12 +19,13 @@
 #include "AboutWidget.hpp"
 #include <QVBoxLayout>
 #include <QLabel>
+#include "ConfigDefs.hpp"
 
 namespace UDJ{
 
 AboutWidget::AboutWidget(QWidget *parent):QWidget(parent){
   QVBoxLayout *mainLayout = new QVBoxLayout();
-  mainLayout->addWidget(new QLabel(tr("UDJ Player Client Version 0.5.0")));
+  mainLayout->addWidget(new QLabel(tr("UDJ Player Client Version " + UDJ_VERSION)));
   mainLayout->addSpacing(1);
   mainLayout->addWidget(new QLabel(tr("Written By Kurtis Nusbaum")));
   mainLayout->addSpacing(1);
