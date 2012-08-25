@@ -142,9 +142,6 @@ void PlaybackWidget::playNextSong(){
       && nextSong.source.type() != Phonon::MediaSource::Invalid)
   {
     setSongInfo(nextSong);
-    #if IS_WINDOWS_BUILD
-    //removeTags(nextSong);
-    #endif
     mediaObject->play();
   }
 }
