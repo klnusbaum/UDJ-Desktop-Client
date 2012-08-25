@@ -92,7 +92,7 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
     audioOutput,
     SIGNAL(volumeChanged(qreal)),
     dataStore,
-    SLOT(changeVolumeSilently(qreal)));
+    SLOT(setVolume(qreal)));
 
   connect(
     dataStore,

@@ -670,7 +670,7 @@ void DataStore::createNewPlayer(
     zipcode);
 }
 
-void DataStore::changeVolumeSilently(qreal newVolume){
+void DataStore::setVolume(qreal newVolume){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   Logger::instance()->log("Current volume " + QString::number(settings.value(getPlayerVolumeSettingName()).toReal()));
   Logger::instance()->log("New volume " + QString::number(newVolume));
@@ -996,6 +996,9 @@ void DataStore::onSetVolumeFailed(
     Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(SET_CURRENT_VOLUME);
     initReauth();
+  }
+  else{
+    emit setVolumeError(errMessage);
   }
 }
 

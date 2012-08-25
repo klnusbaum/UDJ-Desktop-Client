@@ -978,11 +978,11 @@ public slots:
   void setCurrentSong(const library_song_id_t& songToPlay);
 
   /** 
-   * \brief Changes the volume without emtting a signal noting that the volume has changed.
+   * \brief Sets the volume for the player.
    *
    * @param newVolume The new player volume.
    */
-  void changeVolumeSilently(qreal newVolume);
+  void setVolume(qreal newVolume);
 
   /** \brief Determines whether or not the library has unsynced songs.*/
   bool hasUnsyncedSongs() const;
@@ -1133,6 +1133,13 @@ signals:
    * @param newVolume The new volume of the player.
    */
   void volumeChanged(qreal newVolume);
+
+  /**
+   * \brief Emitted when changing the volume on the server failed.
+   *
+   * @param errMessage A message describing the error.
+   */
+  void setVolumeError(const QString& errMessage);
 
 //@}
 
