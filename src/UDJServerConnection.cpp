@@ -205,6 +205,13 @@ void UDJServerConnection::setPlayerState(const QString& newState){
   reply->setProperty(getStatePropertyName(), newState);
 }
 
+void UDJServerConnection::clearCurrentSong(){
+  Logger::instance()->log("Clearing current song");
+  QNetworkRequest clearCurrentSongRequest(getCurrentSongUrl());
+  clearCurrentSongRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  /*QNetworkReply *reply =*/ netAccessManager->deleteResource(clearCurrentSongRequest);
+}
+
 void UDJServerConnection::recievedReply(QNetworkReply *reply){
   if(reply->request().url().path() == getAuthUrl().path()){
     handleAuthReply(reply);
@@ -218,8 +225,15 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(isGetActivePlaylistReply(reply)){
     handleReceivedActivePlaylist(reply);
   }
-  else if(reply->request().url().path() == getCurrentSongUrl().path()){
+  else if(reply->request().url().path() == getCurrentSongUrl().path() && 
+      reply->operation() == QNetworkAccessManager::PostOperation)
+  {
     handleReceivedCurrentSongSet(reply);
+  }
+  else if(reply->request().url().path() == getCurrentSongUrl().path() && 
+      reply->operation() == QNetworkAccessManager::DeleteOperation)
+  {
+    handleRecievedClearCurrentSong(reply);
   }
   else if(reply->request().url().path() == getLibModUrl().path()){
     handleReceivedLibMod(reply);
@@ -267,6 +281,21 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
       tr("We're experiencing some techinical difficulties. "
       "We'll be back in a bit"));
   }
+}
+
+void UDJServerConnection::handleRecievedClearCurrentSong(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit currentSongCleared();
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Clear current song failed " + responseData);
+    emit currentSongClearError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+
 }
 
 void UDJServerConnection::handleSetStateReply(QNetworkReply *reply){

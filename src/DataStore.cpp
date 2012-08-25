@@ -52,6 +52,7 @@ DataStore::DataStore(
   password(password),
   isReauthing(false),
   changingPlayerState(false),
+  clearingCurrentSong(false),
   currentSongId(-1)
 {
   serverConnection = new UDJServerConnection(this);
@@ -178,6 +179,18 @@ DataStore::DataStore(
     this,
     SLOT(onAuthFail(const QString&)));
 
+  connect(
+    serverConnection,
+    SIGNAL(currentSongCleared()),
+    this,
+    SLOT(onCurrentSongCleared()));
+
+  connect(
+    serverConnection,
+    SIGNAL(currentSongClearError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onCurrentSongClearError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
 }
 
 void DataStore::setupDB(){
@@ -221,6 +234,34 @@ void DataStore::setupDB(){
 void DataStore::startPlaylistAutoRefresh(){
   activePlaylistRefreshTimer->start();
 }
+
+void DataStore::clearCurrentSong(){
+  currentSongId = -1;
+  clearingCurrentSong = true;
+  serverConnection->clearCurrentSong();
+}
+
+void DataStore::onCurrentSongCleared(){
+  clearingCurrentSong = false;
+}
+
+void DataStore::onCurrentSongClearError(
+  const QString& errMessage,
+  int errorCode,
+  const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  if(isTicketAuthError(errorCode, headers)){
+    Logger::instance()->log("Got the ticket-hash challenge");
+    reauthActions.insert(CLEAR_CURRENT_SONG);
+    initReauth();
+  }
+  else{
+    clearingCurrentSong = false;
+    emit clearCurrentSongError(errMessage);
+  }
+
+}
+
 
 void DataStore::onPlayerStateSet(const QString& state){
   changingPlayerState = false;
@@ -559,7 +600,6 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
     nextSongQuery)
   nextSongQuery.next();
   if(!nextSongQuery.isValid()){
-    currentSongId = -1;
     song_info_t toReturn = {Phonon::MediaSource(""), "", "", "" };
     return toReturn;
   }
@@ -859,7 +899,7 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
 
   library_song_id_t retrievedCurrentId =
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
-  if(retrievedCurrentId != currentSongId){
+  if(retrievedCurrentId != currentSongId && !clearingCurrentSong){
     QSqlQuery getSongQuery(
       "SELECT " + getLibFileColName() + ", " +
       getLibSongColName() + ", " +
@@ -1049,6 +1089,9 @@ void DataStore::doReauthAction(const ReauthAction& action){
       break;
     case REMOVE_PLAYER_PASSWORD:
       serverConnection->removePlayerPassword();
+      break;
+    case CLEAR_CURRENT_SONG:
+      serverConnection->clearCurrentSong();
       break;
   }
 }

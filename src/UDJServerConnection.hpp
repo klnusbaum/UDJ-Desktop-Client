@@ -201,6 +201,11 @@ public slots:
    */
   void setVolume(int newVolume);
 
+  /**
+   * \brief Tells the server that current song has finished playing.
+   */
+  void clearCurrentSong();
+
   //@}
 
 signals:
@@ -305,6 +310,20 @@ signals:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Emitted when the current song was succesfully cleared on the server.
+   */
+  void currentSongCleared();
+
+  /**
+   * \brief Emitted when there is an error clearing the current song on the server.
+   */
+  void currentSongClearError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
 
 
   /**
@@ -570,6 +589,13 @@ private:
    * @param reply Response from the server.
    */
   void handleLocationSetReply(QNetworkReply *reply);
+
+  /**
+   * \brief Handles a response from the server regarding the clearing of the current song.
+   *
+   * @param reply The Reesponse from the server.
+   */
+  void handleRecievedClearCurrentSong(QNetworkReply *reply);
 
   /**
    * \brief Prepares a network request that is going to include JSON.

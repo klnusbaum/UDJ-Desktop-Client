@@ -144,6 +144,16 @@ void PlaybackWidget::playNextSong(){
     setSongInfo(nextSong);
     mediaObject->play();
   }
+  else{
+    Logger::instance()->log("playback widget nothing left to play.");
+    //Nothing left to play at the moment. clear the current song.
+    if(dataStore->getCurrentSongId() != -1){
+      Logger::instance()->log("playback widget is clearing current song");
+      dataStore->clearCurrentSong();
+      clearWidget();
+    }
+  }
+
 }
 
 void PlaybackWidget::handlePlaylistChange(){
@@ -253,7 +263,6 @@ void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
 
 void PlaybackWidget::clearWidget(){
   mediaObject->stop();
-  mediaObject->clear();
   songInfo->setText("");
   timeLabel->setText("--:--");
 }

@@ -56,7 +56,8 @@ public:
     SET_PLAYER_INACTIVE,
     SET_PLAYER_LOCATION,
     SET_PLAYER_PASSWORD,
-    REMOVE_PLAYER_PASSWORD
+    REMOVE_PLAYER_PASSWORD,
+    CLEAR_CURRENT_SONG
   };
 
   /**
@@ -105,6 +106,10 @@ public:
    */
   bool alreadyHaveSongInLibrary(const QString& fileName) const;
 
+  inline library_song_id_t getCurrentSongId() const{
+    return currentSongId;
+  }
+
   //@}
 
 
@@ -121,6 +126,11 @@ public:
   void addMusicToLibrary(
     const QList<Phonon::MediaSource>& songs, 
     QProgressDialog* progress=0);
+
+  /**
+   * \brief Clears the current song that is playing.
+   */
+  void clearCurrentSong();
 
   /**
    * \brief Removes the password on the player.
@@ -1129,6 +1139,13 @@ signals:
    */
   void setVolumeError(const QString& errMessage);
 
+  /**
+   * \brief Emitted when clearing the current song on ther server failed.
+   *
+   * @param errMessage A message describing the error.
+   */
+  void clearCurrentSongError(const QString& errMessage);
+
 //@}
 
 private:
@@ -1159,10 +1176,19 @@ private:
 
   /**
    * \brief Whether or not the client is currently setting the player's playback state.
-   * this is used to help us ignore playback states that are different from our own while
+   *
+   * This is used to help us ignore playback states that are different from our own while
    * we're in the process of changing the playback state.
    */
   bool changingPlayerState;
+
+  /**
+   * \brief Whether or not the client is currently setting the current song as cleared.
+   *
+   * This is used to help us ignore current song changes while we're clearing the current
+   * song.
+   */
+  bool clearingCurrentSong;
 
   /** \brief The current song being played. */
   library_song_id_t currentSongId;
@@ -1428,6 +1454,23 @@ private slots:
    */
   void onPlayerStateSetError(
     const QString& state,
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Performs appropriate tasks when the current song has been succesfully cleared.
+   */
+  void onCurrentSongCleared();
+
+  /**
+   * \brief Preforms appropriate tasks when there was an error clearing the current song.
+   *
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onCurrentSongClearError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
