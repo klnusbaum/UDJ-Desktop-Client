@@ -28,7 +28,6 @@
 #include "AboutWidget.hpp"
 #include "LogViewer.hpp"
 #include "SetLocationDialog.hpp"
-#include "SetPasswordDialog.hpp"
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -408,8 +407,17 @@ void MetaWindow::onPlayerPasswordRemoveError(){
 }
 
 void MetaWindow::setPlayerPassword(){
-  SetPasswordDialog *setPasswordDialog = new SetPasswordDialog(dataStore, this);
-  setPasswordDialog->show();
+  bool ok;
+  QString newPlayerPassword = QInputDialog::getText(this, tr("Set Player Password"),
+    tr("Password:"), QLineEdit::Normal, dataStore->getPlayerPassword(), &ok);
+  if(ok){
+    if(newPlayerPassword != ""){
+      dataStore->setPlayerPassword(newPlayerPassword);
+    }
+    else{
+      QMessageBox::critical(this, "Player Password Error", "Player passwords can't be blank.");
+    }
+  }
 }
 
 void MetaWindow::setPlayerLocation(){

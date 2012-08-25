@@ -77,12 +77,6 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerPasswordSet(const QString&)),
-    this,
-    SLOT(onPlayerPasswordSet(const QString&)));
-
-  connect(
-    serverConnection,
     SIGNAL(playerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
     SLOT(onPlayerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
@@ -290,21 +284,25 @@ void DataStore::onPlayerPasswordRemoveError(
 
 
 void DataStore::setPlayerPassword(const QString& newPassword){
-  serverConnection->setPlayerPassword(newPassword);
-}
-
-void DataStore::onPlayerPasswordSet(const QString& password){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerPasswordSettingName(), password);
+  settings.setValue(getPlayerPasswordSettingName(), newPassword);
+  serverConnection->setPlayerPassword(newPassword);
   emit playerPasswordSet();
 }
 
 void DataStore::onPlayerPasswordSetError(
   const QString& errMessage,
-  int /*errorCode*/,
-  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+  int errorCode,
+  const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  emit playerPasswordSetError(errMessage);
+  if(isTicketAuthError(errorCode, headers)){
+    Logger::instance()->log("Got the ticket-hash challenge");
+    reauthActions.insert(SET_PLAYER_PASSWORD);
+    initReauth();
+  }
+  else{
+    emit playerPasswordSetError(errMessage);
+  }
 }
 
 void DataStore::setPlayerLocation(
@@ -1043,6 +1041,10 @@ void DataStore::doReauthAction(const ReauthAction& action){
         settings.value(getCitySettingName()).toString(),
         settings.value(getStateSettingName()).toString(),
         settings.value(getZipCodeSettingName()).toString());
+      break;
+    case SET_PLAYER_PASSWORD:
+      serverConnection->setPlayerPassword(
+        settings.value(getPlayerPasswordSettingName()).toString());
       break;
   }
 }

@@ -54,7 +54,8 @@ public:
     SET_CURRENT_VOLUME,
     SET_PLAYER_STATE,
     SET_PLAYER_INACTIVE,
-    SET_PLAYER_LOCATION
+    SET_PLAYER_LOCATION,
+    SET_PLAYER_PASSWORD
   };
 
   /**
@@ -1440,13 +1441,6 @@ private slots:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
-
-  /**
-   * \brief Preforms appropriate tasks when a player's password is set.
-   *
-   * \brief password The password that has been set on the server.
-   */
-  void onPlayerPasswordSet(const QString& password);
 
   /**
    * \brief Preforms appropriate tasks when there was an error setting the player's location.
