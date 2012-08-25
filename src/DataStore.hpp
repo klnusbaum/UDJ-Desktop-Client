@@ -1157,6 +1157,13 @@ private:
   /** \brief Whether or not the client is currently reauthenticating. */
   bool isReauthing;
 
+  /**
+   * \brief Whether or not the client is currently setting the player's playback state.
+   * this is used to help us ignore playback states that are different from our own while
+   * we're in the process of changing the playback state.
+   */
+  bool changingPlayerState;
+
   /** \brief The current song being played. */
   library_song_id_t currentSongId;
 

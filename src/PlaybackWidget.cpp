@@ -241,6 +241,7 @@ void PlaybackWidget::play(){
 }
 
 void PlaybackWidget::pause(){
+  Logger::instance()->log("Setting playback widget as paused");
   currentPlaybackState = PAUSED;
   mediaObject->pause();
   playAction->setEnabled(true);
@@ -287,12 +288,11 @@ void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   #endif
   Logger::instance()->log("in set new source");
   mediaObject->setCurrentSource(newSong.source);
-  if(dataStore->getPlayingState() == DataStore::getPausedState()){
+  if(currentPlaybackState == PAUSED){
+    Logger::instance()->log("in paused state, need to set to playing");
     dataStore->playPlayer();
   }
-  else{
-    mediaObject->play();
-  }
+  play();
 }
 
 void PlaybackWidget::clearWidget(){

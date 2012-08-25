@@ -51,6 +51,7 @@ DataStore::DataStore(
   username(username),
   password(password),
   isReauthing(false),
+  changingPlayerState(false),
   currentSongId(-1)
 {
   serverConnection = new UDJServerConnection(this);
@@ -222,6 +223,7 @@ void DataStore::startPlaylistAutoRefresh(){
 }
 
 void DataStore::onPlayerStateSet(const QString& state){
+  changingPlayerState = false;
   if(state == getInactiveState()){
     emit playerSuccessfullySetInactive();
   }
@@ -244,6 +246,7 @@ void DataStore::onPlayerStateSetError(
     initReauth();
   }
   else{
+    changingPlayerState = false;
     if(state == getPlayingState()){
       emit playPlayerError(errMessage);
     }
@@ -346,6 +349,7 @@ void DataStore::playPlayer(){
 void DataStore::setPlayerState(const QString& newState){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerStateSettingName(), newState);
+  changingPlayerState = true;
   serverConnection->setPlayerState(newState);
 }
 
@@ -846,7 +850,7 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
   }
 
   QString retrievedState = newPlaylist["state"].toString();
-  if(retrievedState != getPlayerState()){
+  if(!changingPlayerState && retrievedState != getPlayerState()){
     QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     settings.setValue(getPlayerStateSettingName(), retrievedState);
     emit playerStateChanged(retrievedState);
