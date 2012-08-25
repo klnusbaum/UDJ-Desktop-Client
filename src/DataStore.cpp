@@ -87,13 +87,6 @@ DataStore::DataStore(
     this,
     SLOT(onPlayerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
-
-  connect(
-    serverConnection,
-    SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, const QString&)),
-    this,
-    SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, const QString&)));
-
   connect(
     serverConnection,
     SIGNAL(playerLocationSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
@@ -321,31 +314,30 @@ void DataStore::setPlayerLocation(
   const QString& zipcode
 )
 {
-  serverConnection->setPlayerLocation(streetAddress, city, state, zipcode);
-}
-
-void DataStore::onPlayerLocationSet(
-  const QString& streetAddress,
-  const QString& city,
-  const QString& state,
-  const QString& zipcode
-)
-{
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getAddressSettingName(), streetAddress);
   settings.setValue(getCitySettingName(), city);
   settings.setValue(getStateSettingName(), state);
   settings.setValue(getZipCodeSettingName(), zipcode);
+  serverConnection->setPlayerLocation(streetAddress, city, state, zipcode);
   emit playerLocationSet();
 }
 
+
 void DataStore::onPlayerLocationSetError(
   const QString& errMessage,
-  int /*errorCode*/,
-  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+  int errorCode,
+  const QList<QNetworkReply::RawHeaderPair>& headers)
 {
-  //TODO handle reauth error
-  emit playerLocationSetError(errMessage);
+  if(isTicketAuthError(errorCode, headers)){
+    Logger::instance()->log("Got the ticket-hash challenge");
+    reauthActions.insert(SET_PLAYER_LOCATION);
+    initReauth();
+  }
+  else{
+    //TODO handle location not found error
+    emit playerLocationSetError(errMessage);
+  }
 }
 
 void DataStore::pausePlayer(){
@@ -1020,6 +1012,7 @@ void DataStore::onReauth(const QByteArray& ticketHash, const user_id_t& userId){
 }
 
 void DataStore::doReauthAction(const ReauthAction& action){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   switch(action){
     case SYNC_LIB:
       syncLibrary();
@@ -1043,6 +1036,13 @@ void DataStore::doReauthAction(const ReauthAction& action){
       break;
     case SET_PLAYER_INACTIVE:
       serverConnection->setPlayerState(getInactiveState());
+      break;
+    case SET_PLAYER_LOCATION:
+      serverConnection->setPlayerLocation(
+        settings.value(getAddressSettingName()).toString(),
+        settings.value(getCitySettingName()).toString(),
+        settings.value(getStateSettingName()).toString(),
+        settings.value(getZipCodeSettingName()).toString());
       break;
   }
 }

@@ -53,7 +53,8 @@ public:
     MOD_PLAYLIST,
     SET_CURRENT_VOLUME,
     SET_PLAYER_STATE,
-    SET_PLAYER_INACTIVE
+    SET_PLAYER_INACTIVE,
+    SET_PLAYER_LOCATION
   };
 
   /**
@@ -1014,7 +1015,6 @@ signals:
    */
   void playerSetInactiveError(const QString& errMessage);
 
-
   /**
    * \brief Emitted when there was an error setting the player to "playing".
    *
@@ -1030,7 +1030,7 @@ signals:
   void pausePlayerError(const QString& errMessage);
 
   /**
-   * \brief Emitted when the player's password has been removed.
+   * \brief Emitted when the player's password has been removed by a component of this client.
    */
   void playerPasswordRemoved();
 
@@ -1042,7 +1042,7 @@ signals:
   void playerPasswordRemoveError(const QString& errMessage);
 
   /**
-   * \brief Emitted when the player's password is set.
+   * \brief Emitted when the player's password is set by a compenent of this client.
    */
   void playerPasswordSet();
 
@@ -1054,7 +1054,7 @@ signals:
   void playerPasswordSetError(const QString& errMessage);
 
   /**
-   * \brief Emitted when the players location has been set.
+   * \brief Emitted when the player's location is set by a component of this client.
    */
   void playerLocationSet();
 
@@ -1064,20 +1064,6 @@ signals:
    * \brief errMessage Message describing the error.
    */
   void playerLocationSetError(const QString& errMessage);
-
-  /**
-   * \brief Emitted when the players name is succesfully changed.
-   *
-   * \param newName The new name the player was set to.
-   */
-  void playerNameChanged(const QString& newName);
-
-  /**
-   * \brief Emitted when changing the players name failes.
-   *
-   * \param errMessage An error message describing the failure.
-   */
-  void playerNameChangeError(const QString& errMessage);
 
   /**
    * \brief Emitted when the library table is modified.
@@ -1109,7 +1095,7 @@ signals:
   void playerCreationFailed(const QString errMessage);
 
   /**
-   * \brief Emitted when the active playlist is modified.
+   * \brief Emitted when the active playlist is modified by the server.
    */
   void activePlaylistModified();
 
@@ -1121,14 +1107,14 @@ signals:
   void manualSongChange(DataStore::song_info_t newSong);
 
   /**
-   * \brief Emitted when the players state is changed.
+   * \brief Emitted when the players state is changed by the server.
    *
    * \param newState The new state of the player.
    */
   void playerStateChanged(const QString& newState);
 
   /**
-   * \brief Emitted when the volume of the player is changed.
+   * \brief Emitted when the volume of the player is changed by the server.
    *
    * @param newVolume The new volume of the player.
    */
@@ -1473,22 +1459,6 @@ private slots:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
-
-
-  /**
-   * \brief Preforms appropriate tasks when a players location was succesfully set.
-   *
-   * \brief streetAddress The street address of location that was set for the player.
-   * \brief city The city of location that was set for the player.
-   * \brief state The state of location that was set for the player.
-   * \brief zipcode The zipcode of location that was set for the player.
-   */
-  void onPlayerLocationSet(
-    const QString& streetAddress,
-    const QString& city,
-    const QString& state,
-    const QString& zipcode
-  );
 
   /**
    * \brief Preforms appropriate tasks when there was an error setting the player's location.

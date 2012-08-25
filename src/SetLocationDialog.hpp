@@ -78,18 +78,6 @@ private:
 
   //@}
 
-private slots:
-  /** @name Private Slots */
-  //@{
-
-  /**
-   * \brief Handles location change errors
-   *
-   * \param errMessage A message describing the error.
-   */
-  void onChangeLocationError(const QString& errMessage);
-
-  //@}
 };
 
 

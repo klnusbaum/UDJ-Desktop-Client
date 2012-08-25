@@ -97,6 +97,11 @@ private slots:
   /** \brief Inform the user their current credentials no longer work.  */
   void onHardAuthFailure();
 
+  /**
+   * \brief Performs appropriate actions when there is an error setting the location of the player.
+   */
+  void onPlayerLocationSetError(const QString& errMessage);
+
   /** \brief Shows the logger view. */
   void displayLogView();
 

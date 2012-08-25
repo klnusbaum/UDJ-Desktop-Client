@@ -39,22 +39,7 @@ SetLocationDialog::SetLocationDialog(DataStore *dataStore, QWidget *parent, Qt::
   setWindowTitle(tr("Set Player Location"));
   setModal(true);
   setupUi();
-  connect(dataStore, SIGNAL(playerLocationSet()), this, SLOT(closeDialog()));
-  connect(
-    dataStore,
-    SIGNAL(playerLocationSetError(const QString&)),
-    this,
-    SLOT(onChangeLocationError(const QString&)));
 
-}
-
-void SetLocationDialog::onChangeLocationError(const QString& errMessage){
-  this->showMainWidget();
-  QMessageBox::critical(
-    this,
-    tr("Couldn't Change Location"),
-    errMessage
-  );
 }
 
 void SetLocationDialog::accept(){
@@ -67,6 +52,7 @@ void SetLocationDialog::accept(){
       addressWidget->getState(),
       addressWidget->getZipcode()
     );
+    closeDialog();
   }
   else{
     QMessageBox::critical(

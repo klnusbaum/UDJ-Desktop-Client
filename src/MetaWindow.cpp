@@ -124,6 +124,11 @@ MetaWindow::MetaWindow(
     SIGNAL(hardAuthFailure()),
     this,
     SLOT(onHardAuthFailure()));
+  connect(
+    dataStore,
+    SIGNAL(playerLocationSetError(const QString&)),
+    this,
+    SLOT(onPlayerLocationSetError(const QString&)));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -502,5 +507,11 @@ void MetaWindow::onHardAuthFailure(){
     "since you last logged in. Please restart UDJ with your new password."));
   close();
 }
+
+void MetaWindow::onPlayerLocationSetError(const QString& errMessage){
+  QMessageBox::critical(this, tr("Error Setting Location"), errMessage);
+  setPlayerLocation();
+}
+
 
 } //end namespace

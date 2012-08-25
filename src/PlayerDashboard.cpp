@@ -35,11 +35,6 @@ PlayerDashboard::PlayerDashboard(DataStore *dataStore, QWidget *parent):
     SLOT(setPlayerInfo()));
   connect(
     dataStore,
-    SIGNAL(playerNameChanged(const QString&)),
-    this,
-    SLOT(setPlayerInfo()));
-  connect(
-    dataStore,
     SIGNAL(playerLocationSet()),
     this,
     SLOT(setPlayerInfo()));
