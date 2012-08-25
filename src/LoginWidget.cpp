@@ -66,7 +66,7 @@ void LoginWidget::setupUi(){
   passwordLabel->setBuddy(passwordBox);
 
 
-  saveCreds = new QCheckBox(tr("Remember me"));
+  savePassword = new QCheckBox(tr("Remember password"));
 
   registerText = new QLabel(tr("No account? <a href=\"https://www.udjplayer.com/registration/register/\">Register here</a>"));
   registerText->setOpenExternalLinks(true);
@@ -75,10 +75,10 @@ void LoginWidget::setupUi(){
   forgotPasswordText->setOpenExternalLinks(true);
 
   connect(
-    saveCreds,
+    savePassword,
     SIGNAL(toggled(bool)),
     this,
-    SLOT(saveCredsChanged(bool)));
+    SLOT(savePasswordChanged(bool)));
 
 
   QGridLayout *layout = new QGridLayout;
@@ -87,7 +87,7 @@ void LoginWidget::setupUi(){
   layout->addWidget(usernameBox,1,1);
   layout->addWidget(passwordLabel,2,0);
   layout->addWidget(passwordBox,2,1);
-  layout->addWidget(saveCreds, 3, 1);
+  layout->addWidget(savePassword, 3, 1);
   layout->addWidget(forgotPasswordText, 4, 0, 1, 2, Qt::AlignCenter);
   layout->addWidget(registerText, 5, 0, 1, 2, Qt::AlignCenter);
 
@@ -98,13 +98,23 @@ void LoginWidget::setupUi(){
   setMainWidget(loginDisplay);
   showMainWidget();
 
-  if(DataStore::hasValidSavedCredentials()){
-    QString username;
-    QString password;
-    DataStore::getSavedCredentials(&username, &password);
-    usernameBox->setText(username);
-    passwordBox->setText(password);
-    saveCreds->setChecked(true); 
+  //If we already have a player id we can't let the sign in with a different user
+  //then the last one the signed in with. Otherwise bad things might happen because
+  //the user they sign in as may not have permission to do things like set the player state.
+  if(DataStore::hasPlayerId()){
+    QString alreadyAssociatedMessage(tr("You have already associated a player with this computer.\n"
+      "This means you have to login as the player's owner."));
+    usernameBox->setEnabled(false);
+    usernameBox->setToolTip(alreadyAssociatedMessage);
+    usernameLabel->setEnabled(false);
+    usernameLabel->setToolTip(alreadyAssociatedMessage);
+  }
+
+  usernameBox->setText(DataStore::getSavedUsername());
+
+  if(DataStore::hasValidSavedPassword()){
+    passwordBox->setText(DataStore::getSavedPassword());
+    savePassword->setChecked(true); 
   }
 }
 
@@ -116,9 +126,11 @@ void LoginWidget::doLogin(){
 void LoginWidget::startMainGUI(
   const QByteArray& ticketHash, const user_id_t& userId)
 {
-  if(saveCreds->isChecked()){
-    DataStore::saveCredentials(usernameBox->text(), passwordBox->text());
+  if(savePassword->isChecked()){
+    DataStore::savePassword(passwordBox->text());
   }
+
+  DataStore::saveUsername(usernameBox->text());
 
   MetaWindow *metaWindow = new MetaWindow(
     usernameBox->text(),
@@ -131,7 +143,7 @@ void LoginWidget::startMainGUI(
 
 void LoginWidget::displayLoginFailedMessage(const QString errorMessage){
   emit loginFailed();
-  DataStore::setCredentialsDirty();
+  DataStore::setPasswordDirty();
   showMainWidget();
   setCurrentWidget(loginDisplay);
   QMessageBox::critical(
@@ -140,10 +152,9 @@ void LoginWidget::displayLoginFailedMessage(const QString errorMessage){
     errorMessage);
 }
 
-void LoginWidget::saveCredsChanged(bool newCreds){
-  if(!newCreds && DataStore::hasValidSavedCredentials()){
-    DataStore::clearSavedCredentials();
-    usernameBox->setText("");
+void LoginWidget::savePasswordChanged(bool newSetting){
+  if(!newSetting && DataStore::hasValidSavedPassword()){
+    DataStore::clearSavedPassword();
     passwordBox->setText("");
   }
 }

@@ -1046,7 +1046,7 @@ void DataStore::doReauthAction(const ReauthAction& action){
 
 void DataStore::onAuthFail(const QString& /*errMessage*/){
   Logger::instance()->log("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
-  setCredentialsDirty();
+  setPasswordDirty();
   emit hardAuthFailure();
 }
 
@@ -1082,42 +1082,51 @@ void DataStore::setDontShowPlaybackError(bool checked){
   settings.setValue(getDontShowPlaybackErrorSettingName(), checked);
 }
 
-
-void DataStore::saveCredentials(
-  const QString& username, const QString& password)
-{
+void DataStore::saveUsername(const QString& username){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   SimpleCrypt crypt = Utils::getCryptoObject();
   QString cryptUsername = crypt.encryptToString(username);
-  QString cryptPassword = crypt.encryptToString(password);
-  settings.setValue(getHasValidCredsSettingName(), true);
   settings.setValue(getUsernameSettingName(), cryptUsername);
-  settings.setValue(getPasswordSettingName(), cryptPassword);
 }
 
-void DataStore::setCredentialsDirty(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getHasValidCredsSettingName(), false);
-}
-
-bool DataStore::hasValidSavedCredentials(){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  return settings.value(getHasValidCredsSettingName()).toBool();
-}
-
-void DataStore::getSavedCredentials(QString* username, QString* password){
+QString DataStore::getSavedUsername(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   SimpleCrypt crypt = Utils::getCryptoObject();
   QString encryptedUsername = settings.value(getUsernameSettingName()).toString();
-  QString encryptedPassword = settings.value(getPasswordSettingName()).toString();
-  *username = crypt.decryptToString(encryptedUsername);
-  *password = crypt.decryptToString(encryptedPassword);
+  return encryptedUsername == "" ? "" : crypt.decryptToString(encryptedUsername);
 }
 
-void DataStore::clearSavedCredentials(){
+
+
+void DataStore::savePassword(const QString& password)
+{
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getHasValidCredsSettingName(), false);
-  settings.setValue(getUsernameSettingName(), "");
+  SimpleCrypt crypt = Utils::getCryptoObject();
+  QString cryptPassword = crypt.encryptToString(password);
+  settings.setValue(getHasValidSavedPasswordSettingName(), true);
+  settings.setValue(getPasswordSettingName(), cryptPassword);
+}
+
+void DataStore::setPasswordDirty(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getHasValidSavedPasswordSettingName(), false);
+}
+
+bool DataStore::hasValidSavedPassword(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  return settings.value(getHasValidSavedPasswordSettingName()).toBool();
+}
+
+QString DataStore::getSavedPassword(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  SimpleCrypt crypt = Utils::getCryptoObject();
+  QString encryptedPassword = settings.value(getPasswordSettingName()).toString();
+  return crypt.decryptToString(encryptedPassword);
+}
+
+void DataStore::clearSavedPassword(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getHasValidSavedPasswordSettingName(), false);
   settings.setValue(getPasswordSettingName(), "");
 }
 

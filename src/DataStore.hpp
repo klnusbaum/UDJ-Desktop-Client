@@ -347,44 +347,56 @@ public:
    *
    * \return True if the player has an id, false otherwise.
    */
-  bool hasPlayerId() const{
+  static bool hasPlayerId(){
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return -1 != settings.value(getPlayerIdSettingName(), -1);
   }
 
   /**
-   * \brief Saves the given credentials to persistent storage in a secure manner.
+   * \brief Saves the given password to persistent storage in a "secure" manner.
    *
-   * @param username The username to save.
    * @param password The password to save.
    */
-  static void saveCredentials(const QString& username, const QString& password);
+  static void savePassword(const QString& password);
 
   /**
    * \brief Marks the current saved credentials as invalid.
    */
-  static void setCredentialsDirty();
+  static void setPasswordDirty();
 
   /**
-   * \brief Determines whether or not the currently saved credentials are valid.
+   * \brief Determines whether or not the currently saved password is valid.
    *
-   * @return True if the currently saved credentials are valide, false otherwise.
+   * @return True if the currently saved password is valid, false otherwise.
    */
-  static bool hasValidSavedCredentials();
+  static bool hasValidSavedPassword();
 
   /**
-   * \brief Retrieves the currently saved credentials.
+   * \brief Retrieves the currently saved password.
    *
-   * @param username Pointer to the QString where the retreived username should be put.
-   * @param password Pointer to the QString where the retreived password should be put.
+   * @return The saved password.
    */
-  static void getSavedCredentials(QString* username, QString* password);
+  static QString getSavedPassword();
 
   /**
    * \brief Deletes all the saved credentials.
    */
-  static void clearSavedCredentials();
+  static void clearSavedPassword();
+
+  /**
+   * \brief Saves the given username to persistent storage
+   *
+   * \param username Username to save to presistent storage.
+   */
+  static void saveUsername(const QString& username);
+
+  /**
+   * \brief Retrieves the last username that was saved to presistent storage.
+   *
+   * \return The last username that was saved to persistent storage.
+   */
+  static QString getSavedUsername();
 
   static bool getDontShowPlaybackErrorSetting();
 
@@ -1383,10 +1395,10 @@ private:
    *
    * @return Name of the setting used to store whether or not the current credentials are valid.
    */
-  static const QString& getHasValidCredsSettingName(){
-    static const QString hasValidSavedCredentialsSettingName = 
-      "has_valid_creds";
-    return hasValidSavedCredentialsSettingName;
+  static const QString& getHasValidSavedPasswordSettingName(){
+    static const QString hasValidSavedPasswordSettingName = 
+      "has_valid_password";
+    return hasValidSavedPasswordSettingName;
   }
 
  //@}

@@ -85,8 +85,8 @@ private:
   /** \brief lineedit used for entering the password. */
   QLineEdit *passwordBox;
 
-  /** \brief Checkbox for indicating whether or not credentials should be saved. */
-  QCheckBox *saveCreds;
+  /** \brief Checkbox for indicating whether or not password should be saved. */
+  QCheckBox *savePassword;
 
   /** \brief Label giving registration information. */
   QLabel *registerText;
@@ -139,11 +139,11 @@ private slots:
   void displayLoginFailedMessage(const QString errorMessage);
 
   /**
-   * \brief Takes appropriate action when the user clicks on the saveCreds check box.
+   * \brief Takes appropriate action when the user clicks on the savePassword check box.
    *
-   * \param newSetting The current state of the save credentials check box.
+   * \param newSetting The current state of the save password check box.
    */
-  void saveCredsChanged(bool newSetting);
+  void savePasswordChanged(bool newSetting);
 
   //@}
 };
