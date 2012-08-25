@@ -31,42 +31,6 @@
 #include <QMessageBox>
 #include "PlaybackErrorMessage.hpp"
 
-#if IS_WINDOWS_BUILD
-#include <mpegfile.h>
-void removeTags(UDJ::DataStore::song_info_t& song){
-  static int fileCount =0;
-  if(song.source.fileName().endsWith(".mp3")){
-    UDJ::Logger::instance()->log("On windows and got mp3, copying and striping metadata tags");
-    QString tempCopy = QDesktopServices::storageLocation(QDesktopServices::TempLocation) + "/striped" + QString::number(fileCount) +".mp3";
-    if(QFile::exists(tempCopy)){
-      UDJ::Logger::instance()->log("Prevoius file existed, deleting now");
-      if(QFile::remove(tempCopy)){
-        UDJ::Logger::instance()->log("File removal worked");
-      }
-    }
-    bool fileCopyWorked = QFile::copy(song.source.fileName(), tempCopy);
-    if(!fileCopyWorked){
-      UDJ::Logger::instance()->log("File copy didn't work");
-      return;
-    }
-
-    TagLib::MPEG::File file(tempCopy.toStdString().c_str()); 
-    file.strip();
-    file.save();
-    Phonon::MediaSource newSource(tempCopy);
-    song.source = newSource;
-    if(fileCount == 3){
-      fileCount =0;
-    }
-    else{
-      fileCount++;
-    }
-
-  }
-
-}
-#endif
-
 
 namespace UDJ{
 
@@ -281,11 +245,6 @@ void PlaybackWidget::createActions(){
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   setSongInfo(newSong);
   Logger::instance()->log("Just set current title to " + currentSongTitle);
-  #ifdef WIN32
-  //Phonon on windows doesn't like compressed id3 tags. so we have to
-  //uncrompress them. Tis a bitch.
-  removeTags(newSong);
-  #endif
   Logger::instance()->log("in set new source");
   mediaObject->setCurrentSource(newSong.source);
   if(currentPlaybackState == PAUSED){
