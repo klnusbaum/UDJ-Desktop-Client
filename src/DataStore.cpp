@@ -64,6 +64,17 @@ DataStore::DataStore(
   activePlaylistRefreshTimer->setInterval(5000);
   setupDB();
 
+  connect(serverConnection,
+      SIGNAL(playerStateSet(const QString&)),
+      this,
+      SLOT(onPlayerStateSet(const QString&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(playerStateSetError(const QString&, const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onPlayerStateSetError(const QString&, const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
   connect(
     serverConnection,
     SIGNAL(playerPasswordSet(const QString&)),
@@ -79,9 +90,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, int)),
+    SIGNAL(playerLocationSet(const QString&, const QString&, const QString&, const QString&)),
     this,
-    SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, int)));
+    SLOT(onPlayerLocationSet(const QString&, const QString&, const QString&, const QString&)));
 
   connect(
     serverConnection,
@@ -100,18 +111,6 @@ DataStore::DataStore(
     SIGNAL(playerPasswordRemoveError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
     SLOT(onPlayerPasswordRemoveError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
-
-  connect(
-    serverConnection,
-    SIGNAL(playerNameChanged(const QString&)),
-    this,
-    SLOT(onPlayerNameChanged(const QString&)));
-
-  connect(
-    serverConnection,
-    SIGNAL(playerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
-    this,
-    SLOT(onPlayerNameChangeError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -153,12 +152,6 @@ DataStore::DataStore(
     SIGNAL(currentSongSet()),
     this,
     SLOT(refreshActivePlaylist()));
-
-  connect(
-    serverConnection,
-    SIGNAL(playerStateSet(const QString&)),
-    this,
-    SLOT(onPlayerStateChanged(const QString&)));
 
   connect(
     serverConnection,
@@ -243,6 +236,46 @@ void DataStore::setupDB(){
 
 }
 
+void DataStore::startPlaylistAutoRefresh(){
+  activePlaylistRefreshTimer->start();
+}
+
+void DataStore::onPlayerStateSet(const QString& state){
+  if(state == getInactiveState()){
+    emit playerSuccessfullySetInactive();
+  }
+}
+
+void DataStore::onPlayerStateSetError(
+    const QString& state,
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  if(isTicketAuthError(errorCode, headers)){
+    Logger::instance()->log("Got the ticket-hash challenge");
+    if(state != getInactiveState()){
+      reauthActions.insert(SET_PLAYER_STATE);
+    }
+    else{
+      reauthActions.insert(SET_PLAYER_INACTIVE);
+    }
+    initReauth();
+  }
+  else{
+    if(state == getPlayingState()){
+      emit playPlayerError(errMessage);
+    }
+    else if(state == getPausedState()){
+      emit pausePlayerError(errMessage);
+    }
+    else if(state == getInactiveState()){
+      emit playerSetInactiveError(errMessage);
+    }
+  }
+}
+
+
 void DataStore::removePlayerPassword(){
   serverConnection->removePlayerPassword();
 }
@@ -285,7 +318,7 @@ void DataStore::setPlayerLocation(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  int zipcode
+  const QString& zipcode
 )
 {
   serverConnection->setPlayerLocation(streetAddress, city, state, zipcode);
@@ -295,7 +328,7 @@ void DataStore::onPlayerLocationSet(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  int zipcode
+  const QString& zipcode
 )
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
@@ -315,34 +348,6 @@ void DataStore::onPlayerLocationSetError(
   emit playerLocationSetError(errMessage);
 }
 
-void DataStore::setPlayerName(const QString& newName){
-  serverConnection->setPlayerName(newName);
-}
-
-void DataStore::onPlayerNameChanged(const QString& newName){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerNameSettingName(), newName);
-  emit playerNameChanged(newName);
-}
-
-void DataStore::onPlayerNameChangeError(
-  const QString& /*errMessage*/,
-  int errorCode,
-  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
-{
-  //TODO if reauth error, should reauth
-  if(errorCode == 409){
-    emit playerNameChangeError(tr(
-      "You already have a player with that name."
-    ));
-  }
-  else{
-  emit playerNameChangeError(tr(
-    "We seem to be having some techincal difficulties and couldn't change "
-    "the name of your player. Try again in a little bit."
-  ));
-  }
-}
 void DataStore::pausePlayer(){
   setPlayerState(getPausedState());
 }
@@ -352,7 +357,13 @@ void DataStore::playPlayer(){
 }
 
 void DataStore::setPlayerState(const QString& newState){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getPlayerStateSettingName(), newState);
   serverConnection->setPlayerState(newState);
+}
+
+void DataStore::setPlayerInactive(){
+  serverConnection->setPlayerState(getInactiveState());
 }
 
 
@@ -452,6 +463,23 @@ void DataStore::addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery &add
     library_song_id_t)
 }
 
+bool DataStore::alreadyHaveSongInLibrary(const QString& fileName) const{
+  QSqlQuery existsQuery(database);
+  existsQuery.prepare(
+    "SELECT * FROM "+getLibraryTableName()+ " WHERE " + 
+    getLibIsDeletedColName() + "=0 and " + 
+    getLibFileColName() + "=\""+fileName+"\";"
+  );
+
+  EXEC_SQL(
+    "Error executing already in library test query",
+    existsQuery.exec(),
+    existsQuery)
+
+  return existsQuery.next();
+
+}
+
 void DataStore::removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove,
   QProgressDialog* progress)
 {
@@ -530,6 +558,7 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
     "SELECT " + getLibFileColName() + ", " + 
     getLibSongColName() + ", " +
     getLibArtistColName() + ", " +
+    getLibDurationColName() + ", " +
     getActivePlaylistLibIdColName() +" FROM " +
     getActivePlaylistViewName() + " LIMIT 1;", 
     database);
@@ -540,31 +569,48 @@ DataStore::song_info_t DataStore::takeNextSongToPlay(){
   nextSongQuery.next();
   if(!nextSongQuery.isValid()){
     currentSongId = -1;
-    song_info_t toReturn = {Phonon::MediaSource(""), "", "" };
+    song_info_t toReturn = {Phonon::MediaSource(""), "", "", "" };
     return toReturn;
   }
   currentSongId =
-    nextSongQuery.value(3).value<library_song_id_t>();
+    nextSongQuery.value(4).value<library_song_id_t>();
+
+  deleteSongFromPlaylist(currentSongId);
 
   Logger::instance()->log("Setting current song with id: " + QString::number(currentSongId));
   serverConnection->setCurrentSong(currentSongId);
 
   QString filePath = nextSongQuery.value(0).toString();
+  QTime qtime(0, nextSongQuery.value(3).toInt()/60, nextSongQuery.value(3).toInt()%60);
   song_info_t toReturn = {
     Phonon::MediaSource(filePath),
     nextSongQuery.value(1).toString(),
-    nextSongQuery.value(2).toString()
+    nextSongQuery.value(2).toString(),
+    qtime.toString("mm:ss")
   };
 
   return toReturn;
 
 }
 
+void DataStore::deleteSongFromPlaylist(library_song_id_t toDelete){
+  QSqlQuery deleteSongQuery(
+    "DELETE FROM " + getActivePlaylistTableName() +
+    " WHERE " + 
+    getActivePlaylistLibIdColName() + " = " + QString::number(toDelete) + ";", 
+    database);
+  EXEC_SQL(
+    "Deleting song from playlist failed",
+    deleteSongQuery.exec(),
+    deleteSongQuery)
+}
+
 void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
   QSqlQuery getSongQuery(
     "SELECT " + getLibFileColName() + ", " +
     getLibSongColName() + ", " +
-    getLibArtistColName() + " FROM " +
+    getLibArtistColName() + ", " +
+    getLibDurationColName() + " FROM " +
     getActivePlaylistViewName() + " WHERE " + 
     getActivePlaylistLibIdColName() + " = " + QString::number(songToPlay) + ";", 
     database);
@@ -579,10 +625,12 @@ void DataStore::setCurrentSong(const library_song_id_t& songToPlay){
     currentSongId = songToPlay;
     serverConnection->setCurrentSong(songToPlay);
     Logger::instance()->log("Retrieved Artist " + getSongQuery.value(2).toString());
+    QTime qtime(0, getSongQuery.value(3).toInt()/60, getSongQuery.value(3).toInt()%60);
     song_info_t toEmit = {
       Phonon::MediaSource(filePath),
       getSongQuery.value(1).toString(),
-      getSongQuery.value(2).toString()
+      getSongQuery.value(2).toString(),
+      qtime.toString("mm:ss")
     };
     emit manualSongChange(toEmit);
   }
@@ -604,7 +652,7 @@ void DataStore::createNewPlayer(
   const QString& streetAddress,
   const QString& city,
   const QString& state,
-  const int& zipcode)
+  const QString& zipcode)
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
@@ -654,7 +702,7 @@ void DataStore::syncLibrary(){
   while(needAddSongs.next()){
     currentRecord = needAddSongs.record();
     QVariantMap songToAdd;
-    songToAdd["id"] = currentRecord.value(getLibIdColName());
+    songToAdd["id"] = currentRecord.value(getLibIdColName()).toString();
     QString title = currentRecord.value(getLibSongColName()).toString();
     title.truncate(199);
     songToAdd["title"] = title;
@@ -684,7 +732,7 @@ void DataStore::syncLibrary(){
   QVariantList songsToDelete;
   while(needDeleteSongs.next()){
     currentRecord = needDeleteSongs.record();
-    songsToDelete.append(currentRecord.value(getLibIdColName()));
+    songsToDelete.append(currentRecord.value(getLibIdColName()).toString());
   }
 
   Logger::instance()->log("Found " + QString::number(songsToDelete.size()) + " songs which need deleting");
@@ -810,7 +858,13 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     emit volumeChanged(retrievedVolume/10.0);
   }
 
-  onPlayerStateChanged(newPlaylist["state"].toString());
+  QString retrievedState = newPlaylist["state"].toString();
+  if(retrievedState != getPlayerState()){
+    QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+    settings.setValue(getPlayerStateSettingName(), retrievedState);
+    emit playerStateChanged(retrievedState);
+  }
+
 
   library_song_id_t retrievedCurrentId =
     newPlaylist["current_song"].toMap()["song"].toMap()["id"].value<library_song_id_t>();
@@ -818,7 +872,8 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
     QSqlQuery getSongQuery(
       "SELECT " + getLibFileColName() + ", " +
       getLibSongColName() + ", " +
-      getLibArtistColName() + " FROM " +
+      getLibArtistColName() + ", " + 
+      getLibDurationColName() + " FROM " +
       getActivePlaylistViewName() + " WHERE " + 
       getActivePlaylistLibIdColName() + " = " + QString::number(retrievedCurrentId) + ";", 
       database);
@@ -831,10 +886,12 @@ void DataStore::setActivePlaylist(const QVariantMap& newPlaylist){
       Logger::instance()->log("Got file, for manual song set");
       QString filePath = getSongQuery.value(0).toString();
       currentSongId = retrievedCurrentId;
+      QTime qtime(0, getSongQuery.value(3).toInt()/60, getSongQuery.value(3).toInt()%60);
       song_info_t toEmit = {
         Phonon::MediaSource(filePath),
         getSongQuery.value(1).toString(),
-        getSongQuery.value(2).toString()
+        getSongQuery.value(2).toString(),
+	qtime.toString("mm:ss")
       };
       emit manualSongChange(toEmit);
     }
@@ -894,7 +951,6 @@ void DataStore::onPlayerCreate(const player_id_t& issuedId){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerIdSettingName(), QVariant::fromValue(issuedId));
   serverConnection->setPlayerId(issuedId);
-  setPlayerState(getPlayingState());
   emit playerCreated();
 }
 
@@ -904,23 +960,6 @@ void DataStore::onPlayerCreationFailed(const QString& errMessage, int /*errorCod
   //TODO do other stuff as well. like do reauth
   emit playerCreationFailed(errMessage);
 }
-
-
-void DataStore::onPlayerStateChanged(const QString& newState){
-  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  if(newState != settings.value(getPlayerStateSettingName())){
-    settings.setValue(getPlayerStateSettingName(), newState);
-    emit playerStateChanged(newState);
-  }
-
-  //If this player state change is the result of starting up the player for the first time
-  //we need to do a few things
-  if(!activePlaylistRefreshTimer->isActive()){
-    refreshActivePlaylist();
-    activePlaylistRefreshTimer->start();
-  }
-}
-
 
 void DataStore::onLibModError(
     const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
@@ -994,8 +1033,13 @@ void DataStore::doReauthAction(const ReauthAction& action){
       serverConnection->modActivePlaylist(playlistIdsToAdd, playlistIdsToRemove);
       break;
     case SET_CURRENT_VOLUME:
-      QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
       serverConnection->setVolume((int)(getPlayerVolume() * 10));
+      break;
+    case SET_PLAYER_STATE:
+      serverConnection->setPlayerState(getPlayerState());
+      break;
+    case SET_PLAYER_INACTIVE:
+      serverConnection->setPlayerState(getInactiveState());
       break;
   }
 }
@@ -1028,6 +1072,15 @@ QByteArray DataStore::getHeaderValue(
 }
 
 
+bool DataStore::getDontShowPlaybackErrorSetting(){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  return settings.value(getDontShowPlaybackErrorSettingName(), false ).toBool();
+}
+
+void DataStore::setDontShowPlaybackError(bool checked){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getDontShowPlaybackErrorSettingName(), checked);
+}
 
 
 void DataStore::saveCredentials(

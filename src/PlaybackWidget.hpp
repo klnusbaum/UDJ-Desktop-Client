@@ -64,6 +64,12 @@ private slots:
   /** @name Private Slots */
   //@{
 
+   /** \brief Enables playback. */
+   void play();
+
+   /** \brief Pauses playback. */
+   void pause();
+
   /**
    * \brief Handles whenever the state of the primary
    * MediaObject is changed. 
@@ -117,17 +123,23 @@ private:
   /** @name Private Functions */
   //@{
 
-   /** \brief Enables playback. */
-   void play();
-
-   /** \brief Pauses playback. */
-   void pause();
-
   /** \brief Sets up all the actions used by the MetaWindow. */
   void createActions();
 
   /** \brief Initializes UI. */
   void setupUi();
+
+  /** 
+   * \brief Informs the user the song that they just tried to play doesn't work.
+   */
+  void informBadSong();
+
+  /**
+   * \brief Sets the song info in the widget.
+   *
+   * \param newSong The info that should be set in the widget.
+   */
+   void setSongInfo(const DataStore::song_info_t& newSong);
 
   //@}
 
@@ -140,6 +152,14 @@ private:
   /** \brief The current state of music playback. */
   PlaybackState currentPlaybackState;
 
+  /** \brief The title of the current song being played. */
+  QString currentSongTitle;
+
+  /** \brief The artist of the current song being played. */
+  QString currentSongArtist;
+
+  /** \brief The duration of the current song being played. */
+  QString currentSongDuration;
 
   /** \brief Causes playback to start */
   QAction *playAction;

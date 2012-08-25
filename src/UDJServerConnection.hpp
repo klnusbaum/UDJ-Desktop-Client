@@ -111,7 +111,7 @@ public slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
 
   /**
@@ -125,13 +125,6 @@ public slots:
    * \param newPassword New password for the player.
    */
   void setPlayerPassword(const QString& newPassword);
-
-  /**
-   * \brief Tells the server to change the players name to the new name.
-   *
-   * \param newName New name for the player.
-   */
-  void setPlayerName(const QString& newName);
 
   /**
    * \brief Sets the player state.
@@ -170,7 +163,7 @@ public slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const int& zipcode);
+    const QString& zipcode);
 
   /**
    * \brief Creates a player on the server using the given JSON payload.
@@ -280,7 +273,7 @@ signals:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode);
+    const QString&  zipcode);
 
   /**
    * \brief Emitted when there was an error setting the player's location.
@@ -320,6 +313,21 @@ signals:
    * @param newState The new state.
    */
   void playerStateSet(const QString& newState);
+
+  /**
+   * \brief Emitted when there was an error changing the players state.
+   *
+   * @param desiredState The state which failed to be set on the player.
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void playerStateSetError(
+    const QString& desiredState,
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
 
   /**
    * \brief Emitted when a set of songs was succesfully synced on the server.
@@ -564,13 +572,6 @@ private:
   void handleLocationSetReply(QNetworkReply *reply);
 
   /**
-   * \brief Handle a response from the server regarding the setting of the player name.
-   *
-   * @param reply Response from the server.
-   */
-  void handleNameSetReply(QNetworkReply *reply);
-
-  /**
    * \brief Prepares a network request that is going to include JSON.
    *
    * @param request Request to prepare.
@@ -583,13 +584,6 @@ private:
    * \return The url used for accessing the player's password.
    */
   QUrl getPlayerPasswordUrl() const;
-
-  /**
-   * \brief Gets the url used for accessing the player's name.
-   *
-   * \return The url used for accessing the player's name.
-   */
-  QUrl getPlayerNameUrl() const;
 
   /**
    * \brief Gets the url used for accessing the player's location.
@@ -641,16 +635,6 @@ private:
    * \return The url that sholud be used for setting the volume on the server.
    */
   QUrl getVolumeUrl() const;
-
-  /**
-   * \brief Determines whether or not the given path is the same one used by the
-   * player creation url.
-   *
-   * \param path The path in question.
-   * \return True if the path is the same as the path used by the player creation url,
-   * false otherwise.
-   */
-  bool isPlayerCreateUrl(const QString& path) const;
 
   /**
    * \brief Determines if the given network reply is in response to a request to 
@@ -720,7 +704,7 @@ private:
    * @return The port number to be used for communicating with the server.
    */
   static const QString & getServerPortNumber(){
-    static const QString serverPortNumber = "4898";
+    static const QString serverPortNumber = "4897";
     return serverPortNumber;
   }
 
@@ -731,7 +715,7 @@ private:
    */
   static const QString& getServerUrlPath(){
     static const QString SERVER_URL_PATH= 
-      "https://udjplayer.com:" + getServerPortNumber() + "/udj/";
+      "https://udjplayer.com:" + getServerPortNumber() + "/udj/0_6/";
     return SERVER_URL_PATH;
   }
 

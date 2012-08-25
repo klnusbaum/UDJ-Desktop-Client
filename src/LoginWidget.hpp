@@ -88,6 +88,12 @@ private:
   /** \brief Checkbox for indicating whether or not credentials should be saved. */
   QCheckBox *saveCreds;
 
+  /** \brief Label giving registration information. */
+  QLabel *registerText;
+
+  /** \brief Label giving forgotten password information. */
+  QLabel *forgotPasswordText;
+
   /** \brief Actual display for the login widget. */
   QWidget *loginDisplay;
 

@@ -51,7 +51,9 @@ public:
     GET_ACTIVE_PLAYLIST,
     SET_CURRENT_SONG,
     MOD_PLAYLIST,
-    SET_CURRENT_VOLUME
+    SET_CURRENT_VOLUME,
+    SET_PLAYER_STATE,
+    SET_PLAYER_INACTIVE
   };
 
   /**
@@ -61,6 +63,7 @@ public:
     Phonon::MediaSource source;
     QString title;
     QString artist;
+    QString duration;
   } song_info_t;
 
   //@}
@@ -85,6 +88,22 @@ public:
     QObject *parent=0);
 
   //@}
+
+  /** @name Accessors */
+  //@{
+
+  /**
+   * \brief Checks to see if a particular song is already in 
+   * the library and not deleted.
+   *
+   * @param fileName The file to be checked.
+   * @return True if the file is already in the library, false 
+   * otherwise.
+   */
+  bool alreadyHaveSongInLibrary(const QString& fileName) const;
+
+  //@}
+
 
   /** @name Modifiers */
   //@{
@@ -124,22 +143,13 @@ public:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
 
   /**
-   * \brief Set player name.
-   *
-   * \param The new name the player should have.
+   * \brief Sets the player as inactive.
    */
-  void setPlayerName(const QString& newName);
-
-  /**
-   * \brief Set player state.
-   *
-   * \param State to which the player should be set.
-   */
-  void setPlayerState(const QString& newState);
+  void setPlayerInactive();
 
   /**
    * \brief Removes the given songs from the music library. 
@@ -175,7 +185,7 @@ public:
    *
    * @return The id of the player.
    */
-  inline const player_id_t getPlayerId() const{
+  inline player_id_t getPlayerId() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getPlayerIdSettingName()).value<player_id_t>();
@@ -228,9 +238,7 @@ public:
    * @return True if the player has a password, false otherwise.
    */
   inline bool hasPlayerPassword() const{
-    QSettings settings(
-      QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.contains(getPlayerPasswordSettingName());
+    return getPlayerPassword() != "";
   }
 
   /**
@@ -377,6 +385,10 @@ public:
    * \brief Deletes all the saved credentials.
    */
   static void clearSavedCredentials();
+
+  static bool getDontShowPlaybackErrorSetting();
+
+  static void setDontShowPlaybackError(bool checked);
 
   //@}
 
@@ -860,11 +872,22 @@ public:
     return settingsApp;
   }
 
+  static const QString& getDontShowPlaybackErrorSettingName(){
+    static const QString dontShowPlaybackErrorSettingName = "dontshowplaybackerror";
+    return dontShowPlaybackErrorSettingName;
+  }
+
  //@}
 
 /** @name Public slots */
 //@{
 public slots:
+
+  /**
+   * \brief Starts the datstore automatically refreshing the playlist.
+   */
+  void startPlaylistAutoRefresh();
+
 
   /**
    * \brief Syncs the current state of the library with the server.
@@ -933,7 +956,7 @@ public slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    const int& zipcode);
+    const QString& zipcode);
 
   /** 
    * \brief Sets the current song to the speicified song.
@@ -966,6 +989,33 @@ signals:
    * \brief Emitted when the given user credentials do not work with the server.
    */
   void hardAuthFailure();
+
+  /**
+   * \brief Emitted when the player state was succesfully changed to inactive.
+   */
+  void playerSuccessfullySetInactive();
+
+  /**
+   * \brief Emitted when there was an error setting the player inactive.
+   *
+   * @param errMessage A message descibing the error.
+   */
+  void playerSetInactiveError(const QString& errMessage);
+
+
+  /**
+   * \brief Emitted when there was an error setting the player to "playing".
+   *
+   * @param errMessage A message descibing the error.
+   */
+  void playPlayerError(const QString& errMessage);
+
+  /**
+   * \brief Emitted when there was an error setting the player to "paused".
+   *
+   * @param errMessage A message descibing the error.
+   */
+  void pausePlayerError(const QString& errMessage);
 
   /**
    * \brief Emitted when the player's password has been removed.
@@ -1118,6 +1168,20 @@ private:
   void setupDB();
 
   /**
+   * \brief Set player state.
+   *
+   * \param State to which the player should be set.
+   */
+  void setPlayerState(const QString& newState);
+
+  /**
+   * \brief Deletes a single song from the active playlist.
+   *
+   * \param toDelete The library id of the song to delete from the playlist.
+   */
+  void deleteSongFromPlaylist(library_song_id_t toDelete);
+
+  /**
    * \brief Deletes all the entries in the active playlist table.
    */
   void clearActivePlaylist();
@@ -1142,6 +1206,7 @@ private:
    */
   void addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery& addQuery);
 
+  
   /**
    * \brief Gets the value of a header.
    *
@@ -1331,6 +1396,30 @@ private:
 private slots:
 
   /**
+   * \brief Performs appropriate tasks when the player's state has been succesfully changed on the
+   * server.
+   *
+   * \param state The state the player was changed to on the server.
+   */
+  void onPlayerStateSet(const QString& state);
+
+  /**
+   * \brief Performs appropriate tasks when the player's state has been succesfully changed on the
+   * server.
+   *
+   * \param state The state which was attempted to be set on the player.
+   * \param errMessage A message describing the error.
+   * \param errorCode HTTP error code describing error.
+   * \param headers HTTP headers accompianing in the error response.
+   */
+  void onPlayerStateSetError(
+    const QString& state,
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
+  /**
    * \brief Preforms appropriate tasks when a player's password has been removed.
    */
   void onPlayerPasswordRemoved();
@@ -1379,7 +1468,7 @@ private slots:
     const QString& streetAddress,
     const QString& city,
     const QString& state,
-    int zipcode
+    const QString& zipcode
   );
 
   /**
@@ -1390,26 +1479,6 @@ private slots:
    * \param headers HTTP headers accompianing in the error response.
    */
   void onPlayerLocationSetError(
-    const QString& errMessage,
-    int errorCode,
-    const QList<QNetworkReply::RawHeaderPair>& headers);
-
-  /**
-   * \brief Preforms appropriate tasks when a players name was succesfully changed on the
-   * server.
-   *
-   * \param newName The new name of the player.
-   */
-  void onPlayerNameChanged(const QString& newName);
-
-  /**
-   * \brief Preforms appropriate tasks when there was an error changing the player name.
-   *
-   * \param errMessage A message describing the error.
-   * \param errorCode HTTP error code describing error.
-   * \param headers HTTP headers accompianing in the error response.
-   */
-  void onPlayerNameChangeError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
@@ -1488,12 +1557,6 @@ private slots:
           const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
-   * \brief Takes appropriate action when the player state is changed.
-   */
-  void onPlayerStateChanged(const QString& newState);
-
-
-  /**
    * \brief Takes appropriate action when modifiying the library on the server fails.
    *
    * @param errMessage A message describing the error.
@@ -1565,6 +1628,7 @@ private slots:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
+
 
   //@}
 

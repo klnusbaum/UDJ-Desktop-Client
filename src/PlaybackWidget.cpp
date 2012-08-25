@@ -29,6 +29,7 @@
 #include <QFile>
 #include "Logger.hpp"
 #include <QMessageBox>
+#include "PlaybackErrorMessage.hpp"
 
 #if IS_WINDOWS_BUILD
 #include <mpegfile.h>
@@ -74,6 +75,9 @@ namespace UDJ{
 PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
   QWidget(parent), dataStore(dataStore), currentPlaybackState(PLAYING)
 {
+  currentSongTitle = "";
+  currentSongArtist = "";
+  currentSongDuration = "";
   audioOutput = new Phonon::AudioOutput(Phonon::MusicCategory, this);
   mediaObject = new Phonon::MediaObject(this);
   createActions();
@@ -132,7 +136,7 @@ PlaybackWidget::PlaybackWidget(DataStore *dataStore, QWidget *parent):
 
 void PlaybackWidget::tick(qint64 time){
   QTime tickTime(0, (time/60000)%60, (time/1000)%60);
-  timeLabel->setText(tickTime.toString("mm:ss"));
+  timeLabel->setText(tickTime.toString("mm:ss")+"/"+currentSongDuration);
 }
 
 void PlaybackWidget::sourceChanged(const Phonon::MediaSource &/*source*/){
@@ -152,11 +156,20 @@ void PlaybackWidget::stateChanged(
   {
     Logger::instance()->log("Playback error: " + mediaObject->errorString());
     if(mediaObject->errorType() == Phonon::FatalError){
+      informBadSong();
       playNextSong();
     }
   }
-
 }
+
+void PlaybackWidget::informBadSong(){
+  if(!DataStore::getDontShowPlaybackErrorSetting()){
+    PlaybackErrorMessage *errorMessage = new PlaybackErrorMessage("Couldn't Play Song", 
+      tr("Sorry, but we couldn't figure out how to play \"")
+      + currentSongTitle + "\".", this);
+      errorMessage->show();
+  }
+ }
 
 void PlaybackWidget::playNextSong(){
   DataStore::song_info_t nextSong = dataStore->takeNextSongToPlay();
@@ -164,11 +177,11 @@ void PlaybackWidget::playNextSong(){
   if(nextSong.source.type() != Phonon::MediaSource::Empty
       && nextSong.source.type() != Phonon::MediaSource::Invalid)
   {
+    setSongInfo(nextSong);
     #if IS_WINDOWS_BUILD
-    removeTags(nextSong);
+    //removeTags(nextSong);
     #endif
     mediaObject->play();
-    songInfo->setText(nextSong.title + " - " + nextSong.artist);
   }
 }
 
@@ -258,11 +271,15 @@ void PlaybackWidget::createActions(){
   skipAction = new QAction(style()->standardIcon(QStyle::SP_MediaSkipForward), tr("Skip"), this);
 
   connect(playAction, SIGNAL(triggered()), dataStore, SLOT(playPlayer()));
+  connect(playAction, SIGNAL(triggered()), this, SLOT(play()));
   connect(pauseAction, SIGNAL(triggered()), dataStore, SLOT(pausePlayer()));
+  connect(pauseAction, SIGNAL(triggered()), this, SLOT(pause()));
   connect(skipAction, SIGNAL(triggered()), this, SLOT(playNextSong()));
 }
 
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
+  setSongInfo(newSong);
+  Logger::instance()->log("Just set current title to " + currentSongTitle);
   #ifdef WIN32
   //Phonon on windows doesn't like compressed id3 tags. so we have to
   //uncrompress them. Tis a bitch.
@@ -270,7 +287,6 @@ void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   #endif
   Logger::instance()->log("in set new source");
   mediaObject->setCurrentSource(newSong.source);
-  songInfo->setText(newSong.title + " - " + newSong.artist);
   if(dataStore->getPlayingState() == DataStore::getPausedState()){
     dataStore->playPlayer();
   }
@@ -286,6 +302,13 @@ void PlaybackWidget::clearWidget(){
   timeLabel->setText("--:--");
 }
 
+
+void PlaybackWidget::setSongInfo(const DataStore::song_info_t& newSong){
+  currentSongTitle = newSong.title;
+  currentSongArtist = newSong.artist;
+  currentSongDuration = newSong.duration;
+  songInfo->setText(newSong.title + " - " + newSong.artist);
+}
 
 
 } //end namespace UDJ
