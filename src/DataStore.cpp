@@ -1003,11 +1003,11 @@ void DataStore::doReauthAction(const ReauthAction& action){
       serverConnection->modActivePlaylist(playlistIdsToAdd, playlistIdsToRemove);
       break;
     case SET_CURRENT_VOLUME:
-      QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
       serverConnection->setVolume((int)(getPlayerVolume() * 10));
       break;
     case SET_PLAYER_STATE:
       serverConnection->setPlayerState(getPlayerState());
+      break;
   }
 }
 

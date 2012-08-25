@@ -111,6 +111,11 @@ MetaWindow::MetaWindow(
   connect(
     dataStore,
     SIGNAL(playerCreated()),
+    this,
+    SLOT(playPlayer()));
+  connect(
+    dataStore,
+    SIGNAL(playerCreated()),
     dataStore,
     SLOT(startPlaylistAutoRefresh()));
 }
