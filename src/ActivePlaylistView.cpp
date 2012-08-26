@@ -39,11 +39,12 @@ ActivePlaylistView::ActivePlaylistView(DataStore* dataStore, QWidget* parent):
   createActions();
   setModel(model);
   setSelectionBehavior(QAbstractItemView::SelectRows);
+  setSelectionMode(QAbstractItemView::ContiguousSelection);
   configureHeaders();
   connect(
     dataStore,
     SIGNAL(activePlaylistModified()),
-    model, 
+    model,
     SLOT(refresh()));
   connect(
     this,
@@ -131,6 +132,10 @@ void ActivePlaylistView::handleSelectionChange(
       model, 
       SLOT(refresh()));
   }
+}
+
+void ActivePlaylistView::focusOutEvent(QFocusEvent *event){
+  selectionModel()->clearSelection();
 }
 
 } //end namespace
