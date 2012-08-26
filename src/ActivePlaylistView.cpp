@@ -135,7 +135,9 @@ void ActivePlaylistView::handleSelectionChange(
 }
 
 void ActivePlaylistView::focusOutEvent(QFocusEvent *event){
-  selectionModel()->clearSelection();
+  if(event->reason() != Qt::PopupFocusReason){
+    selectionModel()->clearSelection();
+  }
 }
 
 } //end namespace
