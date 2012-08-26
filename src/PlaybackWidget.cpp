@@ -203,6 +203,18 @@ void PlaybackWidget::setupUi(){
 
 }
 
+void PlaybackWidget::togglePlaybackState(){
+  if(currentPlaybackState == PLAYING){
+    pause();
+    dataStore->pausePlayer();
+  }
+  else{
+    play();
+    dataStore->playPlayer();
+  }
+
+}
+
 void PlaybackWidget::play(){
   currentPlaybackState = PLAYING;
   mediaObject->play();

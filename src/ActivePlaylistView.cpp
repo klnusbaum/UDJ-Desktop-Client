@@ -134,7 +134,7 @@ void ActivePlaylistView::handleSelectionChange(
   }
 }
 
-void ActivePlaylistView::focusOutEvent(QFocusEvent *event){
+void ActivePlaylistView::focusOutEvent(QFocusEvent* /*event*/){
   selectionModel()->clearSelection();
 }
 
