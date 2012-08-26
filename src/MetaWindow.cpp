@@ -323,12 +323,12 @@ void MetaWindow::setupUi(){
 void MetaWindow::createActions(){
   quitAction = new QAction(tr("&Quit"), this);
   quitAction->setShortcuts(QKeySequence::Quit);
-  addMusicAction = new QAction(tr("Add &Music"), this);
+  addMusicAction = new QAction(tr("Add &Music Folder"), this);
   addMusicAction->setShortcut(tr("Ctrl+M"));
-  addSongAction = new QAction(tr("A&dd Song"), this);
+  addSongAction = new QAction(tr("A&dd Single Song"), this);
   addSongAction->setShortcut(tr("Ctrl+D"));
-  viewLogAction = new QAction(tr("View &Log"), this);
-  viewLogAction->setShortcut(tr("Ctrl+L"));
+  viewLogAction = new QAction(tr("View Lo&g"), this);
+  viewLogAction->setShortcut(tr("Ctrl+G"));
   viewAboutAction = new QAction(tr("About"), this);
   rescanItunesAction = new QAction(tr("Rescan iTunes Library"), this);
   #if IS_WINDOWS_BUILD
@@ -367,7 +367,8 @@ void MetaWindow::setupMenus(){
 void MetaWindow::configurePlayerMenu(){
   QMenu *playerMenu = menuBar()->addMenu(tr("&Player"));
 
-  setLocationAction = new QAction(tr("Set Location"), this);
+  setLocationAction = new QAction(tr("Set &Location"), this);
+  setLocationAction->setShortcut(tr("Ctrl+L"));
   playerMenu->addAction(setLocationAction);
 
   setPasswordAction = new QAction(tr("Set Password"), this);
