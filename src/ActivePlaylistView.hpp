@@ -116,6 +116,13 @@ private slots:
   void focusOutEvent(QFocusEvent *event);
 
   /**
+   * \brief Performs appropriate actions when the widget gains focus.
+   *
+   * @param event The focus out event.
+   */
+  void focusInEvent(QFocusEvent *event);
+
+  /**
    * \brief Removes all the currently selected songs from the active playlist.
    */
   void removeSongs();

@@ -33,6 +33,7 @@ ActivePlaylistView::ActivePlaylistView(DataStore* dataStore, QWidget* parent):
   dataStore(dataStore)
 {
   setContextMenuPolicy(Qt::CustomContextMenu);
+  setFocusPolicy(Qt::TabFocus);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
   model = new ActivePlaylistModel(getDataQuery(), dataStore, this);
   horizontalHeader()->setStretchLastSection(true);
@@ -132,6 +133,10 @@ void ActivePlaylistView::handleSelectionChange(
       model, 
       SLOT(refresh()));
   }
+}
+
+void ActivePlaylistView::focusInEvent(QFocusEvent* /*event*/){
+  selectionModel()->clearSelection();
 }
 
 void ActivePlaylistView::focusOutEvent(QFocusEvent* /*event*/){

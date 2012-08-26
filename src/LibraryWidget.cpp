@@ -33,6 +33,8 @@ LibraryWidget::LibraryWidget(DataStore* dataStore, QWidget* parent):
   searchEdit = new QLineEdit(this);
   QLabel *searchLabel = new QLabel(tr("Search:"),this);
 
+  setFocusPolicy(Qt::TabFocus);
+
 
   QGridLayout *layout = new QGridLayout(this);
   layout->addWidget(searchLabel,0,1,1,8, Qt::AlignRight);

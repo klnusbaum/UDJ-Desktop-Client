@@ -32,6 +32,7 @@ ActivityList::ActivityList(DataStore *dataStore, QWidget *parent):
   QTreeView(parent), dataStore(dataStore)
 {
   setupUi();
+  setFocusPolicy(Qt::TabFocus);
   connect(
     this,
     SIGNAL(clicked(const QModelIndex&)),
