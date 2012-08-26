@@ -48,6 +48,19 @@ public:
 
   //@}
 
+protected:
+
+  /** @name Overridden From QTableView */
+  //@{
+
+  /** \brief .  */
+  void focusOutEvent(QFocusEvent *event);
+
+  /** \brief .  */
+  void focusInEvent(QFocusEvent *event);
+
+  //@}
+
 private:
 
   /** @name Private Functions */
@@ -107,20 +120,6 @@ private slots:
    */
   void handleSelectionChange(
     const QItemSelection &selected, const QItemSelection &deselected);
-
-  /**
-   * \brief Performs appropriate actions when the widget looses focus.
-   *
-   * @param event The focus out event.
-   */
-  void focusOutEvent(QFocusEvent *event);
-
-  /**
-   * \brief Performs appropriate actions when the widget gains focus.
-   *
-   * @param event The focus out event.
-   */
-  void focusInEvent(QFocusEvent *event);
 
   /**
    * \brief Removes all the currently selected songs from the active playlist.

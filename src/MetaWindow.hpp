@@ -87,6 +87,7 @@ protected:
   /** \brief . */
   virtual void closeEvent(QCloseEvent *event);
 
+  /** \brief . */
   bool eventFilter(QObject *obj, QEvent *event);
 
   //@}
