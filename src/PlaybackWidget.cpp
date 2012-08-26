@@ -262,7 +262,6 @@ void PlaybackWidget::createActions(){
 
 void PlaybackWidget::setNewSource(DataStore::song_info_t newSong){
   setSongInfo(newSong);
-  Logger::instance()->log("Just set current title to " + currentSongTitle);
   Logger::instance()->log("in set new source");
   mediaObject->setCurrentSource(newSong.source);
   if(currentPlaybackState == PAUSED){
