@@ -145,7 +145,6 @@ void PlaybackWidget::playNextSong(){
     mediaObject->play();
   }
   else{
-    Logger::instance()->log("playback widget nothing left to play.");
     //Nothing left to play at the moment. clear the current song.
     if(dataStore->getCurrentSongId() != -1){
       Logger::instance()->log("playback widget is clearing current song");
