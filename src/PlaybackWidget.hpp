@@ -58,6 +58,17 @@ public:
   PlaybackWidget(DataStore *dataStore, QWidget *parent=0);
 
   //@}
+  
+public slots:
+  /** @name Public Slots */
+  //@{ 
+
+  /**
+   * \brief Toggles the playback state of playback widget.
+   */
+  void togglePlaybackState();
+
+  //@}
 
 private slots:
 

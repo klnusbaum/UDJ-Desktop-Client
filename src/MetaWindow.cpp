@@ -162,6 +162,17 @@ void MetaWindow::closeEvent(QCloseEvent *event){
   }
 }
 
+bool MetaWindow::eventFilter(QObject* /*obj*/, QEvent *event){
+  if(event->type() == QEvent::KeyRelease){
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+    if(keyEvent->key() == Qt::Key_Space){
+      playbackWidget->togglePlaybackState();
+      return true;
+    }
+  }
+  return false;
+}
+
 bool MetaWindow::hasItunesLibrary(){
   QString musicDir = QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
   QDir iTunesDir = QDir(musicDir).filePath("iTunes");
@@ -255,10 +266,12 @@ void MetaWindow::setupUi(){
   playbackWidget = new PlaybackWidget(dataStore, this);
 
   libraryWidget = new LibraryWidget(dataStore, this);
+  libraryWidget->installEventFilter(this);
 
   activityList = new ActivityList(dataStore);
 
   playlistView = new ActivePlaylistView(dataStore, this);
+  playlistView->installEventFilter(this);
 
   QWidget* contentStackContainer = new QWidget(this);
   contentStack = new QStackedWidget(this);
