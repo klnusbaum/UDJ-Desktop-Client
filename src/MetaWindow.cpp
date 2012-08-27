@@ -28,6 +28,7 @@
 #include "AboutWidget.hpp"
 #include "LogViewer.hpp"
 #include "SetLocationDialog.hpp"
+#include "ParticipantsView.hpp"
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -273,10 +274,14 @@ void MetaWindow::setupUi(){
   playlistView = new ActivePlaylistView(dataStore, this);
   playlistView->installEventFilter(this);
 
+  participantsView = new ParticipantsView(dataStore, this);
+  participantsView->installEventFilter(this);
+
   QWidget* contentStackContainer = new QWidget(this);
   contentStack = new QStackedWidget(this);
   contentStack->addWidget(libraryWidget);
   contentStack->addWidget(playlistView);
+  contentStack->addWidget(participantsView);
   contentStack->setCurrentWidget(libraryWidget);
   QVBoxLayout *contentStackLayout = new QVBoxLayout;
   contentStackLayout->addWidget(contentStack, Qt::AlignCenter);
@@ -312,6 +317,12 @@ void MetaWindow::setupUi(){
     SIGNAL(playlistClicked()),
     this,
     SLOT(displayPlaylist()));
+
+  connect(
+    activityList,
+    SIGNAL(participantsClicked()),
+    this,
+    SLOT(displayParticipants()));
 
   connect(
     libraryWidget,
@@ -422,6 +433,10 @@ void MetaWindow::displayLibrary(){
 
 void MetaWindow::displayPlaylist(){
   contentStack->setCurrentWidget(playlistView);
+}
+
+void MetaWindow::displayParticipants(){
+  contentStack->setCurrentWidget(participantsView);
 }
 
 void MetaWindow::syncLibrary(){

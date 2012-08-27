@@ -48,6 +48,9 @@ void ActivityList::itemClicked(const QModelIndex& index){
   else if(index == playlistItem->index()){
     emit playlistClicked();
   }
+  else if(index == participantsItem->index()){
+    emit participantsClicked();
+  }
 }
 
 void ActivityList::setupUi(){
@@ -58,10 +61,14 @@ void ActivityList::setupUi(){
   playlistItem = new QStandardItem(getPlaylistTitle());
   playlistItem->setEditable(false);
 
+  participantsItem = new QStandardItem(getParticipantsTitle());
+  participantsItem->setEditable(false);
+
 
   model = new QStandardItemModel(this);
   model->appendRow(libraryItem);
   model->appendRow(playlistItem);
+  model->appendRow(participantsItem);
 
 
   setModel(model);

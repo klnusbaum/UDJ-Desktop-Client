@@ -65,15 +65,21 @@ signals:
   /** @name Signals */
   //@{
 
-  /** 
+  /**
    * \brief Emitted when the library activity is clicked.
    */
   void libraryClicked();
 
   /**
-   * \brief emited when the playlist activity is clicked.
+   * \brief Emitted when the playlist activity is clicked.
    */
   void playlistClicked();
+
+  /**
+   * \brief Emitted when the participants item is clicked.
+   */
+  void participantsClicked();
+
   //@}
 
 private:
@@ -106,10 +112,20 @@ private:
     return playlistTitle;
   }
 
+  /** 
+   * \brief Gets the name of the Participants activity.
+   *
+   * @return The name of the Participants activity.
+   */
+  static const QString& getParticipantsTitle(){
+    static const QString participantsTitle(tr("Participants"));
+    return participantsTitle;
+  }
+
 
   //@}
 
-  /** @name Private Memeber */
+  /** @name Private Members */
   //@{
 
   /** \brief Pointer to the DataStore backing this instance of UDJ */
@@ -123,6 +139,9 @@ private:
 
   /** \brief The item representing the playlist activity. */
   QStandardItem *playlistItem;
+
+  /** \brief The item representing the participants activity. */
+  QStandardItem *participantsItem;
 
   //@}
 

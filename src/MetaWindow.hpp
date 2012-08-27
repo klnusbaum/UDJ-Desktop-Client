@@ -46,6 +46,7 @@ class ActivityList;
 class EventWidget;
 class DataStore;
 class PlayerDashboard;
+class ParticipantsView;
 
 /**
  * \brief A class that is the main point of interaction with the user. 
@@ -133,6 +134,11 @@ private slots:
    * \brief Displays the playlist view in the main content panel.
    */
   void displayPlaylist();
+
+  /**
+   * \brief Displays the participants view in the main content panel.
+   */
+  void displayParticipants();
 
   /**
    * \brief Updates the syncprogress given the songs that have been updated.
@@ -272,6 +278,9 @@ private:
 
   /** \brief Dashboard used to display information about the player. */
   PlayerDashboard *dashboard;
+
+  /** \brief ParticipantsView used to display player participants. */
+  ParticipantsView *participantsView;
 
   /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;

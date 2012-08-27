@@ -53,6 +53,8 @@ SET(SOURCES
   SetLocationDialog.cpp
   DialogWithLoaderWidget.cpp
   PlaybackErrorMessage.cpp
+  ParticipantsView.cpp
+  ParticipantsModel.cpp
 )
 
 #IF(APPLE)
