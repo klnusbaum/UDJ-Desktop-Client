@@ -84,6 +84,7 @@ MetaWindow::MetaWindow(
   if(dataStore->hasPlayerId()){
     dataStore->playPlayer();
     dataStore->startPlaylistAutoRefresh();
+    dataStore->startParticipantsAutoRefresh();
     if(dataStore->hasUnsyncedSongs()){
       syncLibrary();
     }
@@ -119,6 +120,11 @@ MetaWindow::MetaWindow(
     SIGNAL(playerCreated()),
     dataStore,
     SLOT(startPlaylistAutoRefresh()));
+  connect(
+    dataStore,
+    SIGNAL(playerCreated()),
+    dataStore,
+    SLOT(startParticipantsAutoRefresh()));
   connect(
     dataStore,
     SIGNAL(hardAuthFailure()),

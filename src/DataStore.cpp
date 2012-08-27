@@ -64,6 +64,8 @@ DataStore::DataStore(
   }
   activePlaylistRefreshTimer = new QTimer(this);
   activePlaylistRefreshTimer->setInterval(5000);
+  participantRefreshTimer = new QTimer(this);
+  participantRefreshTimer->setInterval(5000);
   setupDB();
 
   connect(serverConnection,
@@ -233,6 +235,10 @@ void DataStore::setupDB(){
 
 void DataStore::startPlaylistAutoRefresh(){
   activePlaylistRefreshTimer->start();
+}
+
+void DataStore::startParticipantsAutoRefresh(){
+  participantRefreshTimer->start();
 }
 
 void DataStore::clearCurrentSong(){
@@ -975,6 +981,10 @@ void DataStore::onActivePlaylistModFailed(
 
 void DataStore::refreshActivePlaylist(){
   serverConnection->getActivePlaylist();
+}
+
+void DataStore::refreshParticipantList(){
+  //
 }
 
 

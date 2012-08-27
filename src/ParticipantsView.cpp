@@ -32,7 +32,6 @@ ParticipantsView::ParticipantsView(DataStore* dataStore, QWidget* parent):
 {
   setFocusPolicy(Qt::TabFocus);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
-  horizontalHeader()->setStretchLastSection(true);
   participantsModel = new ParticipantsModel(this);
   setModel(participantsModel);
   setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -42,6 +41,7 @@ ParticipantsView::ParticipantsView(DataStore* dataStore, QWidget* parent):
 
 void ParticipantsView::configureHeaders(){
   setColumnHidden(0, true);
+  horizontalHeader()->setResizeMode(QHeaderView::Stretch);
 }
 
 

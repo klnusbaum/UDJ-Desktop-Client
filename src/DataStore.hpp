@@ -909,10 +909,14 @@ public:
 public slots:
 
   /**
-   * \brief Starts the datstore automatically refreshing the playlist.
+   * \brief Starts the datastore automatically refreshing the playlist.
    */
   void startPlaylistAutoRefresh();
 
+  /**
+   * \brief Starts the datastore automatically refreshing the list of participants.
+   */
+  void startParticipantsAutoRefresh();
 
   /**
    * \brief Syncs the current state of the library with the server.
@@ -933,6 +937,9 @@ public slots:
    * \brief Refresh the active playlist table.
    */
   void refreshActivePlaylist();
+
+  /** \brief Refresh the participants list. */
+  void refreshParticipantList();
 
   /**
    * \brief Adds the given song to the active playlist.
@@ -1161,6 +1168,9 @@ private:
 
   /** \brief Timer used to refresh the active playlist. */
   QTimer *activePlaylistRefreshTimer;
+
+  /** \brief Timer used to refresh the list of participants. */
+  QTimer *participantRefreshTimer;
 
   /** \brief Current username being used by the client */
   QString username;
