@@ -42,6 +42,7 @@ ParticipantsView::ParticipantsView(DataStore* dataStore, QWidget* parent):
 void ParticipantsView::configureHeaders(){
   setColumnHidden(0, true);
   horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+  verticalHeader()->hide();
 }
 
 

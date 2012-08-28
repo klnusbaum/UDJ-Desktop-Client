@@ -34,7 +34,10 @@ private slots:
   void onNewParticipantList(const QVariantList& newParticipants);
 
 private:
-  void createConnections();
+  static QString getAttrWithDefault(
+    const QVariantMap& user,
+    const QString& attr,
+    const QString& defaultValue);
   void setHeaders();
   DataStore *dataStore;
 };

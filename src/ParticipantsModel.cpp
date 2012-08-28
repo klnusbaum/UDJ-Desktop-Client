@@ -28,10 +28,6 @@ ParticipantsModel::ParticipantsModel(DataStore* dataStore, QObject *parent)
   dataStore(dataStore)
 {
   setHeaders();
-  createConnections();
-}
-
-void ParticipantsModel::createConnections(){
   connect(
     dataStore,
     SIGNAL(newParticipantList(const QVariantList&)),
@@ -41,21 +37,33 @@ void ParticipantsModel::createConnections(){
 
 
 void ParticipantsModel::onNewParticipantList(const QVariantList& newParticipants){
-  Logger::instance()->log("Got new particpants list of length: " + QString::number(newParticipants.size()));
-  clear();
+  removeRows(0, rowCount());
   setHeaders();
   QVariantMap participant;
   for(int i=0; i<newParticipants.size(); ++i){
     participant = newParticipants.at(i).toMap();
     QStandardItem *newId = new QStandardItem(participant["id"].toString());
     QStandardItem *newUsername = new QStandardItem(participant["username"].toString());
-    QStandardItem *newFirstName = new QStandardItem(participant["first_name"].toString());
-    QStandardItem *newLastName = new QStandardItem(participant["last_name"].toString());
+    QStandardItem *newFirstName = new QStandardItem(
+        getAttrWithDefault(participant,"first_name", "Unknown"));
+    QStandardItem *newLastName = new QStandardItem(
+        getAttrWithDefault(participant,"last_name", "Unknown"));
     QList<QStandardItem*> newRow;
     newRow << newId << newUsername << newFirstName << newLastName;
     appendRow(newRow);
   }
+}
 
+QString ParticipantsModel::getAttrWithDefault(
+    const QVariantMap& user,
+    const QString& attr,
+    const QString& defaultValue)
+{
+  QString value = user[attr].toString();
+  if(value == ""){
+    return defaultValue;
+  }
+  return value;
 }
 
 void ParticipantsModel::setHeaders(){
