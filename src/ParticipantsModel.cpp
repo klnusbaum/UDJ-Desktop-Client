@@ -17,17 +17,51 @@
  * along with UDJ.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ParticipantsModel.hpp"
+#include "DataStore.hpp"
+#include "Logger.hpp"
 
 
 namespace UDJ{
 
-ParticipantsModel::ParticipantsModel(QObject *parent)
-  :QStandardItemModel(parent)
+ParticipantsModel::ParticipantsModel(DataStore* dataStore, QObject *parent)
+  :QStandardItemModel(parent),
+  dataStore(dataStore)
 {
+  setHeaders();
+  createConnections();
+}
+
+void ParticipantsModel::createConnections(){
+  connect(
+    dataStore,
+    SIGNAL(newParticipantList(const QVariantList&)),
+    this,
+    SLOT(onNewParticipantList(const QVariantList&)));
+}
+
+
+void ParticipantsModel::onNewParticipantList(const QVariantList& newParticipants){
+  Logger::instance()->log("Got new particpants list of length: " + QString::number(newParticipants.size()));
+  clear();
+  setHeaders();
+  QVariantMap participant;
+  for(int i=0; i<newParticipants.size(); ++i){
+    participant = newParticipants.at(i).toMap();
+    QStandardItem *newId = new QStandardItem(participant["id"].toString());
+    QStandardItem *newUsername = new QStandardItem(participant["username"].toString());
+    QStandardItem *newFirstName = new QStandardItem(participant["first_name"].toString());
+    QStandardItem *newLastName = new QStandardItem(participant["last_name"].toString());
+    QList<QStandardItem*> newRow;
+    newRow << newId << newUsername << newFirstName << newLastName;
+    appendRow(newRow);
+  }
+
+}
+
+void ParticipantsModel::setHeaders(){
   QStringList headers;
   headers << tr("Id") << tr("Username") << tr("First Name") << tr("Last Name");
   setHorizontalHeaderLabels(headers);
 }
-
 
 } // end namespace

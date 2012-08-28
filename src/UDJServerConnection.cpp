@@ -212,6 +212,13 @@ void UDJServerConnection::clearCurrentSong(){
   /*QNetworkReply *reply =*/ netAccessManager->deleteResource(clearCurrentSongRequest);
 }
 
+
+void UDJServerConnection::getParticipantList(){
+  QNetworkRequest getParticipantListRequest(getParticipantsUrl());
+  getParticipantListRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  /*QNetworkReply *reply =*/ netAccessManager->get(getParticipantListRequest);
+}
+
 void UDJServerConnection::recievedReply(QNetworkReply *reply){
   if(reply->request().url().path() == getAuthUrl().path()){
     handleAuthReply(reply);
@@ -253,6 +260,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(isPasswordRemoveReply(reply)){
     handlePlayerPasswordRemoveReply(reply);
   }
+  else if(reply->request().url().path() == getParticipantsUrl().path()){
+    handleParticipantsResponse(reply);
+  }
   else{
     Logger::instance()->log("Received unknown response");
     Logger::instance()->log(reply->request().url().path());
@@ -291,6 +301,21 @@ void UDJServerConnection::handleRecievedClearCurrentSong(QNetworkReply *reply){
     QString responseData = QString(reply->readAll());
     Logger::instance()->log("Clear current song failed " + responseData);
     emit currentSongClearError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+
+}
+
+void UDJServerConnection::handleParticipantsResponse(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit newParticipantList(JSONHelper::getParticipantListFromJSON(reply));
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Participan get error " + responseData);
+    emit getParticipantsError(
       responseData,
       reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
       reply->rawHeaderPairs());
@@ -498,6 +523,10 @@ QUrl UDJServerConnection::getPlayerPasswordUrl() const{
       QString::number(playerId) + "/password");
 }
 
+QUrl UDJServerConnection::getParticipantsUrl() const{
+  return QUrl(getServerUrlPath()+ "players/"+QString::number(playerId)+"/users");
+}
+
 
 
 bool UDJServerConnection::isResponseType(QNetworkReply *reply, int code){
@@ -527,6 +556,8 @@ bool UDJServerConnection::isPasswordRemoveReply(const QNetworkReply *reply) cons
   return reply->request().url().path() == getPlayerPasswordUrl().path() &&
     reply->operation() == QNetworkAccessManager::DeleteOperation;
 }
+
+
 
 
 }//end namespace

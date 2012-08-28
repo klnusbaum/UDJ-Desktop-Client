@@ -20,17 +20,23 @@
 #define PARTICIPANTS_MODEL_HPP
 #include <QStandardItemModel>
 
-class QStandardItem;
-
 namespace UDJ{
 
+class DataStore;
 
 class ParticipantsModel : public QStandardItemModel{
-
+Q_OBJECT
 public:
 
-  ParticipantsModel(QObject *parent=0);
+  ParticipantsModel(DataStore *dataStore, QObject *parent=0);
 
+private slots:
+  void onNewParticipantList(const QVariantList& newParticipants);
+
+private:
+  void createConnections();
+  void setHeaders();
+  DataStore *dataStore;
 };
 
 

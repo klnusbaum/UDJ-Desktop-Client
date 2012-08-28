@@ -32,7 +32,7 @@ ParticipantsView::ParticipantsView(DataStore* dataStore, QWidget* parent):
 {
   setFocusPolicy(Qt::TabFocus);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
-  participantsModel = new ParticipantsModel(this);
+  participantsModel = new ParticipantsModel(dataStore, this);
   setModel(participantsModel);
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ContiguousSelection);

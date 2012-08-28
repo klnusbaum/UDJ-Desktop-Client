@@ -206,6 +206,11 @@ public slots:
    */
   void clearCurrentSong();
 
+  /**
+   * \brief Retrieves a list of active participants from the server.
+   */
+  void getParticipantList();
+
   //@}
 
 signals:
@@ -387,6 +392,8 @@ signals:
   /**
    * \brief Emitted when a new version of the active playlist is retrieved from
    * the server.
+   *
+   * @param newPlaylist The new playlist that was retreived from the server.
    */
   void newActivePlaylist(const QVariantMap& newPlaylist);
 
@@ -398,6 +405,25 @@ signals:
    * @param headers The headers from the http response that indicated a failure.
    */
   void getActivePlaylistFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Emitted when a new version of the participants list is retrieved from the server.
+   *
+   * @param newParticipants The new list of participants that was retrieved from the server.
+   */
+  void newParticipantList(const QVariantList& newParticipants);
+
+  /**
+   * \brief Emitted when there was an error getting the list of participants from the server.
+   *
+   * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
+   */
+  void getParticipantsError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
@@ -586,16 +612,23 @@ private:
   /**
    * \brief Handle a response from the server regarding the setting of the player location.
    *
-   * @param reply Response from the server.
+   * @param reply response from the server.
    */
   void handleLocationSetReply(QNetworkReply *reply);
 
   /**
    * \brief Handles a response from the server regarding the clearing of the current song.
    *
-   * @param reply The Reesponse from the server.
+   * @param reply The response from the server.
    */
   void handleRecievedClearCurrentSong(QNetworkReply *reply);
+
+  /**
+   * \brief Handles a response from the server regarding getting a list of active participants.
+   *
+   * @param reply The response from the server.
+   */
+  void handleParticipantsResponse(QNetworkReply *reply);
 
   /**
    * \brief Prepares a network request that is going to include JSON.
@@ -638,6 +671,15 @@ private:
    * @return The url to be used for setting the current song on the server.
    */
   QUrl getCurrentSongUrl() const;
+
+  /**
+   * \brief Get the url to be used for retrieving the list of current participants.
+   *
+   * @return The url to be used for getting the current participants.
+   */
+  QUrl getParticipantsUrl() const;
+
+
 
   /**
    * \brief Gets the url that should be used for creating a player on the server.

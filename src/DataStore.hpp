@@ -1119,6 +1119,11 @@ signals:
   void activePlaylistModified();
 
   /**
+   * \brief Emitted when the participant list retrieved from server.
+   */
+  void newParticipantList(const QVariantList& newParticipants);
+
+  /**
    * \brief Emitted when the current song is manually changed.
    *
    * @param newSong The song that should be set as the current song.
@@ -1666,6 +1671,13 @@ private slots:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  /**
+   * \brief Takes appropriate action when the particpants list is retrieved from the server.
+   *
+   * \param newParticipants The new list of participants.
+   */
+  void onNewParticipantList(const QVariantList& newParticipants);
 
 
   //@}

@@ -188,6 +188,14 @@ public:
   static QVariantMap getActivePlaylistFromJSON(QNetworkReply *reply);
 
   /**
+   * \brief Gets the list of participants from the JSON given in the server reply.
+   *
+   * \param reply The reply from the server.
+   * \return A QVariantMap representing the participants given in the server reply.
+   */
+  static QVariantList getParticipantListFromJSON(QNetworkReply *reply);
+
+  /**
    * \brief Gets the auth data from a server authentication reply.
    *
    * \param reply The reply from the server.

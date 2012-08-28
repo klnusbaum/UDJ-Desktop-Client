@@ -139,6 +139,12 @@ DataStore::DataStore(
     SLOT(refreshActivePlaylist()));
 
   connect(
+    participantRefreshTimer,
+    SIGNAL(timeout()),
+    this,
+    SLOT(refreshParticipantList()));
+
+  connect(
     serverConnection,
     SIGNAL(libModError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
@@ -193,6 +199,13 @@ DataStore::DataStore(
     this,
     SLOT(onCurrentSongClearError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
+
+  connect(
+    serverConnection,
+    SIGNAL(newParticipantList(const QVariantList&)),
+    this,
+    SLOT(onNewParticipantList(const QVariantList&)));
+
 }
 
 void DataStore::setupDB(){
@@ -234,10 +247,12 @@ void DataStore::setupDB(){
 }
 
 void DataStore::startPlaylistAutoRefresh(){
+  Logger::instance()->log("Starting playlist auto refresh");
   activePlaylistRefreshTimer->start();
 }
 
 void DataStore::startParticipantsAutoRefresh(){
+  Logger::instance()->log("Starting particpants auto refresh");
   participantRefreshTimer->start();
 }
 
@@ -984,7 +999,7 @@ void DataStore::refreshActivePlaylist(){
 }
 
 void DataStore::refreshParticipantList(){
-  //
+  serverConnection->getParticipantList();
 }
 
 
@@ -1041,6 +1056,10 @@ void DataStore::onSetVolumeFailed(
   else{
     emit setVolumeError(errMessage);
   }
+}
+
+void DataStore::onNewParticipantList(const QVariantList& newParticipants){
+  emit newParticipantList(newParticipants);
 }
 
 

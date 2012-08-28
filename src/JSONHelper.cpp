@@ -167,6 +167,20 @@ QVariantMap JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
   return activePlaylist;
 }
 
+QVariantList JSONHelper::getParticipantListFromJSON(QNetworkReply *reply){
+  QByteArray responseData = reply->readAll();
+  QString responseString = QString::fromUtf8(responseData);
+  bool success;
+  QVariantList participantsList = 
+    QtJson::Json::parse(responseString, success).toList();
+  if(!success){
+    std::cerr << "Error parsing json from a response to an get Participants List request" <<
+     std::endl <<
+      responseString.toStdString() << std::endl;
+  }
+  return participantsList;
+}
+
 QByteArray JSONHelper::getJSONLibIds(const QSet<library_song_id_t>& libIds){
   bool success;
   QVariantList idList;
