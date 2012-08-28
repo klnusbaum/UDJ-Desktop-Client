@@ -9,3 +9,5 @@ Upgrade client to work with new API
 Fixed numerous playback errors
 Fixed numerous reauthentication errors
 
+Version 0.6.1
+Added view of current participants
