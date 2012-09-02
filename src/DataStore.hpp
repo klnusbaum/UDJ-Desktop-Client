@@ -251,18 +251,9 @@ public:
    * @return True if the player has a password, false otherwise.
    */
   inline bool hasPlayerPassword() const{
-    return getPlayerPassword() != "";
-  }
-
-  /**
-   * \brief Retreives the password for the player.
-   *
-   * @return The password for the player, if none is set a blank string is returned.
-   */
-  inline QString getPlayerPassword() const{
     QSettings settings(
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-    return settings.value(getPlayerPasswordSettingName()).toString();
+    return settings.value(getHasPlayerPasswordSettingName(), false).toBool();
   }
 
   /**
@@ -798,13 +789,13 @@ public:
   }
 
   /**
-   * \brief Name of the setting used to store the password being used for the player.
+   * \brief Name of the setting used to store whether or not the player has a password.
    *
-   * @return Name of the setting used to store the password being used for the player.
+   * @return Name of the setting used to store whether or not the player has a password.
    */
-  static const QString& getPlayerPasswordSettingName(){
-    static const QString playerPasswordSettingName = "playerPassword";
-    return playerPasswordSettingName;
+  static const QString& getHasPlayerPasswordSettingName(){
+    static const QString hasPlayerPasswordSettingName = "hasPlayerPassword";
+    return hasPlayerPasswordSettingName;
   }
 
   /**
@@ -1186,6 +1177,12 @@ private:
   /** \brief A set of actions to be performed once the client has succesfully reauthenticated. */
   QSet<ReauthAction> reauthActions;
 
+  /** 
+   * \brief If there is an auth error during the setting of a player password, this is the password that
+   * should be set on the player after the reauth is complete.
+   */
+  QString reauthPlayerPassword;
+
   /** \brief Whether or not the client is currently reauthenticating. */
   bool isReauthing;
 
@@ -1505,11 +1502,13 @@ private slots:
   /**
    * \brief Preforms appropriate tasks when there was an error setting the player's location.
    *
+   * \param attemptedPassword The password that was attempted to be set on the server.
    * \param errMessage A message describing the error.
    * \param errorCode HTTP error code describing error.
    * \param headers HTTP headers accompianing in the error response.
    */
   void onPlayerPasswordSetError(
+    const QString& attemptedPassword,
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

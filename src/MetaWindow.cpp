@@ -417,7 +417,7 @@ void MetaWindow::onPlayerPasswordRemoveError(const QString& /*errMessage*/){
 void MetaWindow::setPlayerPassword(){
   bool ok;
   QString newPlayerPassword = QInputDialog::getText(this, tr("Set Player Password"),
-    tr("Password:"), QLineEdit::Normal, dataStore->getPlayerPassword(), &ok);
+    tr("Password:"), QLineEdit::Normal, tr("New Password"), &ok);
   if(ok){
     if(newPlayerPassword != ""){
       dataStore->setPlayerPassword(newPlayerPassword);

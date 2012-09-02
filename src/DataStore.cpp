@@ -81,9 +81,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(playerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    SIGNAL(playerPasswordSetError(const QString&, const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
-    SLOT(onPlayerPasswordSetError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+    SLOT(onPlayerPasswordSetError(const QString&, const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -324,7 +324,7 @@ void DataStore::onPlayerStateSetError(
 
 void DataStore::removePlayerPassword(){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.remove(getPlayerPasswordSettingName());
+  settings.setValue(getHasPlayerPasswordSettingName(), false);
   serverConnection->removePlayerPassword();
   emit playerPasswordRemoved();
 }
@@ -347,12 +347,13 @@ void DataStore::onPlayerPasswordRemoveError(
 
 void DataStore::setPlayerPassword(const QString& newPassword){
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
-  settings.setValue(getPlayerPasswordSettingName(), newPassword);
+  settings.setValue(getHasPlayerPasswordSettingName(), true);
   serverConnection->setPlayerPassword(newPassword);
   emit playerPasswordSet();
 }
 
 void DataStore::onPlayerPasswordSetError(
+  const QString& attemptedPassword,
   const QString& errMessage,
   int errorCode,
   const QList<QNetworkReply::RawHeaderPair>& headers)
@@ -360,6 +361,7 @@ void DataStore::onPlayerPasswordSetError(
   if(isTicketAuthError(errorCode, headers)){
     Logger::instance()->log("Got the ticket-hash challenge");
     reauthActions.insert(SET_PLAYER_PASSWORD);
+    reauthPlayerPassword = attemptedPassword;
     initReauth();
   }
   else{
@@ -694,7 +696,7 @@ void DataStore::createNewPlayer(
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
-  settings.setValue(getPlayerPasswordSettingName(), password);
+  settings.setValue(getHasPlayerPasswordSettingName(), true);
   serverConnection->createPlayer(name, password);
 }
 
@@ -708,7 +710,7 @@ void DataStore::createNewPlayer(
 {
   QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
   settings.setValue(getPlayerNameSettingName(), name);
-  settings.setValue(getPlayerPasswordSettingName(), password);
+  settings.setValue(getHasPlayerPasswordSettingName(), true);
   settings.setValue(getAddressSettingName(), streetAddress);
   settings.setValue(getCitySettingName(), city);
   settings.setValue(getStateSettingName(), state);
@@ -1113,8 +1115,8 @@ void DataStore::doReauthAction(const ReauthAction& action){
         settings.value(getZipCodeSettingName()).toString());
       break;
     case SET_PLAYER_PASSWORD:
-      serverConnection->setPlayerPassword(
-        settings.value(getPlayerPasswordSettingName()).toString());
+      serverConnection->setPlayerPassword(reauthPlayerPassword);
+      reauthPlayerPassword="";
       break;
     case REMOVE_PLAYER_PASSWORD:
       serverConnection->removePlayerPassword();

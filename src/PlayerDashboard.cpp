@@ -66,9 +66,9 @@ void PlayerDashboard::setupUi(){
 
 void PlayerDashboard::setPlayerInfo(){
   nameLabel->setText(tr("Player Name: ") + dataStore->getPlayerName());
-  passwordLabel->setText(tr("Password: No Password"));
+  passwordLabel->setText(tr("No Password Set"));
   if(dataStore->hasPlayerPassword()){
-    passwordLabel->setText(tr("Password: ") + dataStore->getPlayerPassword());
+    passwordLabel->setText(tr("Password Set"));
   }
   locationLabel->setText(tr("Location: Not Set"));
   if(dataStore->hasLocation()){

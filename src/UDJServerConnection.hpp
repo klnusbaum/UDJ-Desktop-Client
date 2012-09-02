@@ -262,11 +262,13 @@ signals:
   /**
    * \brief Emitted when there was an error setting the player's password.
    *
+   * @param attemptedPassword The password that was attempted to be set on the player.
    * @param errMessage A message describing the error.
    * @param errorCode The http status code that describes the error.
    * @param headers The headers from the http response that indicated a failure.
    */
   void playerPasswordSetError(
+    const QString& attemptedPassword,
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);

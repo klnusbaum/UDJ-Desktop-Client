@@ -361,6 +361,7 @@ void UDJServerConnection::handlePlayerPasswordSetReply(QNetworkReply *reply){
     QString responseData = QString(reply->readAll());
     Logger::instance()->log("Set player password error " + responseData);
     emit playerPasswordSetError(
+      reply->property(getPlayerPasswordPropertyName()).toString(),
       responseData,
       reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
       reply->rawHeaderPairs());

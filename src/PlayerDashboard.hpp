@@ -70,7 +70,7 @@ private:
   /** \brief Lable for player name */
   QLabel *nameLabel;
 
-  /** \brief Label for player password */
+  /** \brief Label for player password state */
   QLabel *passwordLabel;
 
   /** \brief Label for player location */
