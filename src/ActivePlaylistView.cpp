@@ -102,16 +102,17 @@ void ActivePlaylistView::handleContextMenuRequest(const QPoint& /*pos*/){
   contextMenu.addAction(removeSongAction);
   QAction *selected = contextMenu.exec(QCursor::pos());
   if(selected==NULL){
-    selectionModel()->clear();
+    selectionModel()->clearSelection();
   }
 }
 
 void ActivePlaylistView::removeSongs(){
-  dataStore->removeSongsFromActivePlaylist(
+  QSet<library_song_id_t> toRemove = 
     Utils::getSelectedIds<library_song_id_t>(
       this,
       model,
-      DataStore::getActivePlaylistLibIdColName()));
+      DataStore::getActivePlaylistLibIdColName());
+  dataStore->removeSongsFromActivePlaylist(toRemove);
   selectionModel()->clearSelection();
 }
 
@@ -139,10 +140,6 @@ void ActivePlaylistView::focusOutEvent(QFocusEvent *event){
   if(event->reason() != Qt::PopupFocusReason){
     selectionModel()->clearSelection();
   }
-}
-
-void ActivePlaylistView::focusInEvent(QFocusEvent* /*event*/){
-  selectionModel()->clearSelection();
 }
 
 

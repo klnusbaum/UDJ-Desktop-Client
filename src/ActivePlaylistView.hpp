@@ -56,9 +56,6 @@ protected:
   /** \brief .  */
   void focusOutEvent(QFocusEvent *event);
 
-  /** \brief .  */
-  void focusInEvent(QFocusEvent *event);
-
   //@}
 
 private:
