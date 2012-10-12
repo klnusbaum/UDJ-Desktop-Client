@@ -25,6 +25,7 @@
 class QLabel;
 class QLineEdit;
 class QCheckBox;
+class QNetworkReply;
 
 namespace UDJ{
 
@@ -106,6 +107,10 @@ private:
   /** \brief Password label */
   QLabel *passwordLabel;
 
+  QByteArray ticketHash;
+
+  user_id_t userId;
+
 
   //@}
 
@@ -135,8 +140,18 @@ private slots:
    * the UDJ server failed.
    *
    * @param errorMessage The error message describing the failure.
+   * @param errorCode HTTP error code describing error.
+   * @param headers HTTP headers accompianing in the error response.
    */
-  void displayLoginFailedMessage(const QString errorMessage);
+  void displayLoginFailedMessage(
+      const QString& errorMessage,
+      int errorCode,
+      const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  void onAuthFail(
+      const QString& errorMessage,
+      int errorCode,
+      const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Takes appropriate action when the user clicks on the savePassword check box.

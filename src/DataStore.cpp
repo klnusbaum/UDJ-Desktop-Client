@@ -183,9 +183,9 @@ DataStore::DataStore(
 
   connect(
     serverConnection,
-    SIGNAL(authFailed(const QString&)),
+    SIGNAL(authFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
-    SLOT(onAuthFail(const QString&)));
+    SLOT(onAuthFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
   connect(
     serverConnection,
@@ -1127,7 +1127,11 @@ void DataStore::doReauthAction(const ReauthAction& action){
   }
 }
 
-void DataStore::onAuthFail(const QString& /*errMessage*/){
+void DataStore::onAuthFail(
+  const QString& /*errMessage*/,
+  int /*errorCode*/,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
   Logger::instance()->log("BAD STUFF, BAD AUTH CREDS, BAD REAUTH");
   setPasswordDirty();
   emit hardAuthFailure();

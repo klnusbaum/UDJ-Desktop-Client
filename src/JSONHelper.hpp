@@ -195,6 +195,8 @@ public:
    */
   static QVariantList getParticipantListFromJSON(QNetworkReply *reply);
 
+  static QVariantList generalListParse(QNetworkReply *reply, const QString& errorMsg);
+
   /**
    * \brief Gets the auth data from a server authentication reply.
    *

@@ -75,6 +75,7 @@ public:
     const QString& password,
     const QByteArray& ticketHash,
     const user_id_t& userId,
+    const QVariantList& sortingAlgos,
     QWidget *parent=0, 
     Qt::WindowFlags flags=0);
 
@@ -281,6 +282,8 @@ private:
 
   /** \brief ParticipantsView used to display player participants. */
   ParticipantsView *participantsView;
+
+  QVariantList sortingAlgos;
 
   /** \brief A flag indicating whether or not the client is in the process of quitting. */
   bool isQuiting;

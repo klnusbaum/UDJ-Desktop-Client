@@ -62,6 +62,11 @@ void UDJServerConnection::authenticate(
   Logger::instance()->log("Doing auth request");
 }
 
+void UDJServerConnection::getSortingAlgorithms(){
+  QNetworkRequest sortingAlgoRequest(getAlgorithmUrl());
+  netAccessManager->get(sortingAlgoRequest);
+}
+
 void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
    const QVariantList& songsToDelete)
 {
@@ -223,6 +228,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   if(reply->request().url().path() == getAuthUrl().path()){
     handleAuthReply(reply);
   }
+  else if(reply->request().url().path() == getAlgorithmUrl().path()){
+    handleAlgoReply(reply);
+  }
   else if(reply->request().url().path() == getPlayerStateUrl().path()){
     handleSetStateReply(reply);
   }
@@ -278,10 +286,10 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
     emit authenticated(authReplyJSON["ticket_hash"].toByteArray(), authReplyJSON["user_id"].value<user_id_t>());
   }
   else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 401){
-    emit authFailed(tr("Incorrect Username and password"));
+    emit authFailed(tr("Incorrect Username and password"), 401, reply->rawHeaderPairs());
   }
   else if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 501){
-    emit authFailed(tr("Your version of the UDJ player is out of date. Please check www.udjplayer.com for an update."));
+    emit authFailed(tr("Your version of the UDJ player is out of date. Please check www.udjplayer.com for an update."), 501, reply->rawHeaderPairs());
   }
   else{
     QByteArray responseData = reply->readAll();
@@ -289,8 +297,26 @@ void UDJServerConnection::handleAuthReply(QNetworkReply* reply){
     Logger::instance()->log(responseString);
     emit authFailed(
       tr("We're experiencing some techinical difficulties. "
-      "We'll be back in a bit"));
+      "We'll be back in a bit"),
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs()
+    );
   }
+}
+
+void UDJServerConnection::handleAlgoReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit gotSortingAlgorithms(JSONHelper::getSortingAlgosFromJSON(reply));
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Clear current song failed " + responseData);
+    emit getSortingAlgorithmsError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+
 }
 
 void UDJServerConnection::handleRecievedClearCurrentSong(QNetworkReply *reply){

@@ -1634,8 +1634,13 @@ private slots:
    * \brief Takes appropriate action when reauthentication fails.
    *
    * \param errMessage Error message given by the server.
+   * \param errorCode The http status code that describes the error.
+   * \param headers The headers from the http response that indicated a failure.
    */
-  void onAuthFail(const QString& errMessage);
+  void onAuthFail(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Takes appropriate action when the active playlist is succesfully modified on the server.

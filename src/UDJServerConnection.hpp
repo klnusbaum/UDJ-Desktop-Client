@@ -232,7 +232,14 @@ signals:
    *
    * @param errMessage A message describing the error.
    */
-  void authFailed(const QString errMessage);
+  void authFailed(const QString& errMessage);
+
+  void gotSortingAlgorithms(const QVariantList& sortingAlgorithms);
+
+  void getSortingAlgorithmsError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   /**
    * \brief Emitted when the player's password is succesfully removed.
@@ -250,6 +257,8 @@ signals:
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
+
+
 
 
   /**
@@ -530,6 +539,14 @@ private:
    * @param reply Response from the server.
    */
   void handleAuthReply(QNetworkReply* reply);
+
+  /**
+   * \brief Handle a response from the server regarding getting the sorting algorithm.
+   *
+   * @param reply Response from the server.
+   */
+  void handleAlgoReply(QNetworkReply* reply);
+
 
   /**
    * \brief Handles a state set reply.

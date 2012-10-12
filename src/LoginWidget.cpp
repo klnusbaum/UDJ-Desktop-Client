@@ -26,9 +26,8 @@
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QCheckBox>
-#include <QCheckBox>
+#include <QNetworkReply>
 #include "DataStore.hpp"
-
 
 
 namespace UDJ{
@@ -43,12 +42,33 @@ LoginWidget::LoginWidget(QWidget *parent)
     serverConnection,
     SIGNAL(authenticated(const QByteArray&, const user_id_t&)),
     this,
-    SLOT(startMainGUI(const QByteArray&, const user_id_t&)));
+    SLOT(onSuccessfulAuth(const QByteArray&, const user_id_t&)));
+
+  connect(
+      serverConnection,
+      SIGNAL(gotSortingAlgorithms(const QVariantList&)),
+      this,
+      SLOT(onGotSortingAlgorithms(const QVariantList&)));
+
+
+
   connect(
     serverConnection,
-    SIGNAL(authFailed(const QString)),
+    SIGNAL(authFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
     this,
-    SLOT(displayLoginFailedMessage(const QString)));
+    SLOT(onAuthFail(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(authFailed(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(displayLoginFailedMessage(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
+  connect(
+    serverConnection,
+    SIGNAL(getSortingAlgorithmsError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(displayLoginFailedMessage(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 }
 
 void LoginWidget::setupUi(){
@@ -125,8 +145,22 @@ void LoginWidget::doLogin(){
   serverConnection->authenticate(usernameBox->text(), passwordBox->text());
 }
 
-void LoginWidget::startMainGUI(
+void LoginWidget::onSuccessfulAuth(
   const QByteArray& ticketHash, const user_id_t& userId)
+{
+  this->ticketHash = ticketHash;
+  this->userId = userId;
+  serverConnection->setTicket(ticketHash);
+  serverConnection->getSortingAlgorithms();
+
+}
+
+void LoginWidget::gotSortingAlgorithms(const QVariantList& sortingAlgorithms){
+  this->sortingAlgorithms = sortingAlgorithms;
+  startMainGUI();
+}
+
+void LoginWidget::startMainGUI()
 {
   if(savePassword->isChecked()){
     DataStore::savePassword(passwordBox->text());
@@ -137,15 +171,28 @@ void LoginWidget::startMainGUI(
   MetaWindow *metaWindow = new MetaWindow(
     usernameBox->text(),
     passwordBox->text(),
-    ticketHash, 
-    userId);
+    this->ticketHash,
+    this->userId,
+    this->sortingAlgorithms);
   metaWindow->show();
   emit startedMainGUI();
 }
 
-void LoginWidget::displayLoginFailedMessage(const QString errorMessage){
-  emit loginFailed();
+void LoginWidget::onAuthFail(
+  const QString& /*errorMessage*/,
+  int /*errorCode*/,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
   DataStore::setPasswordDirty();
+}
+
+
+void LoginWidget::displayLoginFailedMessage(
+  const QString& errorMessage,
+  int /*errorCode*/,
+  const QList<QNetworkReply::RawHeaderPair>& /*headers*/)
+{
+  emit loginFailed();
   showMainWidget();
   setCurrentWidget(loginDisplay);
   QMessageBox::critical(
