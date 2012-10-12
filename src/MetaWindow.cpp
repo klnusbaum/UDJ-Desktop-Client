@@ -397,9 +397,13 @@ void MetaWindow::configurePlayerMenu(){
   playerMenu->addAction(removePasswordAction);
   removePasswordAction->setEnabled(dataStore->hasPlayerPassword());
 
+  changeSortingAction = new QAction(tr("Change Playlist Sorting"), this);
+  playerMenu->addAction(changeSortingAction);
+
   connect(setLocationAction, SIGNAL(triggered()), this, SLOT(setPlayerLocation()));
   connect(setPasswordAction, SIGNAL(triggered()), this, SLOT(setPlayerPassword()));
   connect(removePasswordAction, SIGNAL(triggered()), this, SLOT(removePlayerPassword()));
+  connect(changeSortingAction, SIGNAL(triggered()), this, SLOT(changePlaylistSorting()));
 }
 
 void MetaWindow::removePlayerPassword(){
@@ -427,6 +431,19 @@ void MetaWindow::setPlayerPassword(){
     else{
       QMessageBox::critical(this, "Player Password Error", "Player passwords can't be blank.");
     }
+  }
+}
+
+void MetaWindow::changePlaylistSorting(){
+  QStringList options;
+  for(int i=0; i<sortingAlgos.size(); i++){
+    options.append(sortingAlgos.at(i).toMap()["name"].toString());
+  }
+  bool ok;
+  QString algoChosen = QInputDialog::getItem(this, tr("Playlist Sorting"), tr("Sort Playlist by: "),
+    options, 0, false, &ok);
+  if(ok){
+    QMessageBox::information(this, "Algo Chosen", algoChosen);
   }
 }
 

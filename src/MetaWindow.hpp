@@ -107,6 +107,8 @@ private slots:
    */
   void onPlayerLocationSetError(const QString& errMessage);
 
+  void changePlaylistSorting();
+
   /** \brief Shows the logger view. */
   void displayLogView();
 
@@ -232,6 +234,9 @@ private:
 
   /** \brief Triggers the setting of the player location.  */
   QAction *setLocationAction;
+
+  /** \brief Triggers the setting of the playlist sorting algorithm. */
+  QAction *changeSortingAction;
 
   /** \brief Triggers rescanning of the iTunes Library. */
   QAction *rescanItunesAction;
