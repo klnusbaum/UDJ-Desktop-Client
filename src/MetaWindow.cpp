@@ -59,10 +59,9 @@ MetaWindow::MetaWindow(
   QWidget *parent,
   Qt::WindowFlags flags)
   :QMainWindow(parent,flags),
-  sortingAlgo(sortingAlgos),
+  sortingAlgos(sortingAlgos),
   isQuiting(false),
-  hasHardAuthFailure(false),
-
+  hasHardAuthFailure(false)
 {
   dataStore = new DataStore(username, password, ticketHash, userId, this);
   #if IS_WINDOWS_BUILD

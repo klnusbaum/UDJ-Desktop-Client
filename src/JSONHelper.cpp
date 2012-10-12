@@ -168,7 +168,7 @@ QVariantMap JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
 }
 
 QVariantList JSONHelper::getParticipantListFromJSON(QNetworkReply *reply){
-  return generalListParse("Error parsing json from a response to an get Participants List request");
+  return generalListParse(reply, "Error parsing json from a response to an get Participants List request");
 }
 
 QVariantList JSONHelper::getSortingAlgosFromJSON(QNetworkReply *reply){
@@ -182,7 +182,7 @@ QVariantList JSONHelper::generalListParse(QNetworkReply *reply, const QString& e
   QVariantList listToReturn = 
     QtJson::Json::parse(responseString, success).toList();
   if(!success){
-    std::cerr << errorMsg <<
+    std::cerr << errorMsg.toStdString() <<
      std::endl << responseString.toStdString() << std::endl;
   }
   return listToReturn;

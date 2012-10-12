@@ -63,7 +63,8 @@ void UDJServerConnection::authenticate(
 }
 
 void UDJServerConnection::getSortingAlgorithms(){
-  QNetworkRequest sortingAlgoRequest(getAlgorithmUrl());
+  QNetworkRequest sortingAlgoRequest(getSortingAlgosUrl());
+  sortingAlgoRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
   netAccessManager->get(sortingAlgoRequest);
 }
 
@@ -228,7 +229,7 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   if(reply->request().url().path() == getAuthUrl().path()){
     handleAuthReply(reply);
   }
-  else if(reply->request().url().path() == getAlgorithmUrl().path()){
+  else if(reply->request().url().path() == getSortingAlgosUrl().path()){
     handleAlgoReply(reply);
   }
   else if(reply->request().url().path() == getPlayerStateUrl().path()){
@@ -554,6 +555,9 @@ QUrl UDJServerConnection::getParticipantsUrl() const{
   return QUrl(getServerUrlPath()+ "players/"+QString::number(playerId)+"/users");
 }
 
+QUrl UDJServerConnection::getSortingAlgosUrl() const{
+  return QUrl(getServerUrlPath()+ "sorting_algorithms");
+}
 
 
 bool UDJServerConnection::isResponseType(QNetworkReply *reply, int code){

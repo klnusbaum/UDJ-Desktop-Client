@@ -21,11 +21,11 @@
 
 #include "WidgetWithLoader.hpp"
 #include "ConfigDefs.hpp"
+#include <QNetworkReply>
 
 class QLabel;
 class QLineEdit;
 class QCheckBox;
-class QNetworkReply;
 
 namespace UDJ{
 
@@ -111,6 +111,8 @@ private:
 
   user_id_t userId;
 
+  QVariantList sortingAlgorithms;
+
 
   //@}
 
@@ -126,14 +128,22 @@ private slots:
   /** @name Private Slots */
   //@{
 
-  /** 
-   * \brief Once the user has succesfully authenitcated, this starts up the
-   * main gui for udj.
+  /**
+   * \brief Preforms the appropriate actions when a successful authentication occurs.
    *
    * \param ticketHash Ticket hash recieved from the server upon succesfully authentication.
    * \param userId User id recieved from the server upon succesfully authentication.
    */
-  void startMainGUI(const QByteArray& ticketHash, const user_id_t& userId);
+  void onSuccessfulAuth(
+    const QByteArray& ticketHash, const user_id_t& userId);
+
+  void onGotSortingAlgorithms(const QVariantList& sortingAlgorithms);
+
+
+  /**
+   * \brief Performs the appropriate actions needed to start up the main gui.
+   */
+  void startMainGUI();
 
   /**
    * \brief Displays a message informing the user that the attempt to login to

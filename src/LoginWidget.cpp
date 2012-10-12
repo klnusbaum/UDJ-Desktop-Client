@@ -26,7 +26,6 @@
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QCheckBox>
-#include <QNetworkReply>
 #include "DataStore.hpp"
 
 
@@ -155,7 +154,7 @@ void LoginWidget::onSuccessfulAuth(
 
 }
 
-void LoginWidget::gotSortingAlgorithms(const QVariantList& sortingAlgorithms){
+void LoginWidget::onGotSortingAlgorithms(const QVariantList& sortingAlgorithms){
   this->sortingAlgorithms = sortingAlgorithms;
   startMainGUI();
 }

@@ -211,6 +211,8 @@ public slots:
    */
   void getParticipantList();
 
+  void getSortingAlgorithms();
+
   //@}
 
 signals:
@@ -231,8 +233,13 @@ signals:
    * server.
    *
    * @param errMessage A message describing the error.
+   * @param errorCode The http status code that describes the error.
+   * @param headers The headers from the http response that indicated a failure.
    */
-  void authFailed(const QString& errMessage);
+  void authFailed(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   void gotSortingAlgorithms(const QVariantList& sortingAlgorithms);
 
@@ -662,6 +669,8 @@ private:
    * \return The url used for accessing the player's password.
    */
   QUrl getPlayerPasswordUrl() const;
+
+  QUrl getSortingAlgosUrl() const;
 
   /**
    * \brief Gets the url used for accessing the player's location.
