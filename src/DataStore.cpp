@@ -132,6 +132,11 @@ DataStore::DataStore(
     this,
     SLOT(refreshActivePlaylist()));
 
+  connect(serverConnection,
+    SIGNAL(playlistSortingAlgorithmSet()),
+    this,
+    SLOT(refreshActivePlaylist()));
+
   connect(
     serverConnection,
     SIGNAL(currentSongSet()),
