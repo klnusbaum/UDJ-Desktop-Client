@@ -143,6 +143,11 @@ MetaWindow::MetaWindow(
     SIGNAL(playerPasswordRemoveError(const QString&)),
     this,
     SLOT(onPlayerPasswordRemoveError(const QString&)));
+  connect(
+    dataStore,
+    SIGNAL(setPlaylistSortingAlgorithmError(const QString&)),
+    this,
+    SLOT(onSetPlaylistSortingAlgorithmError(const QString&)));
 }
 
 void MetaWindow::closeEvent(QCloseEvent *event){
@@ -435,6 +440,7 @@ void MetaWindow::setPlayerPassword(){
 }
 
 void MetaWindow::changePlaylistSorting(){
+  //God this is ugly...
   QStringList options;
   for(int i=0; i<sortingAlgos.size(); i++){
     options.append(sortingAlgos.at(i).toMap()["name"].toString());
@@ -443,7 +449,11 @@ void MetaWindow::changePlaylistSorting(){
   QString algoChosen = QInputDialog::getItem(this, tr("Playlist Sorting"), tr("Sort Playlist by: "),
     options, 0, false, &ok);
   if(ok){
-    QMessageBox::information(this, "Algo Chosen", algoChosen);
+    for(int i=0; i<sortingAlgos.size(); i++){
+      if(sortingAlgos.at(i).toMap()["name"].toString() == algoChosen){
+        dataStore->setPlaylistSortingAlgorithm(algoChosen, sortingAlgos.at(i).toMap()["id"].toString());
+      }
+    }
   }
 }
 
@@ -551,6 +561,11 @@ void MetaWindow::onPlayerLocationSetError(const QString& errMessage){
   QMessageBox::critical(this, tr("Error Setting Location"), errMessage);
   setPlayerLocation();
 }
+
+void MetaWindow::onSetPlaylistSortingAlgorithmError(const QString& errMessage){
+  QMessageBox::critical(this, tr("Error setting playlist sorting"), errMessage);
+}
+
 
 
 } //end namespace

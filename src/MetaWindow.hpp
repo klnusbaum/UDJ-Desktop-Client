@@ -109,6 +109,8 @@ private slots:
 
   void changePlaylistSorting();
 
+  void onSetPlaylistSortingAlgorithmError(const QString& errMessage);
+
   /** \brief Shows the logger view. */
   void displayLogView();
 

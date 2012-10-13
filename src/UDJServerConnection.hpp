@@ -213,6 +213,8 @@ public slots:
 
   void getSortingAlgorithms();
 
+  void setPlaylistSortingAlgorithm(const QString& id);
+
   //@}
 
 signals:
@@ -244,6 +246,13 @@ signals:
   void gotSortingAlgorithms(const QVariantList& sortingAlgorithms);
 
   void getSortingAlgorithmsError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
+
+  void playlistSortingAlgorithmSet();
+
+  void setPlaylistSortingAlgorithmError(
     const QString& errMessage,
     int errorCode,
     const QList<QNetworkReply::RawHeaderPair>& headers);
@@ -556,6 +565,14 @@ private:
 
 
   /**
+   * \brief Handle a response from the server regarding setting the sorting algorithm for a player.
+   *
+   * @param reply Response from the server.
+   */
+  void handleSetAlgoReply(QNetworkReply* reply);
+
+
+  /**
    * \brief Handles a state set reply.
    *
    * \param the response from the server.
@@ -671,6 +688,8 @@ private:
   QUrl getPlayerPasswordUrl() const;
 
   QUrl getSortingAlgosUrl() const;
+
+  QUrl getPlayerSortingAlgoUrl() const;
 
   /**
    * \brief Gets the url used for accessing the player's location.

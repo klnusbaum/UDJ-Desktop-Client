@@ -199,6 +199,12 @@ DataStore::DataStore(
     this,
     SLOT(onCurrentSongClearError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
 
+  connect(
+    serverConnection,
+    SIGNAL(setPlaylistSortingAlgorithmError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)),
+    this,
+    SLOT(onSetPlaylistSortingAlgorithmError(const QString&, int, const QList<QNetworkReply::RawHeaderPair>&)));
+
 
   connect(
     serverConnection,
@@ -419,6 +425,13 @@ void DataStore::setPlayerState(const QString& newState){
 
 void DataStore::setPlayerInactive(){
   serverConnection->setPlayerState(getInactiveState());
+}
+
+void DataStore::setPlaylistSortingAlgorithm(const QString& name, const QString& id){
+  QSettings settings(QSettings::UserScope, getSettingsOrg(), getSettingsApp());
+  settings.setValue(getSortingAlgoNameSettingName(), name);
+  settings.setValue(getSortingAlgoIdSettingName(), id);
+  serverConnection->setPlaylistSortingAlgorithm(id);
 }
 
 
@@ -1065,6 +1078,21 @@ void DataStore::onNewParticipantList(const QVariantList& newParticipants){
 }
 
 
+void DataStore::onSetPlaylistSortingAlgorithmError(
+  const QString& errMessage, int errorCode, const QList<QNetworkReply::RawHeaderPair>& headers)
+{
+  Logger::instance()->log("Setting algorithm failed " + 
+    QString::number(errorCode) + " " + errMessage);
+  if(isTicketAuthError(errorCode, headers)){
+    Logger::instance()->log("Got the ticket-hash challenge");
+    reauthActions.insert(SET_SORTING_ALGORITHM);
+    initReauth();
+  }
+  else{
+    emit setPlaylistSortingAlgorithmError(errMessage);
+  }
+}
+
 
 
 
@@ -1123,6 +1151,11 @@ void DataStore::doReauthAction(const ReauthAction& action){
       break;
     case CLEAR_CURRENT_SONG:
       serverConnection->clearCurrentSong();
+      break;
+    case SET_SORTING_ALGORITHM:
+      serverConnection->setPlaylistSortingAlgorithm(
+        settings.value(getSortingAlgoIdSettingName()).toString()
+      );
       break;
   }
 }

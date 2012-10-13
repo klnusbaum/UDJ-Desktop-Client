@@ -68,6 +68,15 @@ void UDJServerConnection::getSortingAlgorithms(){
   netAccessManager->get(sortingAlgoRequest);
 }
 
+void UDJServerConnection::setPlaylistSortingAlgorithm(const QString& id){
+  QNetworkRequest sortingAlgoRequest(getPlayerSortingAlgoUrl());
+  sortingAlgoRequest.setRawHeader(getTicketHeaderName(), ticket_hash);
+  QUrl params;
+  params.addQueryItem("sorting_algorithm_id", id);
+  QByteArray payload = params.encodedQuery();
+  /*QNetworkReply *reply =*/ netAccessManager->post(sortingAlgoRequest, payload);
+}
+
 void UDJServerConnection::modLibContents(const QVariantList& songsToAdd,
    const QVariantList& songsToDelete)
 {
@@ -232,6 +241,9 @@ void UDJServerConnection::recievedReply(QNetworkReply *reply){
   else if(reply->request().url().path() == getSortingAlgosUrl().path()){
     handleAlgoReply(reply);
   }
+  else if(reply->request().url().path() == getPlayerSortingAlgoUrl().path()){
+    handleSetAlgoReply(reply);
+  }
   else if(reply->request().url().path() == getPlayerStateUrl().path()){
     handleSetStateReply(reply);
   }
@@ -311,14 +323,28 @@ void UDJServerConnection::handleAlgoReply(QNetworkReply *reply){
   }
   else{
     QString responseData = QString(reply->readAll());
-    Logger::instance()->log("Clear current song failed " + responseData);
+    Logger::instance()->log("Getting sorting algorithms failed: " + responseData);
     emit getSortingAlgorithmsError(
       responseData,
       reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
       reply->rawHeaderPairs());
   }
-
 }
+
+void UDJServerConnection::handleSetAlgoReply(QNetworkReply *reply){
+  if(isResponseType(reply, 200)){
+    emit playlistSortingAlgorithmSet();
+  }
+  else{
+    QString responseData = QString(reply->readAll());
+    Logger::instance()->log("Setting sorting algorithm failed: " + responseData);
+    emit setPlaylistSortingAlgorithmError(
+      responseData,
+      reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+      reply->rawHeaderPairs());
+  }
+}
+
 
 void UDJServerConnection::handleRecievedClearCurrentSong(QNetworkReply *reply){
   if(isResponseType(reply, 200)){
@@ -557,6 +583,9 @@ QUrl UDJServerConnection::getParticipantsUrl() const{
 
 QUrl UDJServerConnection::getSortingAlgosUrl() const{
   return QUrl(getServerUrlPath()+ "sorting_algorithms");
+}
+QUrl UDJServerConnection::getPlayerSortingAlgoUrl() const{
+  return QUrl(getServerUrlPath()+ "players/" + QString::number(playerId) + "/sorting_algorithm");
 }
 
 

@@ -57,7 +57,8 @@ public:
     SET_PLAYER_LOCATION,
     SET_PLAYER_PASSWORD,
     REMOVE_PLAYER_PASSWORD,
-    CLEAR_CURRENT_SONG
+    CLEAR_CURRENT_SONG,
+    SET_SORTING_ALGORITHM
   };
 
   /**
@@ -165,10 +166,18 @@ public:
   void setPlayerInactive();
 
   /**
-   * \brief Removes the given songs from the music library. 
+   * \brief Sets the sorting algorithm used for sorting the playlist.
+   *
+   * \param name The name of the sorting algorithm.
+   * \param id The id of the sorting algorithm.
+   */
+  void setPlaylistSortingAlgorithm(const QString& name, const QString& id);
+
+  /**
+   * \brief Removes the given songs from the music library.
    *
    * @param toRemove A set of song ids to remove from the library.
-   * @param progress A progress dialog representing the progress of the 
+   * @param progress A progress dialog representing the progress of the
    * of removing the songs from the library.
    */
   void removeSongsFromLibrary(const QSet<library_song_id_t>& toRemove,
@@ -318,6 +327,8 @@ public:
       QSettings::UserScope, getSettingsOrg(), getSettingsApp());
     return settings.value(getZipCodeSettingName()).toInt();
   }
+
+
 
   /**
    * \brief Retrieves the next song should be played but does not
@@ -779,6 +790,27 @@ public:
   }
 
   /**
+   * \brief Gets the name of the Sorting Algorithm Name setting.
+   *
+   * @return The name of the Sorting Algorithm Name setting.
+   */
+  static const QString& getSortingAlgoNameSettingName(){
+    static const QString sortingAlgoSettingName = "playerSortingAlgoName";
+    return sortingAlgoSettingName;
+  }
+
+  /**
+   * \brief Gets the name of the Sorting Algorithm Id setting.
+   *
+   * @return The name of the Sorting Algorithm Id setting.
+   */
+  static const QString& getSortingAlgoIdSettingName(){
+    static const QString sortingAlgoSettingId = "playerSortingAlgoId";
+    return sortingAlgoSettingId;
+  }
+
+
+  /**
    * \brief Gets the name of the player state setting.
    *
    * @return The name of the player state setting.
@@ -1149,6 +1181,8 @@ signals:
    */
   void clearCurrentSongError(const QString& errMessage);
 
+  void setPlaylistSortingAlgorithmError(const QString& errMessage);
+
 //@}
 
 private:
@@ -1177,8 +1211,9 @@ private:
   /** \brief A set of actions to be performed once the client has succesfully reauthenticated. */
   QSet<ReauthAction> reauthActions;
 
-  /** 
-   * \brief If there is an auth error during the setting of a player password, this is the password that
+  /**
+   * \brief If there is an auth error during the setting of a player password, this is the
+   * password that
    * should be set on the player after the reauth is complete.
    */
   QString reauthPlayerPassword;
@@ -1258,7 +1293,7 @@ private:
    */
   void addSongToLibrary(const Phonon::MediaSource& song, QSqlQuery& addQuery);
 
-  
+
   /**
    * \brief Gets the value of a header.
    *
@@ -1683,6 +1718,10 @@ private slots:
    */
   void onNewParticipantList(const QVariantList& newParticipants);
 
+  void onSetPlaylistSortingAlgorithmError(
+    const QString& errMessage,
+    int errorCode,
+    const QList<QNetworkReply::RawHeaderPair>& headers);
 
   //@}
 
