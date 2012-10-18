@@ -2,6 +2,9 @@
 #  This file is part of UDJ. 
 #  It was inspired in large part by the macdeploy script in Clementine.
 #
+#  Copyright 2012, Kurtis L. Nusbaum <klnusbaum@bazaarsolutions.com>
+#  Copyright 2010, David Sansome <me@davidsansome.com>
+#
 #  Clementine is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
