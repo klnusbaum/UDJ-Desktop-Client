@@ -11,12 +11,18 @@ UDJ (so you can do something like creating your own client), see the [UDJ Server
 
 ### Requirements
 
-The UDJ Desktop Client requires a couple of external libraries and an external build tool called
+The UDJ Desktop Client requires a couple external libraries and an external build tool called
 CMake. That said, UDJ is cross-platform and can be built on Windows, Mac OSX, and most 
 distributions of Linux.
 
 1. CMake is the build system used by Desktop Client. Precompiled binaries for both OSX and
 Windows can be found on the [CMake Website][cmake]. Most linux distributions have CMake in their
+package repositories. It can also be built from source which is also located on the CMake website.
+
+2. Qt is the cross-platform GUI framework used by the UDJ Desktop Client. The SDK and libraries
+for all platforms can be downloaded from [Qt's website][qt]. Most linux distributions also
+have Qt in their package repository. Note that the Qt phonon library is also required.
+
 3. Taglib is used by the UDJ Desktop Client for identifying song information. The source
 can be downloaded from the [taglib website][taglib]. On OSX, taglib can easily be installed
 via [homebrew][brew]. On Linux, most distributions have the taglib library in their 
@@ -44,19 +50,6 @@ to
          set(executable_path ${ARGV1})
       endif()
 
-### Building on Ubuntu 12.04 LTS
-
-1. Enter the command "sudo apt-get update" into Terminal to update the repository on your machine.
-2. Enter the command "sudo apt-get install" with the following dependencies to build UDJ:
-	- cmake
-	- libqt4-dev
-	- libtag1-dev
-	- libphonon-dev
-	- phonon-backend-vlc
-	- build essentials
-3. In the /build folder, enter "make" into the Terminal to create a MakeFile
-4. Change into the /src folder and enter "./udj" to configure the UdJ Desktop Application
- 
 #### Note for building on Windows with CMake 2.8.8 and below
 There is a deficiency in the FindQt4.cmake module for CMake 2.8.8 and below
 that does not allow it to find the phonon_ds9 backend on windows. This can
