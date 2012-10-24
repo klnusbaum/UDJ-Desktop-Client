@@ -68,7 +68,18 @@ and change it to:
       SET( QT_PHONON_BACKEND_PLUGINS phonon_ds9 )
     ENDIF()
 
+### Building on Ubuntu 12.04 LTS
 
+1. Enter the command "sudo apt-get update" into Terminal to update the repository on your machine.
+2. Enter the command "sudo apt-get install" with the following dependencies to build UDJ:
+	- cmake
+	- libqt4-dev
+	- libtag1-dev
+	- liphonon-dev
+	- phonon-backend-vlc
+	- build essentials
+3. In the /build folder, enter "make" into the Terminal to create a MakeFile
+4. Change into the /src folder and enter "./udj" to run the UDJ Desktop Application
 
 ### Building
 CMake will generate different projects base on your host system. On OSX and Linux the default is 
