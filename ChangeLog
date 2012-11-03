@@ -11,3 +11,9 @@ Fixed numerous reauthentication errors
 
 Version 0.6.1
 Added view of current participants
+
+Version 0.6.2
+Fixed some linux things
+
+Version 0.6.3
+Fixed player creation
