@@ -150,7 +150,7 @@ player_id_t JSONHelper::getPlayerId(QNetworkReply *reply){
       responseString.toStdString() << std::endl;
   }
 
-  return playerCreated["player_id"].value<player_id_t>();
+  return playerCreated["id"].value<player_id_t>();
 }
 
 QVariantMap JSONHelper::getActivePlaylistFromJSON(QNetworkReply *reply){
