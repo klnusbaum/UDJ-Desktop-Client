@@ -97,8 +97,8 @@ UDJ is licensed under the [GPLv2][gpl].
 
 ## Questions/Comments?
 
-If you have any questions or comments, feel free to post them to
-the [UDJ mailing list][mailing].
+If you have any questions or comments, please join us in the 
+\#udj irc channel in irc.freenode.net
 
 [home]:https://www.udjplayer.com
 [server]:https://github.com/klnusbaum/UDJ-Server
@@ -108,7 +108,6 @@ the [UDJ mailing list][mailing].
 [qt]:http://qt.nokia.com/downloads
 [taglib]:http://developer.kde.org/~wheeler/taglib.html
 [brew]:http://mxcl.github.com/homebrew/
-[mailing]:mailto:udjdev@bazaarsolutions.com
 [deploypatch]:https://github.com/downloads/klnusbaum/UDJ-Desktop-Client/0001-DeployQt4-Set-executable_path-if-actually-passed.patch
 [findphononpatch]:https://github.com/downloads/klnusbaum/UDJ-Desktop-Client/0001-phonon-backend-tweak.patch
 [win-openssl]:http://www.openssl.org/related/binaries.html
