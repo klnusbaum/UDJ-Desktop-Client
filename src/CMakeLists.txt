@@ -109,9 +109,10 @@ endif()
 set(UDJ_EXTRA_LIBS "")
 if(WIN32)
   list(APPEND UDJ_EXTRA_LIBS  ${QTSPARKLE_LIBRARIES})
-elseif(APPLE)
-  find_library(SPARKLE Sparkle)
-  list(APPEND UDJ_EXTRA_LIBS ${SPARKLE})
+  #Commending this out for now since sparkle isn't working.
+  #elseif(APPLE)
+  #find_library(SPARKLE Sparkle)
+  #list(APPEND UDJ_EXTRA_LIBS ${SPARKLE})
 endif(WIN32)
 
 message(STATUS "EXTRA ${UDJ_EXTRA_LIBS}")
